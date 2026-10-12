@@ -1,0 +1,713 @@
+{
+  "announcements": [
+    {
+      "ref": "DFFD45EA-06FD-410F-A595-E2CB2DC5454E&flag=C&type=A&scrip_CD=512393",
+      "subject": "Shardul Securities Ltd - Letter Of Offer For Buy-Back Of Equity Shares Of The Company"
+    },
+    {
+      "ref": "2DA5D55D-0AFC-4B8B-B598-6191DB086619&flag=C&type=A&scrip_CD=512267",
+      "subject": "Media Matrix Worldwide Ltd -Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018"
+    },
+    {
+      "ref": "21416696-CE74-4A15-8F75-F2C225131958&flag=C&type=A&scrip_CD=500051",
+      "subject": "Bhagawati Gas Ltd -Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018"
+    },
+    {
+      "ref": "40369BCD-D411-4BC5-B2CF-F70F986FFEAD&flag=C&type=A&scrip_CD=533344",
+      "subject": "PTC India Financial Services Ltd -Announcement under Regulation 30 (LODR)-Change in Management"
+    },
+    {
+      "ref": "3246E54F-F2F2-4670-A040-BA8B6475AE2A&flag=C&type=A&scrip_CD=526025",
+      "subject": "Globus Constructors & Developers Ltd -Board Meeting Outcome for Submission Of Outcome Of The Board Meeting Held Today I.E. On 12Th October, 2026"
+    },
+    {
+      "ref": "CA1322CE-4B19-4FE7-9605-D1E907E832FF&flag=C&type=A&scrip_CD=532543",
+      "subject": "GP Petroleums Ltd -Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018"
+    },
+    {
+      "ref": "75835693-9B79-4D02-BCAA-132CCEB26909&flag=C&type=A&scrip_CD=500575",
+      "subject": "Voltas Ltd -Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018"
+    },
+    {
+      "ref": "84821D7C-88B6-4E47-AE22-0A2BF11FF245&flag=C&type=A&scrip_CD=526025",
+      "subject": "Globus Constructors & Developers Ltd -Board Meeting Outcome for Submission Of Outcome Of The Board Meeting Held Today I.E. On 12Th October, 2026"
+    }
+  ],
+  "breadth": {
+    "counted": 497,
+    "falling": 230,
+    "flat": 2,
+    "rising": 265,
+    "universe": 497
+  },
+  "broader": [
+    {
+      "close": 58834.55,
+      "label_key": "midcap100",
+      "ticker": "NSE:CNXMIDCAP",
+      "window": {
+        "Perf.1M": -5.087500524293324,
+        "Perf.3M": -6.395197138775124,
+        "Perf.6M": 0.6339809694529469,
+        "Perf.W": -0.28321241863574753,
+        "Perf.Y": 0.5707628889593559,
+        "change": 0.08037450265618594
+      }
+    },
+    {
+      "close": 19425.8,
+      "label_key": "smallcap100",
+      "ticker": "NSE:CNXSMALLCAP",
+      "window": {
+        "Perf.1M": -2.351264605864715,
+        "Perf.3M": 0.2986893295366755,
+        "Perf.6M": 13.843503129468582,
+        "Perf.W": 1.4145242588691676,
+        "Perf.Y": 7.692563559556932,
+        "change": 1.4206132496593271
+      }
+    }
+  ],
+  "corporate_actions": [
+    {
+      "amount": null,
+      "ex_date": "2026-10-12",
+      "kind": "bonus",
+      "symbol": "JOJO"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-13",
+      "kind": "consolidation",
+      "symbol": "CCAVENUE"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-13",
+      "kind": "rights",
+      "symbol": "OLAELEC"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-14",
+      "kind": "rights",
+      "symbol": "CONTICON"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-14",
+      "kind": "income_distribution",
+      "symbol": "ENERGYINF"
+    },
+    {
+      "amount": 12.0,
+      "ex_date": "2026-10-14",
+      "kind": "dividend",
+      "symbol": "TCS"
+    },
+    {
+      "amount": 5.0,
+      "ex_date": "2026-10-14",
+      "kind": "dividend",
+      "symbol": "VEDL"
+    },
+    {
+      "amount": 4.0,
+      "ex_date": "2026-10-15",
+      "kind": "dividend",
+      "symbol": "ANANDRATHI"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-15",
+      "kind": "split",
+      "symbol": "SAMOR"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-15",
+      "kind": "rights",
+      "symbol": "SHIVAMAUTO"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-15",
+      "kind": "rights",
+      "symbol": "SHRADDHA"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-16",
+      "kind": "split",
+      "symbol": "BANSALWIRE"
+    },
+    {
+      "amount": 2.0,
+      "ex_date": "2026-10-16",
+      "kind": "dividend",
+      "symbol": "CRAMC"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-16",
+      "kind": "consolidation",
+      "symbol": "NOBPOL"
+    },
+    {
+      "amount": null,
+      "ex_date": "2026-10-19",
+      "kind": "split",
+      "symbol": "JATTAINDUS"
+    }
+  ],
+  "dependencies": [
+    {
+      "close": 15.2525,
+      "label_key": "indiavix",
+      "ticker": "NSE:INDIAVIX",
+      "window": {
+        "Perf.1M": 29.313268334039844,
+        "Perf.W": 5.517122103078516,
+        "Perf.Y": 50.71640316205534,
+        "change": 6.104347826086953
+      }
+    },
+    {
+      "close": 4172.68,
+      "label_key": "gold",
+      "ticker": "TVC:GOLD",
+      "window": {
+        "Perf.1M": -3.430080376959377,
+        "Perf.W": 0.8746524839840515,
+        "Perf.Y": 4.991835019588413,
+        "change": -0.5045495297865406
+      }
+    },
+    {
+      "close": 60.563,
+      "label_key": "silver",
+      "ticker": "TVC:SILVER",
+      "window": {
+        "Perf.1M": -4.757526463446261,
+        "Perf.W": 0.37351133784970736,
+        "Perf.Y": 23.6815142584232,
+        "change": -0.417646381768252
+      }
+    },
+    {
+      "close": 93.6,
+      "label_key": "wti",
+      "ticker": "NYMEX:CL1!",
+      "window": {
+        "Perf.1M": -10.276073619631903,
+        "Perf.W": 1.994115724092839,
+        "Perf.Y": 52.21987315010569,
+        "change": 1.905280348394121
+      }
+    },
+    {
+      "close": 106.92,
+      "label_key": "brent",
+      "ticker": "ICEEUR:BRN1!",
+      "window": {
+        "Perf.1M": -2.746952883390937,
+        "Perf.W": 3.6548715462918038,
+        "Perf.Y": 63.81185843419643,
+        "change": 2.1008403361344565
+      }
+    },
+    {
+      "close": 95.76,
+      "label_key": "usdinr",
+      "ticker": "FX_IDC:USDINR",
+      "window": {
+        "Perf.1M": 0.34580320653882246,
+        "Perf.W": -0.5607476635513936,
+        "Perf.Y": 7.8184110970996255,
+        "change": -1.0539367637941683
+      }
+    },
+    {
+      "close": 106.8498,
+      "label_key": "eurinr",
+      "ticker": "FX_IDC:EURINR",
+      "window": {
+        "Perf.1M": -3.8151735560996616,
+        "Perf.W": -1.4469841890598072,
+        "Perf.Y": 3.9619450893091726,
+        "change": -1.1520411193476858
+      }
+    },
+    {
+      "close": 126.4514,
+      "label_key": "gbinr",
+      "ticker": "FX_IDC:GBPINR",
+      "window": {
+        "Perf.1M": -2.166850673992922,
+        "Perf.W": -0.8318426251312597,
+        "Perf.Y": 6.986310641826154,
+        "change": -0.9700054820267766
+      }
+    },
+    {
+      "close": 0.60258,
+      "label_key": "jpyinr",
+      "ticker": "FX_IDC:JPYINR",
+      "window": {
+        "Perf.1M": -2.713960509533572,
+        "Perf.W": -1.1823742599911526,
+        "Perf.Y": 3.787526481682418,
+        "change": -1.1353568498769542
+      }
+    }
+  ],
+  "dma": {
+    "above": {
+      "sma100": 27.402862985685072,
+      "sma200": 39.263803680981596,
+      "sma50": 20.65439672801636
+    },
+    "eligible": 489
+  },
+  "flows": {
+    "dii": {
+      "buy": 15506.73,
+      "net": 3045.02,
+      "sell": 12461.71
+    },
+    "fii": {
+      "buy": 12583.21,
+      "net": -1708.48,
+      "sell": 14291.69
+    },
+    "session": "2026-10-12"
+  },
+  "indexes": [
+    {
+      "close": 22363.35,
+      "label_key": "nifty50",
+      "ticker": "NSE:NIFTY",
+      "window": {
+        "Perf.1M": -3.8974572738641133,
+        "Perf.3M": -7.082640850922393,
+        "Perf.6M": -7.451021776376235,
+        "Perf.W": -0.7502529690579028,
+        "Perf.Y": -11.142478538918027,
+        "change": -0.6975881920654435
+      }
+    },
+    {
+      "close": 21822.75,
+      "label_key": "nifty500",
+      "ticker": "NSE:CNX500",
+      "window": {
+        "Perf.1M": -4.177122646169651,
+        "Perf.3M": -6.079125466693924,
+        "Perf.6M": -3.0399498821475177,
+        "Perf.W": -0.6096116885127868,
+        "Perf.Y": -6.128414084125358,
+        "change": -0.20076234814204028
+      }
+    },
+    {
+      "close": 54918.0,
+      "label_key": "banknifty",
+      "ticker": "NSE:BANKNIFTY",
+      "window": {
+        "Perf.1M": -1.879841308268785,
+        "Perf.3M": -5.039635983542145,
+        "Perf.6M": -2.529930275835074,
+        "Perf.W": 0.14104500949569077,
+        "Perf.Y": -2.2265108975477377,
+        "change": -0.6128674105288711
+      }
+    },
+    {
+      "close": 71924.68,
+      "label_key": "sensex",
+      "ticker": "BSE:SENSEX",
+      "window": {
+        "Perf.1M": -3.208864156182105,
+        "Perf.3M": -6.9205358605679645,
+        "Perf.6M": -7.76652291388556,
+        "Perf.W": -0.5754278869713545,
+        "Perf.Y": -12.367608097183757,
+        "change": -0.7556677148368331
+      }
+    },
+    {
+      "close": 68351.7,
+      "label_key": "next50",
+      "ticker": "NSE:NIFTYJR",
+      "window": {
+        "Perf.1M": -4.970139677212386,
+        "Perf.3M": -4.745931595762105,
+        "Perf.6M": 0.21721743223042522,
+        "Perf.W": -1.2529083437411288,
+        "Perf.Y": -0.39005032836948866,
+        "change": 0.2713935103210219
+      }
+    }
+  ],
+  "ipos": [
+    {
+      "end": "2026-10-15",
+      "start": "2026-10-13",
+      "symbol": "HD Fire Protect Limited"
+    },
+    {
+      "end": "2026-10-16",
+      "start": "2026-10-14",
+      "symbol": "Fusion CX Limited"
+    }
+  ],
+  "leaders": {
+    "gainers": [
+      {
+        "change": 18.2332506203474,
+        "close": 595.6,
+        "relative_volume": 388.4854137407589,
+        "symbol": "GALLANTT"
+      },
+      {
+        "change": 15.280774209455725,
+        "close": 187.02,
+        "relative_volume": 38.42264775383811,
+        "symbol": "NIACL"
+      },
+      {
+        "change": 8.143002372077268,
+        "close": 3191.3,
+        "relative_volume": 5.97902417054239,
+        "symbol": "CARTRADE"
+      },
+      {
+        "change": 8.003391267486231,
+        "close": 636.95,
+        "relative_volume": 7.604044618362167,
+        "symbol": "TATACHEM"
+      },
+      {
+        "change": 7.985446189199527,
+        "close": 281.95,
+        "relative_volume": 4.44288113438348,
+        "symbol": "PFOCUS"
+      }
+    ],
+    "losers": [
+      {
+        "change": -4.36382754994742,
+        "close": 272.85,
+        "relative_volume": 1.002136436760501,
+        "symbol": "BSOFT"
+      },
+      {
+        "change": -4.331144396074673,
+        "close": 648.3,
+        "relative_volume": 5.101051955330404,
+        "symbol": "LENSKART"
+      },
+      {
+        "change": -4.31926751592357,
+        "close": 3364.9,
+        "relative_volume": 4.330527985803252,
+        "symbol": "DMART"
+      },
+      {
+        "change": -3.7645652823424034,
+        "close": 483.15,
+        "relative_volume": 1.1290434329613632,
+        "symbol": "USHAMART"
+      },
+      {
+        "change": -3.688394276629571,
+        "close": 757.25,
+        "relative_volume": 0.32344432217039804,
+        "symbol": "FORTIS"
+      }
+    ]
+  },
+  "meta": {
+    "date": "2026-10-12",
+    "schema": 1,
+    "source": "tradingview"
+  },
+  "most_active": {
+    "cash_flow_crore": 1385.5542265200002,
+    "change": 18.2332506203474,
+    "close": 595.6,
+    "relative_volume": 388.4854137407589,
+    "sector_key": "non_energy_minerals",
+    "symbol": "GALLANTT"
+  },
+  "sectors": [
+    {
+      "market_cap_crore": 10853527.7312918,
+      "members": 100,
+      "sector_key": "finance",
+      "window": {
+        "Perf.1M": -2.835021995808326,
+        "Perf.3M": -6.5459951018823235,
+        "Perf.6M": -2.5713266853200327,
+        "Perf.W": 0.08699970922207202,
+        "Perf.Y": -1.3239375118591543,
+        "change": -0.12086240242032112
+      }
+    },
+    {
+      "market_cap_crore": 3201850.2277754,
+      "members": 75,
+      "sector_key": "producer_manufacturing",
+      "window": {
+        "Perf.1M": -3.8131364558046386,
+        "Perf.3M": -0.425429995999485,
+        "Perf.6M": 15.970566786805746,
+        "Perf.W": -0.6407630647132727,
+        "Perf.Y": 27.89427518505042,
+        "change": 1.2922248333199124
+      }
+    },
+    {
+      "market_cap_crore": 2817803.1154657,
+      "members": 34,
+      "sector_key": "technology_services",
+      "window": {
+        "Perf.1M": -2.041795022100713,
+        "Perf.3M": -0.8470531992687194,
+        "Perf.6M": -1.1208536523639847,
+        "Perf.W": -0.06157441867917064,
+        "Perf.Y": -6.015553048157603,
+        "change": -0.5158715442869067
+      }
+    },
+    {
+      "market_cap_crore": 2743238.9705457,
+      "members": 26,
+      "sector_key": "consumer_durables",
+      "window": {
+        "Perf.1M": -7.826159828993223,
+        "Perf.3M": -4.068021884937578,
+        "Perf.6M": -1.1997372163916324,
+        "Perf.W": -1.012374521935431,
+        "Perf.Y": 4.526902716413848,
+        "change": 0.4279346325545823
+      }
+    },
+    {
+      "market_cap_crore": 2711521.6611174,
+      "members": 34,
+      "sector_key": "non_energy_minerals",
+      "window": {
+        "Perf.1M": -7.527434115237299,
+        "Perf.3M": -6.907607157771444,
+        "Perf.6M": -9.785591788319978,
+        "Perf.W": -3.30227879456248,
+        "Perf.Y": -0.5080230813919934,
+        "change": -0.35449779212617405
+      }
+    },
+    {
+      "market_cap_crore": 2658255.8718378,
+      "members": 12,
+      "sector_key": "energy_minerals",
+      "window": {
+        "Perf.1M": -7.935237555550079,
+        "Perf.3M": -9.044620563287168,
+        "Perf.6M": -12.218469709396798,
+        "Perf.W": -1.8572137056319902,
+        "Perf.Y": -12.026817593876755,
+        "change": -0.873197950611471
+      }
+    },
+    {
+      "market_cap_crore": 2436301.9274452,
+      "members": 33,
+      "sector_key": "health_technology",
+      "window": {
+        "Perf.1M": -2.357682029990253,
+        "Perf.3M": 3.6810280237048083,
+        "Perf.6M": 20.150526426596826,
+        "Perf.W": -1.4452728394117467,
+        "Perf.Y": 26.82491482842281,
+        "change": 0.20153232365792562
+      }
+    },
+    {
+      "market_cap_crore": 2158406.3862286,
+      "members": 24,
+      "sector_key": "consumer_non_durables",
+      "window": {
+        "Perf.1M": -1.1830005898098488,
+        "Perf.3M": -6.896420632364187,
+        "Perf.6M": 2.238154146828985,
+        "Perf.W": 0.44640611232667704,
+        "Perf.Y": 3.0449136849246896,
+        "change": -1.3879005993008813
+      }
+    },
+    {
+      "market_cap_crore": 2053573.9392618,
+      "members": 24,
+      "sector_key": "utilities",
+      "window": {
+        "Perf.1M": -6.673034815441507,
+        "Perf.3M": -12.795716643381875,
+        "Perf.6M": -6.114686817989593,
+        "Perf.W": -2.653332508398914,
+        "Perf.Y": 2.2461068706926133,
+        "change": -0.06380517581702419
+      }
+    },
+    {
+      "market_cap_crore": 1462553.0100405,
+      "members": 38,
+      "sector_key": "process_industries",
+      "window": {
+        "Perf.1M": -4.53425656194657,
+        "Perf.3M": -4.194900494881433,
+        "Perf.6M": 6.519746439735047,
+        "Perf.W": 0.3493780334125012,
+        "Perf.Y": 5.272625221648202,
+        "change": 0.577192401744723
+      }
+    },
+    {
+      "market_cap_crore": 1428421.1518177,
+      "members": 7,
+      "sector_key": "communications",
+      "window": {
+        "Perf.1M": -4.267526866507436,
+        "Perf.3M": -6.32620677036474,
+        "Perf.6M": -1.0305822135638087,
+        "Perf.W": 2.0006366512701113,
+        "Perf.Y": -4.180104053636165,
+        "change": -1.4259318338636828
+      }
+    },
+    {
+      "market_cap_crore": 1224396.0673629,
+      "members": 18,
+      "sector_key": "electronic_technology",
+      "window": {
+        "Perf.1M": -3.7005679461357457,
+        "Perf.3M": -0.635557377344493,
+        "Perf.6M": 8.98277280097208,
+        "Perf.W": 0.33182162071164645,
+        "Perf.Y": 18.088489515638575,
+        "change": 1.4259152859981616
+      }
+    },
+    {
+      "market_cap_crore": 1197133.7142019,
+      "members": 10,
+      "sector_key": "transportation",
+      "window": {
+        "Perf.1M": -1.733333960423955,
+        "Perf.3M": -1.6088072178336004,
+        "Perf.6M": 15.268525773556854,
+        "Perf.W": -0.13282373017217117,
+        "Perf.Y": 2.361696808175566,
+        "change": -0.5215443977994612
+      }
+    }
+  ],
+  "timeline": {
+    "blocks": [
+      {
+        "duration": 150,
+        "from": 0,
+        "id": "0",
+        "key": "disclosure",
+        "seconds": 5
+      },
+      {
+        "duration": 150,
+        "from": 150,
+        "id": "1",
+        "key": "cold_open",
+        "seconds": 5
+      },
+      {
+        "duration": 375,
+        "from": 300,
+        "id": "2",
+        "key": "indexes",
+        "seconds": 12.5
+      },
+      {
+        "duration": 750,
+        "from": 675,
+        "id": "9",
+        "key": "leaders",
+        "seconds": 25
+      },
+      {
+        "duration": 75,
+        "from": 1425,
+        "id": "13",
+        "key": "most_active",
+        "seconds": 2.5
+      },
+      {
+        "duration": 975,
+        "from": 1500,
+        "id": "3",
+        "key": "sectors",
+        "seconds": 32.5
+      },
+      {
+        "duration": 150,
+        "from": 2475,
+        "id": "7",
+        "key": "breadth",
+        "seconds": 5
+      },
+      {
+        "duration": 225,
+        "from": 2625,
+        "id": "8",
+        "key": "dma",
+        "seconds": 7.5
+      },
+      {
+        "duration": 150,
+        "from": 2850,
+        "id": "10",
+        "key": "flows",
+        "seconds": 5
+      },
+      {
+        "duration": 675,
+        "from": 3000,
+        "id": "5",
+        "key": "dependencies",
+        "seconds": 22.5
+      },
+      {
+        "duration": 150,
+        "from": 3675,
+        "id": "6",
+        "key": "broader",
+        "seconds": 5
+      },
+      {
+        "duration": 1200,
+        "from": 3825,
+        "id": "11",
+        "key": "calendar",
+        "seconds": 40
+      },
+      {
+        "duration": 225,
+        "from": 5025,
+        "id": "12",
+        "key": "close",
+        "seconds": 7.5
+      }
+    ],
+    "build_seconds": 175.0,
+    "cap_seconds": 180,
+    "fps": 30,
+    "total_frames": 5250
+  }
+}

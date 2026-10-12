@@ -1,0 +1,142 @@
+{
+  "indexes": {
+    "nifty50": "নিফটি ৫০",
+    "nifty500": "নিফটি ৫০০",
+    "banknifty": "নিফটি ব্যাংক",
+    "sensex": "সেনসেক্স",
+    "next50": "নিফটি নেক্সট ৫০",
+    "midcap100": "মিডক্যাপ ১০০",
+    "smallcap100": "স্মলক্যাপ ১০০"
+  },
+  "windows": {
+    "change": "দিন",
+    "Perf.W": "সপ্তাহ",
+    "Perf.1M": "মাস",
+    "Perf.3M": "৩ মাস",
+    "Perf.6M": "৬ মাস",
+    "Perf.Y": "১ বছর"
+  },
+  "blocks": {
+    "indexes": "সূচক",
+    "leaders": "শীর্ষ লাভ-ক্ষতি",
+    "most_active": "সবচেয়ে সক্রিয় শেয়ার",
+    "sectors": "সেক্টর",
+    "heat_map": "সেক্টর হিট ম্যাপ",
+    "breadth": "উত্থান-পতন",
+    "dma": "গড় দামের উপরে",
+    "flows": "বিদেশি ও দেশি বিনিয়োগ",
+    "dependencies": "বৈশ্বিক নির্দেশক",
+    "broader": "বিস্তৃত সূচক",
+    "calendar": "আগামী ৭ দিন",
+    "close": "আগামীকাল"
+  },
+  "sectors": {
+    "finance": "ব্যাংক ও আর্থিক পরিষেবা",
+    "producer_manufacturing": "মূলধনী পণ্য",
+    "technology_services": "আইটি",
+    "consumer_durables": "টেকসই ভোগ্যপণ্য",
+    "non_energy_minerals": "ধাতু ও খনি",
+    "energy_minerals": "তেল ও গ্যাস",
+    "health_technology": "ফার্মা",
+    "consumer_non_durables": "এফএমসিজি",
+    "utilities": "বিদ্যুৎ ও ইউটিলিটি",
+    "process_industries": "রসায়ন ও সিমেন্ট",
+    "communications": "টেলিকম ও মিডিয়া",
+    "electronic_technology": "ইলেকট্রনিক্স",
+    "transportation": "পরিবহন ও লজিস্টিকস",
+    "industrial_services": "শিল্প পরিষেবা",
+    "retail_trade": "খুচরা ব্যবসা",
+    "health_services": "হাসপাতাল ও স্বাস্থ্যসেবা",
+    "distribution_services": "বিতরণ পরিষেবা",
+    "consumer_services": "ভোক্তা পরিষেবা",
+    "commercial_services": "বাণিজ্যিক পরিষেবা",
+    "miscellaneous": "বিবিধ"
+  },
+  "sectors_columns": {
+    "stocks": "শেয়ার",
+    "market_cap": "বাজার মূলধন"
+  },
+  "leaders": {
+    "gainers": "উত্থান",
+    "losers": "পতন",
+    "relative_volume": "স্বাভাবিকের তুলনায়"
+  },
+  "most_active": {
+    "relative_volume": "স্বাভাবিকের তুলনায়",
+    "cash_flow": "নগদ লেনদেন"
+  },
+  "breadth": {
+    "rising": "উত্থান",
+    "falling": "পতন",
+    "flat": "অপরিবর্তিত",
+    "counted_note": "{n}টি শেয়ারের মধ্যে"
+  },
+  "dma": {
+    "sma50": "৫০ দিন",
+    "sma100": "১০০ দিন",
+    "sma200": "২০০ দিন",
+    "eligible": "শেয়ার বিবেচনায়"
+  },
+  "flows": {
+    "fii": "বিদেশি (FII/FPI)",
+    "dii": "দেশি প্রতিষ্ঠান (DII)",
+    "buy": "ক্রয়",
+    "sell": "বিক্রয়",
+    "net": "নিট"
+  },
+  "dependencies": {
+    "indiavix": "ইন্ডিয়া ভিক্স",
+    "gold": "সোনা",
+    "silver": "রুপো",
+    "wti": "ক্রুড (WTI)",
+    "brent": "ব্রেন্ট",
+    "usdinr": "ডলার/টাকা",
+    "eurinr": "ইউরো/টাকা",
+    "gbinr": "পাউন্ড/টাকা",
+    "jpyinr": "ইয়েন/টাকা"
+  },
+  "kinds": {
+    "dividend": "লভ্যাংশ",
+    "bonus": "বোনাস",
+    "split": "স্প্লিট",
+    "consolidation": "একত্রীকরণ",
+    "rights": "রাইটস",
+    "income_distribution": "আয় বিতরণ",
+    "other": "অন্যান্য"
+  },
+  "calendar": {
+    "corporate_actions": "কর্পোরেট অ্যাকশন",
+    "ipos": "আইপিও খুলছে",
+    "announcements": "কোম্পানির ঘোষণা",
+    "ex_date": "এক্স-ডেট",
+    "opens": "খুলছে"
+  },
+  "furniture": {
+    "attribution": "ডেটা: TradingView, BSE",
+    "as_on": "সেশন"
+  },
+  "disclosure": "শিক্ষামূলক তথ্য · কোনো বিনিয়োগ পরামর্শ বা সুপারিশ নয় · শেয়ার বাজারে বিনিয়োগে ঝুঁকি আছে",
+  "metadata": {
+    "series": "বাজার ব্রিফ",
+    "disclosure_short": "শিক্ষামূলক তথ্য · বিনিয়োগ পরামর্শ নয়",
+    "month_1": "জানুয়ারি",
+    "month_2": "ফেব্রুয়ারি",
+    "month_3": "মার্চ",
+    "month_4": "এপ্রিল",
+    "month_5": "মে",
+    "month_6": "জুন",
+    "month_7": "জুলাই",
+    "month_8": "আগস্ট",
+    "month_9": "সেপ্টেম্বর",
+    "month_10": "অক্টোবর",
+    "month_11": "নভেম্বর",
+    "month_12": "ডিসেম্বর",
+    "tag_channel": "শেয়ার বাজার",
+    "tag_daily": "দৈনিক বাজার ব্রিফ",
+    "tag_india": "ভারতীয় শেয়ার বাজার",
+    "hashtag_series": "#বাজারব্রিফ",
+    "hashtag_market": "#শেয়ারবাজার",
+    "hashtag_india": "#ভারতীয়বাজার"
+  }
+}
+

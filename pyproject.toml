@@ -1,0 +1,24 @@
+[project]
+name = "market-overview"
+version = "0.1.0"
+description = "Builds the daily Market Brief — a silent, bilingual, ≤3 min Indian-market video."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    # BSE sits behind Akamai: plain `requests` gets 403, this does not. The only reason the
+    # tool has a dependency at all — TradingView is plain `urllib`.
+    "curl_cffi>=0.15",
+]
+
+[project.scripts]
+market-overview = "market_overview.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/market_overview"]
+
+[dependency-groups]
+dev = ["pytest"]

@@ -1,0 +1,24 @@
+# Generated media — never committed. A day's video is a build artefact, and
+# `store/` already carries everything needed to rebuild it.
+output/*
+!output/.gitkeep
+
+# Operator-supplied licensed assets stay local. See resource/README.md —
+# the licence is the operator's, and committing a music bed publishes it.
+resource/*
+!resource/README.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Node / Remotion (the render layer)
+node_modules/
+.remotion/
+remotion-out/
+
+# macOS
+.DS_Store

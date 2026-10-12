@@ -1,0 +1,141 @@
+{
+  "indexes": {
+    "nifty50": "Nifty 50",
+    "nifty500": "Nifty 500",
+    "banknifty": "Nifty Bank",
+    "sensex": "Sensex",
+    "next50": "Nifty Next 50",
+    "midcap100": "Nifty MidCap 100",
+    "smallcap100": "Nifty SmallCap 100"
+  },
+  "windows": {
+    "change": "Day",
+    "Perf.W": "Week",
+    "Perf.1M": "Month",
+    "Perf.3M": "3M",
+    "Perf.6M": "6M",
+    "Perf.Y": "1Y"
+  },
+  "blocks": {
+    "indexes": "Indices",
+    "leaders": "Top movers",
+    "most_active": "Most active stock",
+    "sectors": "Sectors",
+    "heat_map": "Sector heat map",
+    "breadth": "Advance / decline",
+    "dma": "Above moving averages",
+    "flows": "Foreign and domestic flows",
+    "dependencies": "Global cues",
+    "broader": "Broader indices",
+    "calendar": "Next 7 days",
+    "close": "Tomorrow"
+  },
+  "sectors": {
+    "finance": "Banks & Financial Services",
+    "producer_manufacturing": "Capital Goods",
+    "technology_services": "IT",
+    "consumer_durables": "Consumer Durables",
+    "non_energy_minerals": "Metals & Mining",
+    "energy_minerals": "Oil & Gas",
+    "health_technology": "Pharma",
+    "consumer_non_durables": "FMCG",
+    "utilities": "Power & Utilities",
+    "process_industries": "Chemicals & Cement",
+    "communications": "Telecom & Media",
+    "electronic_technology": "Electronics",
+    "transportation": "Transport & Logistics",
+    "industrial_services": "Industrial Services",
+    "retail_trade": "Retail",
+    "health_services": "Healthcare Services",
+    "distribution_services": "Distribution",
+    "consumer_services": "Consumer Services",
+    "commercial_services": "Commercial Services",
+    "miscellaneous": "Miscellaneous"
+  },
+  "sectors_columns": {
+    "stocks": "Stocks",
+    "market_cap": "Market cap"
+  },
+  "leaders": {
+    "gainers": "Gainers",
+    "losers": "Losers",
+    "relative_volume": "vs normal volume"
+  },
+  "most_active": {
+    "relative_volume": "vs normal volume",
+    "cash_flow": "Traded value"
+  },
+  "breadth": {
+    "rising": "Up",
+    "falling": "Down",
+    "flat": "Unchanged",
+    "counted_note": "of {n}"
+  },
+  "dma": {
+    "sma50": "50-day",
+    "sma100": "100-day",
+    "sma200": "200-day",
+    "eligible": "stocks counted"
+  },
+  "flows": {
+    "fii": "Foreign (FII/FPI)",
+    "dii": "Domestic institutions (DII)",
+    "buy": "Buy",
+    "sell": "Sell",
+    "net": "Net"
+  },
+  "dependencies": {
+    "indiavix": "India VIX",
+    "gold": "Gold",
+    "silver": "Silver",
+    "wti": "Crude (WTI)",
+    "brent": "Brent",
+    "usdinr": "USD/INR",
+    "eurinr": "EUR/INR",
+    "gbinr": "GBP/INR",
+    "jpyinr": "JPY/INR"
+  },
+  "kinds": {
+    "dividend": "Dividend",
+    "bonus": "Bonus",
+    "split": "Split",
+    "consolidation": "Consolidation",
+    "rights": "Rights",
+    "income_distribution": "Income distribution",
+    "other": "Other"
+  },
+  "calendar": {
+    "corporate_actions": "Corporate actions",
+    "ipos": "IPOs opening",
+    "announcements": "Company announcements",
+    "ex_date": "Ex-date",
+    "opens": "opens"
+  },
+  "furniture": {
+    "attribution": "Data: TradingView, BSE",
+    "as_on": "Session"
+  },
+  "disclosure": "Educational only · Not investment advice or a recommendation · Investments in securities markets are subject to risk",
+  "metadata": {
+    "series": "Market Brief",
+    "disclosure_short": "Educational only · Not investment advice",
+    "month_1": "Jan",
+    "month_2": "Feb",
+    "month_3": "Mar",
+    "month_4": "Apr",
+    "month_5": "May",
+    "month_6": "Jun",
+    "month_7": "Jul",
+    "month_8": "Aug",
+    "month_9": "Sep",
+    "month_10": "Oct",
+    "month_11": "Nov",
+    "month_12": "Dec",
+    "tag_channel": "share market",
+    "tag_daily": "daily market brief",
+    "tag_india": "Indian stock market",
+    "hashtag_series": "#MarketBrief",
+    "hashtag_market": "#ShareMarket",
+    "hashtag_india": "#IndianStockMarket"
+  }
+}

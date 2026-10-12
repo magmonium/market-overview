@@ -1,0 +1,44 @@
+{
+  "name": "market-overview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Builds the **Market Brief** — one day's silent, music-backed, ≤3 min, 16:9 video about the Indian market, in two language editions (Bengali and English), each with its own metadata and thumbnail.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "render": "remotion render remotion/index.ts IndexCard",
+    "studio": "remotion studio remotion/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magmonium/market-overview.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/magmonium/market-overview/issues"
+  },
+  "homepage": "https://github.com/magmonium/market-overview#readme",
+  "dependencies": {
+    "@react-three/fiber": "^9.8.1",
+    "@remotion/cli": "^4.0.535",
+    "@remotion/three": "^4.0.535",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "chart.js": "^4.5.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.535",
+    "three": "^0.186.1",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0"
+  }
+}
