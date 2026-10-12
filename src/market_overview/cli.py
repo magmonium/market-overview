@@ -15,6 +15,34 @@ from .fetch import bse, tradingview
 # The primary edition renders first, so it is never hostage to the secondary.
 LANGUAGES: tuple[str, ...] = ("bn",)
 
+#: Every edition the renderer ships a label table for (`copy.bn.json`, `copy.en.json`) — the vocabulary
+#: `--lang` offers. A default run builds `LANGUAGES` above; this is the full set a caller may ask for.
+ALL_LANGUAGES: tuple[str, ...] = ("bn", "en")
+
+
+def _today() -> str:
+    """The date a run aims at when no `--date` is given: **today**, in the tool's ISO form.
+
+    ⚠️ This is only the date that is *asked for*. The session guard still has the last word, so
+    today being a holiday, a weekend, or not yet past the close refuses exactly as a typed date
+    would — the default changes the request, not the contract. A named seam rather than an inline
+    `date.today()`, so a test can pin "today" without freezing the clock for everything else.
+    """
+    return _datetime.date.today().isoformat()
+
+
+def _editions(requested: list[str] | None) -> tuple[str, ...]:
+    """The editions a run builds, in order.
+
+    ⚠️ `--lang` **narrows** the run; it does not reorder the product. With no flag the shipping default
+    (`LANGUAGES`) applies, so a bare `build` renders exactly what it always did — the flag is additive.
+    Duplicates are dropped and the caller's order kept, so `--lang en bn` renders English first: useful
+    when one edition is being re-cut and should land before the other.
+    """
+    if not requested:
+        return LANGUAGES
+    return tuple(dict.fromkeys(requested))
+
 
 def _degrade(day: str, name: str, fetch, parse, default):
     """Fetch one non-spine feed, snapshot it, shape it — or omit it.
@@ -39,12 +67,21 @@ def _degrade(day: str, name: str, fetch, parse, default):
 
 
 def build(args: argparse.Namespace) -> int:
-    """Build one date's editions: Bengali first, then English, sequentially."""
+    """Build one date's editions: Bengali first, then English, sequentially.
+
+    ⚠️ `--date` is **optional and defaults to today**, so the common case — publish the newest session —
+    is a bare `build`. The guard is unaffected: today is still only the date *asked for*, and a holiday,
+    a weekend or a mid-session clock refuses it exactly as it would a typed date.
+    """
+    requested = args.date if args.date is not None else _today()
     try:
-        date = _datetime.date.fromisoformat(args.date).isoformat()
+        date = _datetime.date.fromisoformat(requested).isoformat()
     except ValueError:
-        print(f"--date must be YYYY-MM-DD, got {args.date!r}", file=sys.stderr)
+        print(f"--date must be YYYY-MM-DD, got {requested!r}", file=sys.stderr)
         return 2
+
+    # Which editions this run builds — the shipping pair narrowed by `--lang` (see `_editions`).
+    editions = _editions(args.lang)
 
     # ── Fetch, or re-render from the snapshot. ────────────────────────────────────────
     # ⚠️ The snapshot's **existence** is the switch — which is what `--date`'s help has always
@@ -59,7 +96,7 @@ def build(args: argparse.Namespace) -> int:
     # To force a fresh fetch, delete `store/<date>/`; the runbook says so.
     snapshot = store.dir_for(date) / store.FACTS
     if snapshot.exists():
-        print(f"re-render: reading {snapshot.relative_to(store.root())} — not fetching")
+        print(f"re-render: reading {snapshot.relative_to(store.root())} — not fetching", flush=True)
     else:
         refusal = _fetch(date)
         if refusal:
@@ -82,21 +119,27 @@ def build(args: argparse.Namespace) -> int:
         return 1
     bed = prepared[0] if prepared is not None else None
     if prepared is not None:
-        print(prepared[1])
+        print(prepared[1], flush=True)
 
     # One bundle, one render pass per edition. Bengali first, so the primary edition is
     # never hostage to the secondary; and a failed edition fails the run, because a
     # half-populated date folder looks complete.
     try:
-        for lang in LANGUAGES:
+        for lang in editions:
             try:
+                # ⚠️ Announced **before** the render, not only after it. The render is the hour-long step, and
+                # this line is what tells a watching operator *which edition* the progress that follows belongs
+                # to. `flush=True` because stdout is buffered whenever it is redirected — the very silence the
+                # progress forwarding exists to remove. The renderer's own `Rendered x/y` lines follow from
+                # `render._stream`.
+                print(f"rendering {lang} …", flush=True)
                 video = render.render(day, lang, bed=bed)
-                print(f"rendered: {video}")
+                print(f"rendered: {video}", flush=True)
                 # ⚠️ The still is rendered **per edition, straight after its own video** — issue 13's package is
                 # self-contained, so a language folder missing its thumbnail is an incomplete package, and a failed
                 # still has to fail the run rather than leave a folder that looks finished. It re-reads the bundle
                 # from `store/`, so it is a re-render from the snapshot like everything else (ADR 0003).
-                print(f"thumbnail: {render.still(day, lang)}")
+                print(f"thumbnail: {render.still(day, lang)}", flush=True)
                 # ⚠️ Assembly is **last and inside this try**, because it is what marks the package complete: a folder
                 # with a video and no `metadata-<lang>.json` is visibly unfinished, and one that failed *after* writing
                 # the JSON would be worse than either. See the note in package.py.
@@ -105,7 +148,8 @@ def build(args: argparse.Namespace) -> int:
                     f"package: {render.out_dir(day, lang)} "
                     f"(bundle {published.bundle_hash[:12]}, "
                     f"title {len(published.title)} chars, "
-                    f"{len(published.tags)} tags)"
+                    f"{len(published.tags)} tags)",
+                    flush=True,
                 )
                 # ⚠️ Limits are reported, not enforced by refusal: a title two characters over is truncated by YouTube
                 # and loses the move, which is bad — but it is not a reason to publish nothing at all. The run says so
@@ -236,7 +280,8 @@ def _fetch(date: str) -> int:
         f"{bundle.get('breadth', {}).get('falling', '?')}down, "
         f"{len(bundle.get('corporate_actions', []))} actions, "
         f"{len(bundle.get('ipos', []))} ipos, "
-        f"{len(bundle.get('announcements', []))} announcements, no strings)"
+        f"{len(bundle.get('announcements', []))} announcements, no strings)",
+        flush=True,
     )
 
     return 0
@@ -259,9 +304,22 @@ def main(argv: list[str] | None = None) -> int:
     )
     build_cmd.add_argument(
         "--date",
-        required=True,
+        default=None,
         metavar="YYYY-MM-DD",
-        help="the session date to build (a re-render reads store/<date>/ instead of fetching)",
+        help=(
+            "the session date to build — defaults to today "
+            "(a re-render reads store/<date>/ instead of fetching)"
+        ),
+    )
+    build_cmd.add_argument(
+        "--lang",
+        nargs="+",
+        choices=ALL_LANGUAGES,
+        default=None,
+        help=(
+            "which edition(s) to build, in the order given — "
+            f"default: {' '.join(LANGUAGES)}"
+        ),
     )
     build_cmd.set_defaults(func=build)
 

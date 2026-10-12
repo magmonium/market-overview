@@ -294,17 +294,32 @@ class TheMirrors(unittest.TestCase):
         self.assertEqual(display.DASH, "—")
         self.assertEqual(display.percent(None), "—")
 
-    def test_the_headline_rule_is_largest_absolute_move_on_both_sides(self):
-        """⚠️ The comparison is `Math.abs` in `headline.ts` and `abs` here, and it is the *absolute* value that matters:
-        a +2.1 % day is as much the story as a −2.1 % one, and the pipeline has no view about direction."""
-        self.assertIn("Math.abs(", HEADLINE_TS)
+    def test_the_headline_rule_is_nifty_fifty_on_both_sides(self):
+        """⚠️ The brief leads on **Nifty 50**, and the rule has to be the same on both sides of the subprocess boundary:
+        `headline.ts` picks the figure for the video and the still, `display.py` picks it for the description. Two
+        implementations that disagreed would put a different index in the title than on the cold open, and nothing
+        anywhere would raise."""
+        self.assertIn("export const HEADLINE_KEY = 'nifty50'", HEADLINE_TS)
         self.assertIn("export const headline", HEADLINE_TS)
+        self.assertEqual(display.HEADLINE_KEY, "nifty50")
         source = (ROOT / "src" / "market_overview" / "display.py").read_text(encoding="utf-8")
         rule = source.split("def headline(")[1].split("def headline_label")[0]
-        self.assertIn("abs(", rule)
-        self.assertIn("max(", rule)
+        self.assertIn("HEADLINE_KEY", rule)
 
-    def test_the_rule_picks_a_gain_as_happily_as_a_fall(self):
+    def test_nifty_fifty_leads_even_when_another_index_moved_more(self):
+        """⚠️ **The rule, and the reason it is not "the biggest mover".** A session where the mid-caps ran is still led
+        by the index every reader means by "the market"."""
+        bundle = {"indexes": [
+            {"label_key": "nifty50", "window": {"change": -0.70}},
+            {"label_key": "next50", "window": {"change": 3.10}},
+        ]}
+        self.assertEqual(display.headline(bundle)["label_key"], "nifty50")
+        self.assertAlmostEqual(display.headline_change(bundle), -0.70)
+        self.assertEqual(display.headline_label(bundle, EN), "Nifty 50")
+
+    def test_the_fallback_is_the_largest_absolute_move(self):
+        """⚠️ The old rule, kept only for a bundle with **no** Nifty 50 row — a hand-written props file, or a vendor
+        that renamed the symbol. Still absolute: a +2.1 % day is as much the story as a −2.1 % one."""
         bundle = {"indexes": [
             {"label_key": "a", "window": {"change": -0.4}},
             {"label_key": "b", "window": {"change": 2.5}},

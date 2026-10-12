@@ -1,7 +1,6 @@
 import {Composition} from 'remotion';
 import {IndexCard} from './IndexCard';
 import {MarketBrief, type MarketBriefProps, metadata} from './MarketBrief';
-import {ThreeSmoke} from './ThreeSmoke';
 import {Thumbnail, type ThumbnailProps} from './Thumbnail';
 import type {FactsBundle} from './bundle';
 
@@ -37,8 +36,9 @@ export const RemotionRoot = () => {
       />
 
       {/* 0085_12 — the still, as its own composition at the still's own size. ⚠️ **One frame**, and rendered
-          with `remotion still --frame=0`: its camera station has no entrance (see `THUMBNAIL` in stations.tsx),
-          so any frame is the settled one and the still cannot be caught mid-move. 1280×720 is YouTube's. */}
+          with `remotion still --frame=0`: the animated backdrop's drift terms are all zero at frame 0 (see
+          `Backdrop.tsx`), so any frame is the settled one and the still cannot be caught mid-move. 1280×720 is
+          YouTube's. */}
       <Composition
         id="Thumbnail"
         component={Thumbnail}
@@ -59,16 +59,6 @@ export const RemotionRoot = () => {
         width={1920}
         height={1080}
         defaultProps={EMPTY}
-      />
-      {/* 0085_09's WebGL smoke test: three.js fails *silently* under the wrong OpenGL backend, so this
-          makes "did anything draw?" answerable from one still rather than from an exit code. */}
-      <Composition
-        id="ThreeSmoke"
-        component={ThreeSmoke}
-        durationInFrames={90}
-        fps={30}
-        width={1920}
-        height={1080}
       />
     </>
   );

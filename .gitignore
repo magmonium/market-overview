@@ -20,5 +20,10 @@ node_modules/
 .remotion/
 remotion-out/
 
+# Remotion's `public/` folder — preview scaffolding only. The shipping pipeline deliberately **inlines** its
+# assets (`logo.load` builds a data URI; the bed is muxed by ffmpeg) rather than serving them from here, so
+# everything in this folder exists for `./bn` and nothing here belongs in a commit.
+public/*
+
 # macOS
 .DS_Store

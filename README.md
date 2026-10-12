@@ -41,26 +41,78 @@ faded it, are exactly the two that are missing. `tests/test_audio.py` asserts th
 ## Run
 
 ```bash
-uv run market-overview build --date YYYY-MM-DD
+uv run mo build --date YYYY-MM-DD
+```
+
+`mo` is the short name; `uv run market-overview build …` is the same CLI under its long name.
+
+**`--date` is optional and defaults to today**, so the common case — publish the newest session — is a bare:
+
+```bash
+uv run mo build
+```
+
+⚠️ The default is a *request*, not an exemption: the session guard still refuses if today is a holiday, a
+weekend, or not yet past the close, exactly as it would a typed date.
+
+**`--lang` selects which edition(s) to build**, in the order given — one or more of `bn`, `en`. Omitted, the run
+builds the shipping default (`bn`), so the flag is additive: re-cutting one edition should not mean re-rendering
+the other.
+
+```bash
+uv run mo build --lang en          # English only
+uv run mo build --lang en bn       # English first, then Bengali
 ```
 
 One command, by hand — there is no scheduler, deliberately (`docs/adr/0004`).
 
 ⚠️ **Run it in the foreground, and expect it to take a long time.** A full brief is ~4,500 frames per edition plus
-a still, so a two-edition run is well over an hour of rendering — and **you will see no progress while it works**,
-for two independent reasons. Python buffers stdout when it is redirected to a file, and Remotion's own output is
-**captured rather than forwarded** (deliberately — 0085_06: a render that dies has to keep its reason, and a
-buffer discarded on death takes it along). So a run that is working looks exactly like a run that has hung.
+a still, so a two-edition run is well over an hour of rendering. **You will see progress while it works:** the tool
+prints `rendering <lang> …` before each edition, and the renderer's own lines — `Bundling …`, `Rendered x/y, time
+remaining …`, `Encoded x/y` — are forwarded live as they arrive (`render._stream`). Every one of those lines is
+flushed, so a redirected run is legible too and nothing depends on setting `PYTHONUNBUFFERED`. A working run still
+looks *slow* — it is an hour of rendering — but it no longer looks hung.
 
-Prefix `PYTHONUNBUFFERED=1` to get the tool's own lines as they happen, which is enough to see *which edition* is
-in flight:
+To keep a copy and watch it:
 
 ```bash
-PYTHONUNBUFFERED=1 uv run market-overview build --date YYYY-MM-DD > /tmp/run.log 2>&1 &
+uv run mo build > /tmp/run.log 2>&1 &
+tail -f /tmp/run.log
 ```
 
 Interrupting is safe: every write is atomic or staged, so a killed run leaves the previous delivery intact and the
 date folder visibly unfinished.
+
+### Rendering speed
+
+The render is the whole cost. It is dominated by how each frame gets *out* of the browser, and by how many run at
+once — in rough order of value:
+
+1. **Shared-memory capture.** Remotion's own `chrome-headless-shell` hands each frame to ffmpeg as a bitmap
+   instead of JPEG-encoding it first, which skips real work per frame (Remotion ≥ 4.0.534 on Apple Silicon, macOS
+   15+). It is **currently unavailable on this machine**: the bundled shell dies at "Getting composition"
+   (`Target closed`, at `Getting composition`), so `render._browser_flag` falls back to system Chrome — and a
+   browser without Remotion's patch uses JPEG screenshots. Restoring it is the single biggest win available, and
+   it is worth a spike anywhere the shell launches:
+   ```bash
+   node_modules/.remotion/chrome-headless-shell/*/chrome-headless-shell-*/chrome-headless-shell --version
+   ```
+2. **Concurrency.** Remotion defaults to about half the cores. Measure it, then pin it — the number is a property
+   of the machine, not of the product:
+   ```bash
+   npx remotion benchmark --concurrencies=6,8,10,12
+   MARKET_OVERVIEW_CONCURRENCY=10 uv run mo build
+   ```
+   ⚠️ This **changes no frame**: the backdrop is a pure function of the frame index, so more tabs render the same
+   picture sooner. That is what makes it safe to tune per machine. Absent, Remotion's own default stands.
+3. **The composition.** The animated backdrop (`remotion/Backdrop.tsx`) is the per-frame cost, and it is now plain
+   CSS — gradients, drifting lobes and a scrolling grid — rather than a WebGL canvas, so it is dramatically
+   cheaper than the three.js world it replaced. `--log=verbose` lists the slowest frames if that is ever worth
+   attacking.
+
+⚠️ **What is deliberately not on the table:** `--scale` (renders a different picture) and
+`--hardware-acceleration` (H.264 through VideoToolbox changes the encoded bytes, and Remotion warns the file is
+significantly larger) — both trade the product for speed.
 
 What a run does: **fetch or re-render** → compute the facts bundle → render both editions → assemble the
 packages.

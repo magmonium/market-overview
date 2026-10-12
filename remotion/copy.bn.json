@@ -52,10 +52,6 @@
     "commercial_services": "বাণিজ্যিক পরিষেবা",
     "miscellaneous": "বিবিধ"
   },
-  "sectors_columns": {
-    "stocks": "শেয়ার",
-    "market_cap": "বাজার মূলধন"
-  },
   "leaders": {
     "gainers": "উত্থান",
     "losers": "পতন",
@@ -111,9 +107,34 @@
     "ex_date": "এক্স-ডেট",
     "opens": "খুলছে"
   },
+  "dates": {
+    "weekday_0": "রবিবার",
+    "weekday_1": "সোমবার",
+    "weekday_2": "মঙ্গলবার",
+    "weekday_3": "বুধবার",
+    "weekday_4": "বৃহস্পতিবার",
+    "weekday_5": "শুক্রবার",
+    "weekday_6": "শনিবার",
+    "month_1": "জানুয়ারি",
+    "month_2": "ফেব্রুয়ারি",
+    "month_3": "মার্চ",
+    "month_4": "এপ্রিল",
+    "month_5": "মে",
+    "month_6": "জুন",
+    "month_7": "জুলাই",
+    "month_8": "আগস্ট",
+    "month_9": "সেপ্টেম্বর",
+    "month_10": "অক্টোবর",
+    "month_11": "নভেম্বর",
+    "month_12": "ডিসেম্বর",
+    "long": "{weekday}, {day} {month}, {year}"
+  },
   "furniture": {
     "attribution": "ডেটা: TradingView, BSE",
     "as_on": "সেশন"
+  },
+  "closing": {
+    "thanks": "ধন্যবাদ"
   },
   "disclosure": "শিক্ষামূলক তথ্য · কোনো বিনিয়োগ পরামর্শ বা সুপারিশ নয় · শেয়ার বাজারে বিনিয়োগে ঝুঁকি আছে",
   "metadata": {

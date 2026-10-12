@@ -2,6 +2,7 @@
 0085_14 — fetch or re-render: the snapshot is what makes a past date rebuildable.
 """
 import contextlib
+import datetime as _datetime
 import io
 import json
 import pathlib
@@ -226,10 +227,29 @@ class Build(unittest.TestCase):
         self.assertEqual(self._run(["build", "--date", "12/10/2026"]), 2)
         self.assertIn("YYYY-MM-DD", self.err.getvalue())
 
-    def test_date_is_required(self):
-        with self.assertRaises(SystemExit) as caught:
-            self._run(["build"])
-        self.assertNotEqual(caught.exception.code, 0)
+    def test_without_a_date_it_targets_today(self):
+        """⚠️ `--date` is optional now: a bare `build` aims at **today**, so publishing the newest session is
+        the default rather than something to remember to type. The guard is unchanged — today is only the date
+        *asked for*, and a holiday refuses it exactly as it would a typed date.
+
+        `_today` is the seam, patched here so the assertion does not depend on the wall clock."""
+        with mock.patch.object(cli, "_today", return_value=SESSION):
+            code = self._run(["build"])
+        self.assertEqual(code, 0)
+        self.assertEqual(self.render_calls[0].args[0], SESSION)
+
+    def test_a_defaulted_today_is_still_refused_by_the_guard(self):
+        """The default is a request, not an exemption: a `--date`-less run onto a holiday refuses and writes
+        nothing, exactly as `build --date 2026-10-11` does."""
+        with mock.patch.object(cli, "_today", return_value="2026-10-11"):
+            code = self._run(["build"])
+        self.assertEqual(code, 1)
+        self.assertIn("newest session", self.err.getvalue())
+        self.assertFalse((self.store / "store").exists())
+
+    def test_today_is_the_wall_clock_date(self):
+        """The seam answers with the real day, in the shape `--date` accepts."""
+        self.assertEqual(cli._today(), _datetime.date.today().isoformat())
 
     # ── the session guard ────────────────────────────────────────────────────────────
 
@@ -467,6 +487,42 @@ class Build(unittest.TestCase):
         self._run(["build", "--date", SESSION])
         for call in self.still_calls:
             self.assertEqual(call.kwargs, {})
+
+
+    # ── `--lang`: which editions a run builds ────────────────────────────────────────
+
+    def test_no_lang_flag_builds_the_shipping_default(self):
+        """⚠️ `--lang` is **additive**: with no flag the run is exactly what it always was. A flag that
+        silently changed the default would be a delivery nobody asked for."""
+        code = self._run(["build", "--date", SESSION])
+        self.assertEqual(code, 0)
+        self.assertEqual([call.args[1] for call in self.render_calls], list(cli.LANGUAGES))
+
+    def test_lang_narrows_the_run_to_the_edition_named(self):
+        """The point of the flag: build one edition without editing the module constant."""
+        code = self._run(["build", "--date", SESSION, "--lang", "en"])
+        self.assertEqual(code, 0)
+        self.assertEqual([call.args[1] for call in self.render_calls], ["en"])
+        # ⚠️ The still follows the video, not the default — a run for English must not leave a Bengali
+        # thumbnail in a folder it never built.
+        self.assertEqual([call.args[1] for call in self.still_calls], ["en"])
+
+    def test_lang_takes_several_editions_and_keeps_their_order(self):
+        code = self._run(["build", "--date", SESSION, "--lang", "en", "bn"])
+        self.assertEqual(code, 0)
+        self.assertEqual([call.args[1] for call in self.render_calls], ["en", "bn"])
+
+    def test_a_language_repeated_is_rendered_once(self):
+        code = self._run(["build", "--date", SESSION, "--lang", "bn", "bn"])
+        self.assertEqual(code, 0)
+        self.assertEqual([call.args[1] for call in self.render_calls], ["bn"])
+
+    def test_an_unknown_language_is_a_usage_error(self):
+        """⚠️ `choices`, so a typo is refused up front rather than pointed at a label table that is not there —
+        and never at a folder nobody will upload."""
+        with self.assertRaises(SystemExit) as caught:
+            self._run(["build", "--date", SESSION, "--lang", "fr"])
+        self.assertEqual(caught.exception.code, 2)
 
 
     # ── fetch, or re-render from the snapshot ────────────────────────────────────────

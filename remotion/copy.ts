@@ -17,7 +17,6 @@ export type Copy = {
   windows: Record<string, string>;
   blocks: Record<string, string>;
   sectors: Record<string, string>;
-  sectors_columns: Record<string, string>;
   leaders: Record<string, string>;
   most_active: Record<string, string>;
   breadth: Record<string, string>;
@@ -26,7 +25,11 @@ export type Copy = {
   dependencies: Record<string, string>;
   kinds: Record<string, string>;
   calendar: Record<string, string>;
+  //: The long date the still prints — weekday and month names, plus the `long` template that orders them.
+  dates: Record<string, string>;
   furniture: Record<string, string>;
+  //: The sign-off — the close's thank-you, the one line that is pure product rather than data.
+  closing: Record<string, string>;
   disclosure: string;
 };
 

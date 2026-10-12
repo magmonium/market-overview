@@ -1,8 +1,9 @@
 """The thumbnail still — 0085_12.
 
-⚠️ These read the renderer's **source**, like `test_world.py`, and for the same reason: a canvas cannot be inspected
-from pytest. What is checked is the *contract* — the size, the shared headline rule, the logo's still numbers, the
-rest state, the reserved regions — while the frames themselves were verified by rendering and looking.
+⚠️ These read the renderer's **source**, like their predecessor `test_world.py`, and for the same reason: what a
+browser draws cannot be inspected from pytest. What is checked is the *contract* — the size, the shared headline
+rule, the logo's still numbers, the rest state, the reserved regions — while the frames themselves were verified
+by rendering and looking.
 
 Two failure modes this file exists to catch, both silent:
 
@@ -11,7 +12,8 @@ Two failure modes this file exists to catch, both silent:
   notice the product contradicting itself. The rule lives in `headline.ts` and this file asserts that *both* callers
   use it rather than each keeping a copy that happens to agree today.
 - **The still animating.** A thumbnail is a still: anything frame-dependent makes "the same bundle gives the same
-  image" stop being true, and a re-render could land on a different frame of an entrance.
+  image" stop being true, and a re-render could land on a different frame of an entrance. The shared `Backdrop`
+  reads the frame, so the guarantee is that its motion is *zero at frame 0* and the still renders there.
 """
 import json
 import re
@@ -25,8 +27,7 @@ THUMBNAIL_SOURCE = (REMOTION / "Thumbnail.tsx").read_text(encoding="utf-8")
 BRAND_SOURCE = (REMOTION / "Brand.tsx").read_text(encoding="utf-8")
 ROOT_SOURCE = (REMOTION / "Root.tsx").read_text(encoding="utf-8")
 THEME_SOURCE = (REMOTION / "theme.ts").read_text(encoding="utf-8")
-THUMB_THEME_SOURCE = (REMOTION / "world" / "theme.ts").read_text(encoding="utf-8")
-STATIONS_SOURCE = (REMOTION / "world" / "stations.tsx").read_text(encoding="utf-8")
+BACKDROP_SOURCE = (REMOTION / "Backdrop.tsx").read_text(encoding="utf-8")
 BLOCKS_SOURCE = (REMOTION / "blocks.tsx").read_text(encoding="utf-8")
 HEADLINE_SOURCE = (REMOTION / "headline.ts").read_text(encoding="utf-8")
 
@@ -35,7 +36,7 @@ COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
 
 def code_only(source: str) -> str:
     """⚠️ Comments stripped. Several tests below look for the *absence* of a pattern, and the prose explaining why
-    that pattern is forbidden contains the pattern. `test_world.py` learned this the hard way first."""
+    that pattern is forbidden contains the pattern. Its predecessor (`test_world.py`) learned this the hard way."""
     return COMMENT.sub("", source)
 
 
@@ -60,15 +61,16 @@ class TheComposition(unittest.TestCase):
         give the video a fourteenth card that has no slot."""
         self.assertNotIn("Thumbnail", (REMOTION / "MarketBrief.tsx").read_text(encoding="utf-8"))
 
-    def test_the_still_s_camera_is_not_on_the_video_s_rail(self):
-        """⚠️ `STATIONS` is the video's rail, and `test_world.py` asserts both that it holds exactly one station per
-        rendered block and that each station starts where the last ended. A thumbnail viewpoint is not a cut, so it
-        must stay outside that table or it breaks both assertions and puts an uncut camera on a continuous rail."""
-        self.assertIn("export const THUMBNAIL", STATIONS_SOURCE)
-        # ⚠️ Matched on `define(`, which is the only way into the table — not on the word "thumbnail", which appears
-        # in prose throughout this file and would make the assertion unfalsifiable the moment anyone wrote it down.
-        self.assertNotIn("define('thumbnail'", STATIONS_SOURCE)
-        self.assertIn("define('", STATIONS_SOURCE)
+    def test_the_still_reuses_the_video_s_backdrop(self):
+        """⚠️ The still does not get a background of its own. It mounts the **same** `Backdrop` the video uses
+        (at frame 0, where every drift term is zero), so the still is unmistakably the same product — one
+        data-driven field for all three surfaces, not a screenshot and not a second composition.
+
+        This replaces the old assertion that the still's *camera* sat off the video's rail: with the three.js
+        world gone there is no rail to be off, and the equivalent guarantee is that the still shares the one
+        backdrop rather than inventing a second one."""
+        self.assertIn("import {Backdrop} from './Backdrop'", THUMBNAIL_SOURCE)
+        self.assertIn("<Backdrop bundle={bundle} />", THUMBNAIL_SOURCE)
 
 
 class OneFigureThreeSurfaces(unittest.TestCase):
@@ -102,12 +104,17 @@ class OneFigureThreeSurfaces(unittest.TestCase):
                 self.assertNotIn("reduce(", body, "the inline rule is the copy that drifts")
                 self.assertNotIn("Math.abs(", body)
 
-    def test_the_rule_is_the_largest_absolute_move(self):
-        """Absolute, not largest fall: a +2.1 % day is as much the story as a −2.1 % one, and the pipeline has no
-        view about direction. Asserted on the source because the rule is about the *choice*, not the rendering."""
+    def test_the_rule_is_nifty_fifty_with_the_biggest_mover_as_a_fallback(self):
+        """⚠️ The product leads on **Nifty 50** — the index a reader means by "the market" — not on whichever row
+        happened to move most, which is what let a mid-cap session lead the whole brief. Asserted on the source
+        because the rule is about the *choice*, not the rendering.
+
+        The old largest-absolute-move rule survives only as the fallback for a bundle with no Nifty 50 row."""
+        self.assertIn("export const HEADLINE_KEY = 'nifty50'", HEADLINE_SOURCE)
         body = HEADLINE_SOURCE.split("export const headline")[1]
-        self.assertIn("Math.abs(", body)
-        self.assertIn("reduce(", body)
+        self.assertIn("HEADLINE_KEY", body, "the rule must read the shared constant")
+        self.assertIn("biggestMove(rows)", body, "the fallback must still be reachable from the rule")
+        self.assertIn("Math.abs(", HEADLINE_SOURCE, "the fallback stays absolute, so a gain counts like a fall")
 
     def test_it_is_total_where_the_inline_version_was_not(self):
         """⚠️ A still is rendered by a **different command against whatever props it is handed**, so `headline` can
@@ -153,28 +160,33 @@ class TheMark(unittest.TestCase):
 class TheRestState(unittest.TestCase):
     """Issue 14: "rendered from the scene's **settled state**, never from a moment mid-entrance"."""
 
-    def test_the_still_s_camera_has_no_entrance_at_all(self):
-        """⚠️ Stronger than "render at a frame after the entrance finished": `from` **is** `to` and the settle is
-        zero, so the camera never moves and *every* frame is the settled one. There is no frame the still could be
-        caught mid-way through, which is what makes `--frame=0` correct rather than merely convenient."""
-        station = STATIONS_SOURCE.split("export const THUMBNAIL")[1]
-        self.assertIn("settle: 0,", station)
-        froms = re.search(r"from: (rail\([^)]*\)),", station).group(1)
-        tos = re.search(r"to: (rail\([^)]*\)),", station).group(1)
-        self.assertEqual(froms, tos, "a moving camera has an entrance, and a still must not have one")
+    def test_the_still_s_backdrop_has_no_entrance_at_all(self):
+        """⚠️ Stronger than "render at a frame after the entrance finished". The backdrop's whole motion is
+        `Math.sin(seconds * ...)` where `seconds = frame / fps`, so at frame 0 every term is **zero** and the
+        field is its settled state. There is no frame the still could be caught mid-way through, which is what
+        makes `--frame=0` correct rather than merely convenient."""
+        code = code_only(BACKDROP_SOURCE)
+        self.assertIn("const seconds = frame / fps", code)
+        # Every animated term is a sin/cos of `seconds` (which is 0 at frame 0) plus a fixed phase/offset —
+        # so nothing moves at frame 0.
+        self.assertIn("Math.sin(seconds", code)
 
     def test_the_still_holds_no_clock_of_its_own(self):
         """⚠️ A thumbnail is a still. `useCurrentFrame` or `enter()` would make the image depend on which frame was
-        asked for, and a re-render could land somewhere else entirely."""
+        asked for, and a re-render could land somewhere else entirely — so neither may appear in the still itself.
+        The shared backdrop reads the frame, but at frame 0 it resolves to one settled image."""
         code = code_only(THUMBNAIL_SOURCE)
         self.assertNotIn("useCurrentFrame", code)
         self.assertNotIn("enter(", code)
         self.assertNotIn("Math.random", code)
 
-    def test_every_still_scene_is_a_pure_function_of_the_bundle(self):
-        code = code_only(STATIONS_SOURCE.split("export const THUMBNAIL")[1])
+    def test_the_backdrop_holds_no_clock_of_its_own(self):
+        """⚠️ The backdrop is frame-derived, never wall-clock. `Date.now`/`performance.now` would make two
+        renders of the same bundle differ, which is exactly what the still's bit-exactness test would catch."""
+        code = code_only(BACKDROP_SOURCE)
         self.assertNotIn("Math.random", code)
-        self.assertIn("scene: (bundle) =>", code)
+        self.assertNotIn("Date.now", code)
+        self.assertNotIn("performance.now", code)
 
     def test_the_still_is_asked_for_frame_zero(self):
         source = (store.root() / "src" / "market_overview" / "render.py").read_text(encoding="utf-8")
@@ -204,11 +216,16 @@ class TheReservedRegions(unittest.TestCase):
         block = code_only(THUMBNAIL_SOURCE).split("justifyContent: 'flex-start'")[1].split("</AbsoluteFill>")[0]
         padding = int(re.search(r"paddingTop: (\d+)", block).group(1))
         sizes = [int(n) for n in re.findall(r"fontSize: (\d+)", block)]
-        self.assertEqual(len(sizes), 2, "the label and the figure")
-        label, figure = sizes
-        # Lines are ~1.2x their font size in the label's case and 1.0 for the figure, plus the label's margin.
-        self.assertLess(padding + label * 1.2 + figure + 10, 470, "the type must leave the lower band to the world")
+        self.assertEqual(len(sizes), 3, "the label, the figure and the date")
+        label, figure, date = sizes
+        # Lines are ~1.2x their font size except the figure, which is 1.0, plus the two margins between the three.
+        self.assertLess(
+            padding + label * 1.2 + figure + date * 1.2 + 22,
+            470,
+            "the type must leave the lower band to the world",
+        )
         self.assertGreater(figure, label, "the figure is the largest element in the frame")
+        self.assertGreater(figure, date, "the date is support, never the thing the eye lands on")
 
     def test_the_still_s_scrim_is_the_thinner_of_the_two(self):
         """⚠️ **The fix for the first render.** `SCRIM_OPEN` is 0.90 opaque through the middle, and over a palette
@@ -275,14 +292,14 @@ class TheFile(unittest.TestCase):
         """⚠️ Two stills, one per language — issue 20's parity rule applied to a still. That is why the CLI calls
         the still *inside* the per-edition loop rather than once."""
         cli = (store.root() / "src" / "market_overview" / "cli.py").read_text(encoding="utf-8")
-        loop = cli.split("for lang in LANGUAGES:")[1]
+        loop = cli.split("for lang in editions:")[1]
         self.assertIn("render.still(day, lang)", loop)
 
     def test_a_failed_still_fails_the_run(self):
         """⚠️ A language folder missing its thumbnail is an incomplete package, and a folder that *looks* finished is
         worse than one that errors — so the still is inside the same try as the video."""
         cli = (store.root() / "src" / "market_overview" / "cli.py").read_text(encoding="utf-8")
-        loop = cli.split("for lang in LANGUAGES:")[1]
+        loop = cli.split("for lang in editions:")[1]
         self.assertLess(
             loop.index("render.still(day, lang)"),
             loop.index("except (render.RenderError"),

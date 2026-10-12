@@ -44,8 +44,28 @@ export const enter = (frame: number, fps: number, span = 0.4) => {
  */
 /**
  * ⚠️ `scrim` defaults to the dense `SCRIM` because most cards carry figures. The three framing blocks —
- * the pre-roll, the cold open and the close — pass `SCRIM_OPEN` instead: they are the shots where the world
- * *is* the content. See the note on the two constants in theme.ts.
+ * the pre-roll, the cold open and the close — pass `SCRIM_OPEN` instead: they are the shots where the
+ * backdrop *is* the content. See the note on the two constants in theme.ts.
+ */
+
+/**
+ * ⚠️ **The scrim is the card's own `background`, not a separate layer — and that is a bug fix, not a tidy-up.**
+ *
+ * It used to be an absolutely-positioned sibling `<AbsoluteFill>` placed *before* the header/main/footer. A
+ * positioned box with `z-index: auto` paints in **step 6** of CSS's paint order, while in-flow non-positioned
+ * content paints in steps 3-5 — i.e. *earlier*. So the scrim was painted **over** the text and dimmed everything
+ * to whatever its gradient let through. Measured on a rendered still: white `#f4f6fa` text peaked at luminance
+ * **79 of 255** on the scoreboard and **71** on the sector table, instead of ~245.
+ *
+ * It survived earlier review because the entrance hid it: `enter()` puts `opacity: <1` on the content, and any
+ * `opacity < 1` creates a stacking context, which promotes the content into step 6 *after* the scrim — so a card
+ * looked right for its first 0.4 s and went dim the instant the entrance finished and opacity reached exactly
+ * `1` (which creates no stacking context). Making the scrim a plain background removes the whole hazard: a
+ * background is always painted before its own content, and no paint-order reasoning is required.
+ *
+ * The backdrop still shows through exactly where the gradient is thin (the lower "atmosphere" band), because the
+ * scrim is translucent there. It is constant, never animated: a scrim that faded *up* would fade the background
+ * *out* as a viewer arrives.
  */
 export const Card = ({
   title,
@@ -55,51 +75,51 @@ export const Card = ({
   title?: string;
   scrim?: string;
   children: React.ReactNode;
-}) => (
-  <AbsoluteFill
-    style={{
-      // ⚠️ The scrim, not a flat fill: an opaque card would hide the world behind it entirely, and a scrim
-      // strong enough to be uniform would hide the world too. See the note on `SCRIM` in theme.ts.
-      background: scrim,
-      color: '#f4f6fa',
-      fontFamily: FONT,
-      padding: '64px 96px 88px',
-      display: 'flex',
-      flexDirection: 'column',
-    }}
-  >
-    {/* Reserved top-right safe area, 260x160 at `x >= 1660, y <= 160` (issue 21's verdict table). The mark
-        lands there in 0085_10 — on a chip, rendered once above the whole brief rather than here, because this
-        component is not used by three of the thirteen blocks. See Brand.tsx.
-        ⚠️ The region is anchored to the **frame corner**, not to this card's padded content box, and that
-        distinction is easy to get wrong: a measurement built from these paddings reported a collision (455 of
-        765 brightest) that did not exist. Measured on the real region, six cards read 44-53 of 765 — the
-        scrim, and nothing else. `tests/safe_area.py` takes `--box=` so a measurement can be re-aimed.
-        ⚠️ The dead `seconds` prop that used to sit here is gone: pushed hard right via `marginLeft: 'auto'`,
-        it was the one live way this space could have been stolen, and it read as a feature rather than as
-        unused code. */}
-
-    <header
+}) => {
+  return (
+    <AbsoluteFill
       style={{
+        color: '#f4f6fa',
+        fontFamily: FONT,
+        padding: '64px 96px 88px',
         display: 'flex',
-        alignItems: 'baseline',
-        gap: 28,
-        minHeight: 56,
-        marginBottom: 24,
+        flexDirection: 'column',
+        background: scrim,
       }}
     >
-      {title ? <div style={{fontSize: 46, fontWeight: 600}}>{title}</div> : null}
-    </header>
+      {/* Reserved top-right safe area, 260x160 at `x >= 1660, y <= 160` (issue 21's verdict table). The mark
+          lands there in 0085_10 — on a chip, rendered once above the whole brief rather than here, because this
+          component is not used by three of the thirteen blocks. See Brand.tsx.
+          ⚠️ The region is anchored to the **frame corner**, not to this card's padded content box, and that
+          distinction is easy to get wrong: a measurement built from these paddings reported a collision (455 of
+          765 brightest) that did not exist. Measured on the real region, six cards read 44-53 of 765 — the
+          scrim, and nothing else. `tests/safe_area.py` takes `--box=` so a measurement can be re-aimed.
+          ⚠️ The dead `seconds` prop that used to sit here is gone: pushed hard right via `marginLeft: 'auto'`,
+          it was the one live way this space could have been stolen, and it read as a feature rather than as
+          unused code. */}
 
-    <main style={{flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column'}}>{children}</main>
+      <header
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 28,
+          minHeight: 56,
+          marginBottom: 24,
+        }}
+      >
+        {title ? <div style={{fontSize: 46, fontWeight: 600}}>{title}</div> : null}
+      </header>
 
-    <footer style={{borderTop: `1px solid ${RULE}`, paddingTop: 16}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', gap: 32}}>
-        <div style={{fontSize: 24, color: MUTED}}>{copy.disclosure}</div>
-        <div style={{fontSize: 24, color: MUTED, whiteSpace: 'nowrap'}}>
-          {copy.furniture.attribution}
+      <main style={{flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column'}}>{children}</main>
+
+      <footer style={{borderTop: `1px solid ${RULE}`, paddingTop: 16}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', gap: 32}}>
+          <div style={{fontSize: 24, color: MUTED}}>{copy.disclosure}</div>
+          <div style={{fontSize: 24, color: MUTED, whiteSpace: 'nowrap'}}>
+            {copy.furniture.attribution}
+          </div>
         </div>
-      </div>
-    </footer>
-  </AbsoluteFill>
-);
+      </footer>
+    </AbsoluteFill>
+  );
+};

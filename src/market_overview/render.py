@@ -9,10 +9,13 @@ checkable that nothing in the JS layer reaches the network.
 """
 from __future__ import annotations
 
+import collections
 import json
 import os
 import pathlib
 import subprocess
+import sys
+import threading
 
 from . import audio, logo, store, timeline
 
@@ -31,10 +34,19 @@ JPEG_QUALITY = 88
 #: constraint in the spec that a silent regression could break without anything else looking wrong.
 MAX_STILL_BYTES = 2 * 1024 * 1024
 
+#: How many trailing lines of a render's output are kept for the failure message. Bounded, because a run is
+#: thousands of progress lines and the reason is always at the end — an unbounded buffer would push it out.
+TAIL_LINES = 40
+
 #: Operator-supplied licensed assets — read, never written. See `resource/README.md`.
 RESOURCE = "resource"
 
 BROWSER_ENV = "MARKET_OVERVIEW_BROWSER"
+
+#: Operator override for the renderer's parallelism. Remotion's default is roughly half the cores; whether this
+#: machine does better or worse is only answerable by measurement —
+#: `npx remotion benchmark --concurrencies=6,8,10,12`. Absent, nothing is passed and Remotion's default stands.
+CONCURRENCY_ENV = "MARKET_OVERVIEW_CONCURRENCY"
 
 # ⚠️ Remotion's bundled `chrome-headless-shell` is a *stripped* build, and on this machine
 # it SIGABRTs: `Received signal 6` from logging::LogMessageFatal via mojo/IPC
@@ -64,6 +76,27 @@ def _browser_flag() -> list[str]:
     return []
 
 
+def _concurrency_flag() -> list[str]:
+    """`--concurrency=N`, or nothing, from `MARKET_OVERVIEW_CONCURRENCY`.
+
+    ⚠️ **A number here does not change a single frame.** The world is a pure function of the frame index, so
+    more tabs render *the same picture, sooner* — which is what makes this safe to tune per machine, unlike a
+    `--scale` or codec change that would move the pixels. That is also why it is an environment knob rather than
+    a constant: the right value is a property of the box, found by `npx remotion benchmark`, not of the product.
+
+    A value that is not a positive integer is **ignored rather than fatal** — a typo in the environment must not
+    be the reason a brief fails to publish.
+    """
+    value = os.environ.get(CONCURRENCY_ENV)
+    if not value:
+        return []
+    try:
+        threads = int(value)
+    except ValueError:
+        return []
+    return [f"--concurrency={threads}"] if threads >= 1 else []
+
+
 def _write_props(
     directory: pathlib.Path, lang: str, bundle: dict, mark: object, *, kind: str = ""
 ) -> pathlib.Path:
@@ -90,6 +123,76 @@ def _write_props(
 
 class RenderError(RuntimeError):
     """The render layer failed. A failed edition fails the run."""
+
+
+def _stream(
+    command: list[str],
+    *,
+    cwd: pathlib.Path,
+    timeout: float | None,
+    label: str,
+) -> None:
+    """Run a render, forwarding its output live, and refuse on a non-zero exit.
+
+    ⚠️ **Forwarded, not captured, because a long render has to look alive.** Remotion is invoked with its
+    output on a pipe (never a TTY here), and in that mode it reports progress as newline-delimited lines —
+    `Bundling 40%`, `Rendered 812/4500, time remaining: 6m`, `Encoded 900/900`. The previous
+    `capture_output` kept every one of those to itself, so a two-edition run was well over an hour during
+    which a working run looked exactly like a hung one.
+
+    ⚠️ **Forwarding does not cost the reason.** The last `TAIL_LINES` lines are kept and attached to the
+    `RenderError`, so a render that dies still explains itself — the exact property `--log=error` was once
+    rejected for. That is *why* the log level can be `info` (see the call sites): the buffer is no longer
+    the only place the reason survives, so a readable live stream and a captured reason are no longer a
+    trade. The tail is bounded because the reason is always at the end.
+
+    `FileNotFoundError` is deliberately **not** caught here — a missing toolchain is the caller's to name,
+    and it happens at `Popen` before a single frame.
+    """
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        # ⚠️ Merged into one stream: to a reader, progress and the failure text are the same channel, and
+        # their order is the only clue that an error came *after* a particular frame.
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+
+    tail: collections.deque[str] = collections.deque(maxlen=TAIL_LINES)
+    timed_out = threading.Event()
+
+    def _give_up() -> None:
+        timed_out.set()
+        process.kill()
+
+    # ⚠️ A watchdog, not `communicate(timeout=…)`: reading line by line to show progress means the read loop
+    # is what must be interrupted, and only another thread can kill the process under a blocked `for line`.
+    watchdog = threading.Timer(timeout, _give_up) if timeout is not None else None
+    if watchdog is not None:
+        watchdog.start()
+
+    try:
+        if process.stdout is not None:
+            for line in process.stdout:
+                tail.append(line.rstrip("\n"))
+                # Flushed per line: buffering here would reintroduce, inside the tool, the very silence the
+                # forwarding exists to remove.
+                sys.stdout.write(line)
+                sys.stdout.flush()
+        returncode = process.wait()
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
+        if process.stdout is not None:
+            process.stdout.close()
+
+    if timed_out.is_set():
+        raise RenderError(f"{label} timed out after {timeout}s")
+
+    if returncode != 0:
+        raise RenderError(f"{label} failed ({returncode}):\n" + "\n".join(tail))
 
 
 class _Unprepared:
@@ -177,7 +280,15 @@ def render(
     bundle = json.loads(props.read_text(encoding="utf-8"))
 
     if isinstance(bed, _Unprepared):
-        prepared = audio.prepare(target.parent.parent, run_seconds(bundle), root=root)
+        # ⚠️ **`resource=` is threaded, and that is a fix rather than tidiness.** `RESOURCE` is the one constant
+        # that locates the operator's assets, and the mark below already honours it. Leaving this call to its own
+        # default meant the two assets could resolve to *different* directories — so patching `RESOURCE` (which
+        # `tests/test_copy.py` does, precisely so the suite does not depend on whether an asset has been dropped
+        # in) redirected the mark and not the bed. It stayed hidden only because no `music.*` existed to be found;
+        # the moment one did, that test's stubbed subprocess met an `ffprobe` instead of the render command.
+        prepared = audio.prepare(
+            target.parent.parent, run_seconds(bundle), root=root, resource=root / RESOURCE
+        )
         bed = prepared[0] if prepared is not None else None
 
     # ⚠️ The mark is loaded **before** the render rather than during it. An unusable asset is a refusal, and a
@@ -216,27 +327,22 @@ def render(
         f"--props={wrapper}",
         "--overwrite",
         *_browser_flag(),
-        # ⚠️ `verbose`, not `error`: a long render that dies with `--log=error` takes its reason with
-        # it, because the buffer is discarded on death. Learned the hard way on 0085_06.
-        "--log=verbose",
+        *_concurrency_flag(),
+        # ⚠️ `info`, not `verbose`: the output is **streamed** now (`_stream`), so `verbose` would bury the
+        # progress a reader is watching under Remotion's own internals — `delayRender()` handles, memory
+        # readings, the raw ffmpeg command — none of which is progress. `info` prints the `Rendered x/y`
+        # lines *and* the error text, and the reason survives either way: live on the stream, and in the
+        # bounded tail `_stream` attaches to the `RenderError`.
+        "--log=info",
     ]
     try:
-        completed = subprocess.run(
-            command,
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+        _stream(command, cwd=root, timeout=timeout, label="remotion render")
     except FileNotFoundError as exc:
         raise RenderError(f"render toolchain missing: {exc}") from exc
     finally:
         wrapper.unlink(missing_ok=True)
 
     try:
-        if completed.returncode != 0:
-            tail = (completed.stderr or completed.stdout or "")[-2000:]
-            raise RenderError(f"remotion render failed ({completed.returncode}):\n{tail}")
         if not silent.exists():
             raise RenderError(f"remotion reported success but wrote no file at {silent}")
 
@@ -292,25 +398,18 @@ def still(date: str, lang: str, *, timeout: float | None = None) -> pathlib.Path
         f"--jpeg-quality={JPEG_QUALITY}",
         "--overwrite",
         *_browser_flag(),
-        "--log=verbose",
+        # ⚠️ `info`, streamed like the video's (see `_stream`): the still is quick, but it is the same
+        # subprocess boundary, and two log levels for one toolchain would be a difference to keep in step.
+        "--log=info",
     ]
     try:
-        completed = subprocess.run(
-            command,
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+        _stream(command, cwd=root, timeout=timeout, label="remotion still")
     except FileNotFoundError as exc:
         raise RenderError(f"render toolchain missing: {exc}") from exc
     finally:
         wrapper.unlink(missing_ok=True)
 
     try:
-        if completed.returncode != 0:
-            tail = (completed.stderr or completed.stdout or "")[-2000:]
-            raise RenderError(f"remotion still failed ({completed.returncode}):\n{tail}")
         if not staging.exists():
             raise RenderError(f"remotion reported success but wrote no image at {staging}")
 

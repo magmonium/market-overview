@@ -3,28 +3,35 @@
  * Everything a viewer reads is decided here, so a card cannot invent its own conventions.
  */
 
-export const INK = '#f4f6fa';
-export const MUTED = '#8b95a7';
-export const GREEN = '#37d67a';
-export const RED = '#ff5c5c';
+/**
+ * ⚠️ **The palette was brightened deliberately.** The old `GREEN #37d67a` / `RED #ff5c5c` were tuned to sit
+ * quietly over a dark, desaturated 3D world. With the world replaced by a vibrant animated backdrop (see
+ * `Backdrop.tsx`) the figures have to hold their own against a much louder background, so the up/down pair
+ * moved to a **vivid emerald and a vivid rose** — brighter, more saturated, and still clearly distinct in
+ * lightness as well as hue, so a colour-blind viewer can tell them apart.
+ */
+export const INK = '#f5f7ff';
+export const MUTED = '#9aa6c2';
+export const GREEN = '#2be39a';
+export const RED = '#ff5470';
 export const BG = '#0b0e13';
-export const RULE = '#1e2531';
+export const RULE = '#232b3d';
 
 /**
  * ⚠️ **Two scrim strengths, because the cards do not all have an atmosphere region.**
  *
- * Issue 12: "The 3D layer may only occupy the frame regions the card's layout marks as **atmosphere**."
- * A sparse card — the calendar holds eight rows in its top third — leaves the lower frame empty, so the
- * world belongs there and the scrim can be thin. A **dense table has no such region**: its rows run to the
- * bottom edge, so on those cards the world must be a hint and nothing more.
+ * The backdrop layer may only occupy the frame regions the card's layout marks as **atmosphere**. A sparse card
+ * — the calendar holds eight rows in its top third — leaves the lower frame empty, so the backdrop belongs there
+ * and the scrim can be thin. A **dense table has no such region**: its rows run to the bottom edge, so on those
+ * cards the backdrop must be a hint and nothing more.
  *
- * That is not a taste call. The first render proved it: a thin scrim under the sector table put the world's
- * geometry behind the heat cells, where it competed with the cells' own colour and made the right half of
- * the table look grubby. The heat map's tint *is* its meaning, so nothing may sit behind it.
+ * That is not a taste call. An early render proved it: a thin scrim under the sector table put the backdrop
+ * behind the heat cells, where it competed with the cells' own colour and made the right half of the table look
+ * grubby. The heat map's tint *is* its meaning, so nothing may sit behind it.
  *
  * So `SCRIM_OPEN` is for the cards that leave the lower frame empty — most_active, breadth, dma, flows,
- * dependencies, calendar — plus the three framing blocks, where the world is the content. Everything else
- * takes the dense `SCRIM`; the mapping is asserted in `tests/test_world.py` rather than left to judgement.
+ * dependencies, calendar — plus the three framing blocks, where the backdrop is the content. Everything else
+ * takes the dense `SCRIM`; the mapping is asserted in `tests/test_backdrop.py` rather than left to judgement.
  */
 export const SCRIM =
   'linear-gradient(180deg, rgba(11,14,19,0.97) 0%, rgba(11,14,19,0.94) 44%, ' +
@@ -37,17 +44,17 @@ export const SCRIM_OPEN =
 /**
  * ⚠️ **The still's own scrim, and it is much thinner than either card scrim — measured, not guessed.**
  *
- * The first still used `SCRIM_OPEN` and the world vanished: that scrim is 0.90 opaque through the middle, and the
- * world's palette is deliberately dark (`TILE #41526e` on `BG #0b0e13`), so keeping 10 % of it is keeping nothing.
- * The still came out as a number on a black field.
+ * The first still used `SCRIM_OPEN` and the backdrop vanished: that scrim is 0.90 opaque through the middle, and
+ * the backdrop's palette is deliberately dark, so keeping 10 % of it is keeping nothing. The still came out as a
+ * number on a black field.
  *
- * That is a defect against issue 14, not a taste call. The ticket asks for the figure **"over a lit 3D grid"** and
- * says the day's terrain — *"the terrain behind the figure"* — is where a feed of daily thumbnails stops looking
- * like the same image every day. A crushed world costs the thumbnail its daily variety, which is the whole payoff
- * of choosing one data-driven world over eleven authored scenes.
+ * That is a defect against issue 14, not a taste call. The ticket asks for the figure **"over a lit grid"** and
+ * says the day's field — *"the terrain behind the figure"* — is where a feed of daily thumbnails stops looking
+ * like the same image every day. A crushed backdrop costs the thumbnail its daily variety, which is the whole
+ * payoff of one data-driven animated field over eleven authored scenes.
  *
  * So this one leans the other way: dense at the very top where the mark sits, thin across the middle where the
- * figure has its own saturated colour to carry the contrast, **thinnest at ~74 % where the terrain actually is**,
+ * figure has its own saturated colour to carry the contrast, **thinnest at ~74 % where the field actually is**,
  * and dense again at the bottom for the strip the platform draws on.
  */
 export const SCRIM_STILL =
@@ -72,11 +79,37 @@ export const crore = (value: number | null): string =>
 export const tone = (value: number | null): string =>
   value === null ? MUTED : value >= 0 ? GREEN : RED;
 
-/** ⚠️ The dependency strip only. `*INR` **up** means the rupee is *weaker*, so colouring by sign
- * would invert the meaning. Ticket 05's rule is "coloured by meaning, not by sign", and the strip is
- * left neutral: the direction is carried by the number and its arrow, never by a colour that would
- * say the opposite. */
+/** ⚠️ The **`*INR` rows of the dependency strip** only. For a currency pair, up means the rupee is *weaker*, so
+ * colouring by sign would invert the meaning. Ticket 05's rule is "coloured by meaning, not by sign", so those rows
+ * stay neutral — the direction is carried by the number and its arrow, never by a colour that would say the
+ * opposite. The strip's other rows (VIX, metals, crude) are coloured normally. */
 export const NEUTRAL = INK;
 
 export const quote = (value: number | null, digits = 2): string =>
   value === null ? '—' : value.toLocaleString('en-IN', {maximumFractionDigits: digits});
+
+/**
+ * Deterministic PRNG. `Math.random()` would make two renders of the same bundle differ, which breaks the
+ * frame-determinism promise ADR 0003 rests on.
+ *
+ * ⚠️ **Moved here from the 3D layer's own theme** when the world was replaced by `Backdrop.tsx`. The backdrop
+ * places its particles and blobs the same way the world did — from a **seed string**, never a shared stateful
+ * generator — so scrubbing, a re-render or a second edition cannot place them somewhere else.
+ */
+export const seeded = (seed: string) => {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  }
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+};
+
+/** −1..1 from a percentage, saturating at `saturate` — used so the backdrop's character follows the day's
+ * direction without anyone authoring a scene for it. */
+export const lean = (percent: number | null | undefined, saturate = 5) =>
+  Math.max(-1, Math.min(1, (percent ?? 0) / saturate));

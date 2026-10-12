@@ -1,11 +1,11 @@
-import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig} from 'remotion';
 import type {ChartConfiguration} from 'chart.js';
 import {Chart} from './Chart';
 import {Lockup, suppliedMark} from './Brand';
 import {Card, copy, enter} from './Furniture';
 import {headline} from './headline';
 
-import type {FactsBundle, Quote, Window} from './bundle';
+import type {FactsBundle, Quote, SectorFacts, Window} from './bundle';
 import {GREEN, FONT, INK, MUTED, NEUTRAL, RED, RULE, SCRIM_OPEN, crore, number, percent, tone} from './theme';
 
 /** A heat-tinted percentage cell. The tint carries magnitude; the number carries the truth. */
@@ -17,7 +17,21 @@ const Cell = ({value, digits = 2}: {value: number | null; digits?: number}) => {
   return (
     <div
       style={{
-        padding: '12px 14px',
+        // ⚠️ **Sized explicitly, and that is the whole fix.** This cell carried no `fontSize`, so it inherited
+        // the browser's 16px default while the name beside it was 34px — the six windows, which are the table's
+        // entire subject, rendered smaller than anything else on the card. A figure nobody can read is not a
+        // figure, so the size is stated here rather than left to whatever the cascade happens to leave behind.
+        fontSize: 30,
+        fontWeight: 600,
+        // ⚠️ **A cell must fit inside its own row, and this is the arithmetic.** `Sectors` lays 13 rows plus a
+        // header into the card's `main` (~802 px of the 1080), so `1fr` rows come out at ~54 px. A cell is
+        // `fontSize * lineHeight + 2 * vertical padding`: at `30 / 1.05 / 8` that is ~47.5 px, leaving ~6 px of
+        // slack. At the first cut's `30 / normal / 12` it was ~60 px — **taller than the row it sat in** — so the
+        // last sectors ran through the footer and off the bottom of the frame. Measured, not guessed: a rendered
+        // sectors still had 1763 pixels brighter than 230 in the bottom 90 px band, where only the muted footer
+        // belongs. Nothing in `tests/` can see that; it took reading the pixels of a still.
+        lineHeight: 1.05,
+        padding: '8px 14px',
         textAlign: 'right',
         fontVariantNumeric: 'tabular-nums',
         borderRadius: 6,
@@ -34,6 +48,32 @@ const WINDOW_KEYS = ['change', 'Perf.W', 'Perf.1M', 'Perf.3M', 'Perf.6M', 'Perf.
 const windows = (window: Window, digits = 2) =>
   WINDOW_KEYS.map((key) => <Cell key={key} value={window[key] ?? null} digits={digits} />);
 
+/**
+ * The sectors, **the day's leaders first**.
+ *
+ * ⚠️ Descending by the day's move, because that is the question the card answers — *who is up today?* The bundle's
+ * own order is cap-weighted (the thirteen biggest sectors), which is the right order for *selecting* the board and
+ * the wrong one for *reading* it: a viewer had to hunt the page for the green cells.
+ *
+ * ⚠️ A sector with no change sorts **last**, not to an imagined zero — a missing figure is not a flat day.
+ *
+ * ⚠️ **One ordering for both cards.** `HeatMap` shares this rather than sorting its own way, per ticket 26's rule
+ * that one list serves both blocks; two orders that agreed today would be two orders that could drift, and the
+ * drift would show as the heat map's biggest tile and the table's first row being different sectors.
+ */
+const byDayChange = (sectors: SectorFacts[]): SectorFacts[] =>
+  [...sectors].sort((a, b) => {
+    const left = a.window['change'];
+    const right = b.window['change'];
+    if (left === null || left === undefined) {
+      return right === null || right === undefined ? 0 : 1;
+    }
+    if (right === null || right === undefined) {
+      return -1;
+    }
+    return right - left;
+  });
+
 /** The sector table's header register — denser than the index scoreboard's on purpose, because fourteen
  * rows have to fit where six do. Shared so its seven headers cannot drift apart. */
 const HEADER: React.CSSProperties = {
@@ -42,9 +82,6 @@ const HEADER: React.CSSProperties = {
   textAlign: 'right',
   padding: '8px 12px',
 };
-
-/** Right-aligned tabular figures, so a column can actually be read down its length. */
-const NUMBER: React.CSSProperties = {textAlign: 'right', fontVariantNumeric: 'tabular-nums'};
 
 /** Block 0 — the disclosure, before any content. A viewer who watches nothing else has still read it. */
 export const Disclosure = () => {
@@ -114,18 +151,26 @@ export const ColdOpen = ({indexes, meta}: FactsBundle) => {
   );
 };
 
-/** Block 2 — five indices, six windows. Heat-tinted, because the shape matters as much as the digits. */
-export const Indexes = ({indexes}: FactsBundle) => {
+/**
+ * Block 2 — the index scoreboard: the five headline indices, then the two cap tiers.
+ *
+ * ⚠️ **MidCap 100 and SmallCap 100 ride here rather than on a card of their own.** They are indices like the rest,
+ * a viewer reads them in the same glance, and a separate chart spends a whole slot drawing two rows this table can
+ * carry. They are *appended*, so the five the brief leads with keep their place — and they are still fetched by
+ * their own scan, so a cap-tier failure costs two rows rather than the card.
+ */
+export const Indexes = ({indexes, broader}: FactsBundle) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const {opacity} = enter(frame, fps);
+  const rows = [...indexes, ...(broader ?? [])];
   return (
     <Card title={copy.blocks.indexes}>
       <div
         style={{
           opacity,
           display: 'grid',
-          gridTemplateColumns: '1fr 190px repeat(6, 152px)',
+          gridTemplateColumns: '1fr 190px repeat(6, 164px)',
           // ⚠️ `height: 100%` + `auto` rows: without them the table sits in the top third of the frame
           // and leaves most of the card empty. Legibility beats spectacle, and empty space is neither —
           // a viewer has nothing to rest on and the card reads as unfinished.
@@ -146,7 +191,7 @@ export const Indexes = ({indexes}: FactsBundle) => {
           </div>
         ))}
 
-        {indexes.map((index) => (
+        {rows.map((index) => (
           <div key={index.ticker} style={{display: 'contents'}}>
             <div style={{fontSize: 34}}>{copy.indexes[index.label_key] ?? index.label_key}</div>
             <div
@@ -279,7 +324,7 @@ export const MostActive = ({most_active}: FactsBundle) => {
   );
 };
 
-/** Block 3 — thirteen cap-weighted sectors across six windows. */
+/** Block 3 — thirteen cap-weighted sectors across six windows, **the day's leaders first**. */
 export const Sectors = ({sectors}: FactsBundle) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
@@ -293,10 +338,10 @@ export const Sectors = ({sectors}: FactsBundle) => {
         style={{
           opacity,
           display: 'grid',
-          // ⚠️ Stocks and market cap each get a real column rather than riding inside the name cell.
-          // Inlined, the counts stepped in and out with the length of each sector's name, so the one
-          // thing a column is for — comparing numbers down the page — did not work.
-          gridTemplateColumns: '1fr 96px 150px repeat(6, 142px)',
+          // ⚠️ **The name and the six windows, and nothing else.** Stocks and market cap were cut: they described
+          // the *sector* rather than the day, and they cost two columns of a card whose whole subject is the move.
+          // The width they freed goes to the figures that are the subject, so a percentage reads at a glance.
+          gridTemplateColumns: '1fr repeat(6, 172px)',
           height: '100%',
           gridAutoRows: '1fr',
           gap: 4,
@@ -305,21 +350,15 @@ export const Sectors = ({sectors}: FactsBundle) => {
       >
         {/* The sector name is its own header. */}
         <div />
-        <div style={HEADER}>{copy.sectors_columns.stocks}</div>
-        <div style={HEADER}>{copy.sectors_columns.market_cap}</div>
         {WINDOW_KEYS.map((key) => (
           <div key={key} style={HEADER}>
             {copy.windows[key] ?? key}
           </div>
         ))}
-        {sectors.map((sector) => (
+        {byDayChange(sectors).map((sector) => (
           <div key={sector.sector_key} style={{display: 'contents'}}>
             <div style={{fontSize: 28}}>
               {copy.sectors[sector.sector_key] ?? sector.sector_key}
-            </div>
-            <div style={{...NUMBER, fontSize: 20, color: MUTED}}>{sector.members}</div>
-            <div style={{...NUMBER, fontSize: 22, color: MUTED}}>
-              {(sector.market_cap_crore / 1e5).toFixed(1)}L cr
             </div>
             {windows(sector.window)}
           </div>
@@ -333,8 +372,8 @@ export const Sectors = ({sectors}: FactsBundle) => {
  * Block 4 — the same thirteen, as area. Cell size is the sector's weight and colour is its day, so the
  * two facts ride two channels instead of one number the eye has to read.
  *
- * ⚠️ It reads the **scoreboard's own list**, per ticket 26 — one list serves both blocks, so the two
- * cards cannot end up disagreeing about the same sector.
+ * ⚠️ It reads the **scoreboard's own list and its ordering** (`byDayChange`), per ticket 26 — one list serves both
+ * blocks, so the two cards cannot end up disagreeing about the same sector, in content or in order.
  */
 export const HeatMap = ({sectors}: FactsBundle) => {
   const frame = useCurrentFrame();
@@ -343,7 +382,8 @@ export const HeatMap = ({sectors}: FactsBundle) => {
   if (!sectors) {
     return null;
   }
-  const heaviest = Math.max(...sectors.map((sector) => sector.market_cap_crore));
+  const ordered = byDayChange(sectors);
+  const heaviest = Math.max(...ordered.map((sector) => sector.market_cap_crore));
   return (
     <Card title={copy.blocks.heat_map}>
       <div
@@ -356,7 +396,7 @@ export const HeatMap = ({sectors}: FactsBundle) => {
           flex: 1,
         }}
       >
-        {sectors.map((sector) => {
+        {ordered.map((sector) => {
           const share = sector.market_cap_crore / heaviest;
           const day = sector.window['change'] ?? null;
           const alpha = Math.round(Math.min(Math.abs(day ?? 0) / 4, 1) * 200)
@@ -599,12 +639,19 @@ export const Flows = ({flows}: FactsBundle) => {
 };
 
 /**
- * Block 5 — the global cues, and the one card in the brief that is **not coloured by sign**.
+ * Block 5 — the global cues.
  *
- * ⚠️ `*INR` rising means the rupee is *weaker*, so a green "up" would say the opposite of the truth.
- * Ticket 05's rule is "coloured by meaning, not by sign", which here means no colour at all: the
- * direction is carried by the number and its arrow.
+ * ⚠️ **Coloured, but not uniformly.** The strip used to be entirely neutral because `*INR` rising means the rupee is
+ * *weaker* — a green "up" would say the opposite of the truth. That objection is real, but it is about the four
+ * currency pairs and nothing else, so it is now scoped to them: VIX, the metals and the crude contracts read green
+ * up / red down like every other card, and the currency rows alone stay neutral. Ticket 05's rule is still "coloured
+ * by meaning, not by sign" — the meaning simply differs per row, which is why the tone is per row.
  */
+
+/** ⚠️ The currency pairs keep the neutral tone; everything else is direction. See the note above. */
+const dependencyTone = (labelKey: string, day: number | null) =>
+  labelKey.endsWith('inr') ? NEUTRAL : tone(day);
+
 export const Dependencies = ({dependencies}: FactsBundle) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
@@ -643,7 +690,13 @@ export const Dependencies = ({dependencies}: FactsBundle) => {
                 <div style={{fontSize: 46, color: NEUTRAL, fontVariantNumeric: 'tabular-nums'}}>
                   {number(row.close, 2)}
                 </div>
-                <div style={{fontSize: 32, color: NEUTRAL, fontVariantNumeric: 'tabular-nums'}}>
+                <div
+                  style={{
+                    fontSize: 32,
+                    color: dependencyTone(row.label_key, day),
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
                   {day === null ? '—' : `${day >= 0 ? '\u25b2' : '\u25bc'} ${percent(day)}`}
                 </div>
               </div>
@@ -700,15 +753,65 @@ export const Broader = ({broader}: FactsBundle) => {
   );
 };
 
-/** Block 11 — the one block with **no always-present part**.
- *
- * Each of the three sub-cards is dropped when it is empty, and facts.json omits the key entirely when
- * nothing qualified. So this component renders whatever survived, and nothing when nothing did — which
- * is why the block itself is skipped rather than shown as an empty shell. */
-export const Calendar = ({corporate_actions, ipos, announcements}: FactsBundle) => {
+/** One calendar slide — its own `Sequence`, so its entrance is its own and its rows get the full frame width that
+ * three columns used to share. */
+const CalendarSlide = ({title, rows}: {title: string; rows: {left: string; right: string}[]}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const {opacity} = enter(frame, fps);
+  const {opacity, lift} = enter(frame, fps, 0.35);
+  return (
+    <Card title={copy.blocks.calendar} scrim={SCRIM_OPEN}>
+      <div
+        style={{
+          opacity,
+          transform: `translateY(${lift}px)`,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <div style={{fontSize: 32, color: MUTED, marginBottom: 20}}>{title}</div>
+        {rows.map((row, index) => (
+          <div
+            key={`${title}-${index}`}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              gap: 24,
+              padding: '15px 0',
+              borderBottom: `1px solid ${RULE}`,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 34,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {row.left}
+            </span>
+            <span style={{fontSize: 30, color: MUTED, whiteSpace: 'nowrap'}}>{row.right}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
+/** Block 11 — the one block with **no always-present part**, shown as **one slide per subject**.
+ *
+ * Each subject is dropped when it is empty, and `facts.json` omits the key entirely when nothing qualified. So this
+ * renders whatever survived, one slide each, and nothing when nothing did — which is why the block itself is skipped
+ * rather than shown as an empty shell.
+ *
+ * ⚠️ **Slides, not three columns.** Side by side, three subjects shared one frame: a long announcement truncated to
+ * an ellipsis beside a two-column table, every row read at a third of the width it needed. One subject per screen
+ * gives each the whole frame and its own entrance, and the slot divides evenly between however many survived.
+ */
+export const Calendar = ({timeline, corporate_actions, ipos, announcements}: FactsBundle) => {
   const columns = [
     {
       title: copy.calendar.corporate_actions,
@@ -742,51 +845,38 @@ export const Calendar = ({corporate_actions, ipos, announcements}: FactsBundle) 
     return null;
   }
 
+  // ⚠️ The block's **own** length, read from the bundle's timeline. Not `useVideoConfig().durationInFrames`, which
+  // is the whole brief — the renderer holds no second opinion about timings, it reads what Python scheduled. The
+  // last slide absorbs the remainder, so the slides always fill the slot exactly however many there are.
+  const total = timeline.blocks.find((block) => block.key === 'calendar')?.duration ?? 0;
+  const share = Math.floor(total / columns.length);
+
   return (
-    <Card title={copy.blocks.calendar} scrim={SCRIM_OPEN}>
-      <div style={{opacity, display: 'flex', gap: 44, flex: 1}}>
-        {columns.map((column) => (
-          <div key={column.title} style={{flex: 1, minWidth: 0}}>
-            <div style={{fontSize: 26, color: MUTED, marginBottom: 12}}>{column.title}</div>
-            {column.rows.map((row, index) => (
-              <div
-                key={`${column.title}-${index}`}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 14,
-                  padding: '9px 0',
-                  borderBottom: `1px solid ${RULE}`,
-                  fontSize: 24,
-                }}
-              >
-                <span
-                  style={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {row.left}
-                </span>
-                <span style={{color: MUTED, whiteSpace: 'nowrap'}}>{row.right}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </Card>
+    <>
+      {columns.map((column, index) => (
+        <Sequence
+          key={column.title}
+          from={index * share}
+          durationInFrames={index === columns.length - 1 ? total - index * share : share}
+        >
+          <CalendarSlide title={column.title} rows={column.rows} />
+        </Sequence>
+      ))}
+    </>
   );
 };
 
 /**
  * Block 12 — the close.
  *
- * ⚠️ It **leads forward**, it does not recap. Ticket 22's rule is that the close is the one card with a
- * reason to point at tomorrow, and a silent piece's only promise is its sequence — so the forward line
- * comes first and the day's figure closes the loop rather than re-listing it.
+ * ⚠️ It **leads forward**, it does not recap. Ticket 22's rule is that the close is the one card with a reason to
+ * point at tomorrow, and a silent piece's only promise is its sequence.
+ *
+ * ⚠️ **The day's headline is no longer repeated here.** It was this card's largest line *and* the cold open's, so
+ * the brief said the same number twice — the second time after the viewer had already been told everything the
+ * number means. The close now ends on a thank-you, which is what a sign-off is for.
  */
-export const Close = ({meta, indexes}: FactsBundle) => {
+export const Close = ({meta}: FactsBundle) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const {opacity, lift} = enter(frame, fps, 0.6);
@@ -806,17 +896,7 @@ export const Close = ({meta, indexes}: FactsBundle) => {
         }}
       >
         <div style={{fontSize: 40, color: MUTED}}>{copy.furniture.as_on} · {meta.date}</div>
-        <div style={{fontSize: 76, fontWeight: 600, lineHeight: 1.25}}>
-          {copy.indexes[indexes[0].label_key] ?? indexes[0].label_key}{' '}
-          <span
-            style={{
-              color: tone(indexes[0].window['change'] ?? null),
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {percent(indexes[0].window['change'] ?? null)}
-          </span>
-        </div>
+        <div style={{fontSize: 76, fontWeight: 600, lineHeight: 1.25}}>{copy.closing.thanks}</div>
         <div style={{fontSize: 34, color: MUTED}}>{copy.blocks.close} →</div>
       </div>
     </Card>

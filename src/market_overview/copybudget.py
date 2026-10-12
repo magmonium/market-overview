@@ -147,15 +147,9 @@ def prose(key: str, bundle: dict, labels: dict) -> list[Run]:
         # removing on the JavaScript side.
         return [Run("cold_open.heading", f"{display.headline_label(bundle, labels)} · {date}", 40, width=FULL_BLEED_WIDTH)]
     if key == "close":
-        first = (bundle.get("indexes") or [{}])[0]
         return [
             Run("close.as_on", f"{labels['furniture']['as_on']} · {date}", 40),
-            Run(
-                "close.headline",
-                f"{labels['indexes'][first.get('label_key', '')]} "
-                f"{(first.get('window') or {}).get('change') and display.percent((first['window'])['change']) or ''}".strip(),
-                76,
-            ),
+            Run("close.thanks", labels["closing"]["thanks"], 76),
             Run("close.tomorrow", f"{labels['blocks']['close']} →", 34),
         ]
     return []

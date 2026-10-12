@@ -11,7 +11,9 @@ dependencies = [
 ]
 
 [project.scripts]
+# The long form is the product's name; `mo` is the short one you actually type.
 market-overview = "market_overview.cli:main"
+mo = "market_overview.cli:main"
 
 [build-system]
 requires = ["hatchling"]

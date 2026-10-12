@@ -17,6 +17,7 @@ suite does three things the module cannot do for itself:
 `npm install`ed. The measurements only mean something with the real encoder, so they are not faked.
 """
 import contextlib
+import io
 import json
 import os
 import pathlib
@@ -371,7 +372,9 @@ class TheRunLength(unittest.TestCase):
         from market_overview import timeline
 
         full = [{"key": key, "duration": round(sec * timeline.FPS)} for _, key, sec in timeline.TIMELINE]
-        self.assertAlmostEqual(render.run_seconds({}), 5.0)  # only the disclosure survives an empty bundle
+        # ⚠️ 12.5, not 5.0: an empty bundle now keeps the **close** as well as the disclosure. The close quotes no
+        # figure any more, so it needs nothing from the bundle and is always scheduled — disclosure 5 + close 7.5.
+        self.assertAlmostEqual(render.run_seconds({}), 12.5)
         self.assertAlmostEqual(timeline.total_seconds(full), timeline.BUILD_SECONDS)
         self.assertLess(timeline.BUILD_SECONDS, timeline.CAP_SECONDS)
 
@@ -671,6 +674,24 @@ class Mux(unittest.TestCase):
 
 
 
+class _StubProcess:
+    """The slice of `subprocess.Popen` that `render._stream` touches, and nothing more.
+
+    ⚠️ `_stream` **streams** a render rather than capturing it, so the seam tests stub `Popen`, not `run`. The fake
+    must therefore be iterable (its `stdout` is read line by line), closeable, and waitable.
+    """
+
+    def __init__(self, returncode: int):
+        self.stdout = io.StringIO("")
+        self.returncode = returncode
+
+    def wait(self, timeout: float | None = None) -> int:
+        return self.returncode
+
+    def kill(self) -> None:  # pragma: no cover - the timeout path is covered in tests/test_render.py
+        pass
+
+
 class TheRenderWiring(unittest.TestCase):
     """How the bed reaches the video, asserted on the commands actually issued.
 
@@ -693,16 +714,16 @@ class TheRenderWiring(unittest.TestCase):
     def _run(self, *, bed=None, returncode=0, writes=True):
         """`render.render` with the renderer stubbed, records the command, and returns nothing."""
 
-        def fake_run(command, **kwargs):
+        def fake_popen(command, **_kwargs):
             self.commands.append(command)
             if writes and returncode == 0:
                 pathlib.Path(command[5]).write_bytes(b"freshly rendered picture")
-            return mock.Mock(returncode=returncode, stdout="", stderr="boom")
+            return _StubProcess(returncode)
 
         with contextlib.ExitStack() as stack:
             stack.enter_context(mock.patch.object(store, "root", return_value=self.root))
             stack.enter_context(mock.patch.object(logo, "load", return_value=None))
-            stack.enter_context(mock.patch.object(render.subprocess, "run", side_effect=fake_run))
+            stack.enter_context(mock.patch.object(render.subprocess, "Popen", side_effect=fake_popen))
             self.mux = stack.enter_context(mock.patch.object(audio, "mux"))
             render.render("2026-10-12", "bn", bed=bed)
         return self.commands[0]

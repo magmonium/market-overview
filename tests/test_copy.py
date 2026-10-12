@@ -8,11 +8,11 @@ means it does so **without crashing** — so nothing else in the suite would eve
 What these tests can prove is structure and script. Whether the Bengali reads as native wording rather
 than translated wording is a human judgement, and 0085_07 marks it as one.
 """
+import io
 import json
 import pathlib
 import re
 import shutil
-import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -97,27 +97,28 @@ class Shape(unittest.TestCase):
                         )
 
 
-    def test_interpolated_labels_are_phrases_and_keep_their_placeholder(self):
-        """A label carrying `{n}` is a *phrase*, and the reason it is a phrase rather than a word is that word
-        order differs between the languages and cannot be fixed in shared layout code. `of 497` is not
-        expressible as `of` + `497` in Bengali, where the postposition follows the noun.
+    def test_interpolated_labels_are_phrases_and_keep_their_placeholders(self):
+        """A label carrying a `{...}` token is a *phrase*: the token marks where a value goes, and the reason it is a
+        phrase rather than a word is that **word order differs between the languages** and cannot be fixed in shared
+        layout code. `of 497` is not expressible as `of` + `497` in Bengali, where the postposition follows the noun —
+        and the long date is the same problem twice over, `{month} {day}` in English and `{day} {month}` in Bengali.
 
-        A table that dropped the placeholder would render a note with no number in it and still read as a
-        sentence — which is why both tables are required to carry it."""
-        spots = {
+        A table that dropped a token would render a note with no value in it and still read as a sentence, so both
+        tables are required to carry the **same tokens** for the same label."""
+        tokens = {
             lang: {
-                (group, key)
+                (group, key): sorted(re.findall(r"\{(\w+)\}", label))
                 for group, labels in groups(t).items()
                 for key, label in labels.items()
                 if "{" in label
             }
             for lang, t in TABLES
         }
-        self.assertEqual(spots["bn"], spots["en"], "the tables interpolate different labels")
-        self.assertTrue(spots["bn"], "no interpolated label — a phrase has been flattened back to a word")
-        for group, key in sorted(spots["bn"]):
-            for lang, t in TABLES:
-                self.assertIn("{n}", t[group][key], f"{lang} {group}.{key} lost its placeholder")
+        self.assertEqual(set(tokens["bn"]), set(tokens["en"]), "the tables interpolate different labels")
+        self.assertTrue(tokens["bn"], "no interpolated label — a phrase has been flattened back to a word")
+        for spot in sorted(tokens["bn"]):
+            with self.subTest(label=spot):
+                self.assertEqual(tokens["bn"][spot], tokens["en"][spot], "a table lost or gained a placeholder")
 
 
 class Script(unittest.TestCase):
@@ -161,6 +162,24 @@ class Script(unittest.TestCase):
         )
 
 
+class _StubProcess:
+    """The slice of `subprocess.Popen` that `render._stream` touches, and nothing more.
+
+    ⚠️ `_stream` streams the render rather than capturing it, so this test must stub `Popen`, not `run`: the fake
+    is iterated line by line, closed, and waited on.
+    """
+
+    def __init__(self, returncode: int):
+        self.stdout = io.StringIO("")
+        self.returncode = returncode
+
+    def wait(self, timeout: float | None = None) -> int:
+        return self.returncode
+
+    def kill(self) -> None:  # pragma: no cover - the timeout path is covered in tests/test_render.py
+        pass
+
+
 class Seam(unittest.TestCase):
     """What the renderer hands Remotion.
 
@@ -188,7 +207,7 @@ class Seam(unittest.TestCase):
 
         seen: dict = {}
 
-        def fake_run(command, **_kwargs):
+        def fake_popen(command, **_kwargs):
             wrapper = pathlib.Path(
                 next(arg for arg in command if arg.startswith("--props=")).split("=", 1)[1]
             )
@@ -196,11 +215,11 @@ class Seam(unittest.TestCase):
             seen["during"] = wrapper.exists()
             seen["props"] = json.loads(wrapper.read_text(encoding="utf-8"))
             pathlib.Path(next(arg for arg in command if arg.endswith(".mp4"))).write_bytes(b"stub")
-            return subprocess.CompletedProcess(command, 0, "", "")
+            return _StubProcess(0)
 
         with (
             mock.patch.object(render, "video_path", lambda date, lang: target),
-            mock.patch.object(render.subprocess, "run", fake_run),
+            mock.patch.object(render.subprocess, "Popen", fake_popen),
             # ⚠️ Pointed at an empty folder, so this test asserts the same thing whether or not the operator
             # has dropped `logo.svg` into the real `resource/`. A test whose result depends on a licensed asset
             # being present is a test that fails for the wrong reason on someone else's machine.

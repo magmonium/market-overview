@@ -57,20 +57,20 @@ class Fit(unittest.TestCase):
 
     def test_the_sector_column_holds_every_sector_label(self):
         self.assertIsNotNone(
-            re.search(r"gridTemplateColumns: '1fr 96px 150px repeat\(6, 142px\)'", SOURCE),
+            re.search(r"gridTemplateColumns: '1fr repeat\(6, 172px\)'", SOURCE),
             "the sector grid moved — the measured box is no longer the real one",
         )
-        box = first_column((96, 150) + (142,) * 6, 4)
+        box = first_column((172,) * 6, 4)
         measured = measure(runs_for("sectors", 28))
         over = {k: round(v["width"]) for k, v in measured.items() if v["width"] > box or v["lines"] > 1}
         self.assertEqual(over, {}, f"sector labels over {box}px")
 
     def test_the_index_column_holds_every_index_label(self):
         self.assertIsNotNone(
-            re.search(r"gridTemplateColumns: '1fr 190px repeat\(6, 152px\)'", SOURCE),
+            re.search(r"gridTemplateColumns: '1fr 190px repeat\(6, 164px\)'", SOURCE),
             "the index grid moved",
         )
-        box = first_column((190,) + (152,) * 6, 6)
+        box = first_column((190,) + (164,) * 6, 6)
         measured = measure(runs_for("indexes", 34))
         over = {k: round(v["width"]) for k, v in measured.items() if v["width"] > box or v["lines"] > 1}
         self.assertEqual(over, {}, f"index labels over {box}px")

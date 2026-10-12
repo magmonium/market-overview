@@ -52,10 +52,6 @@
     "commercial_services": "Commercial Services",
     "miscellaneous": "Miscellaneous"
   },
-  "sectors_columns": {
-    "stocks": "Stocks",
-    "market_cap": "Market cap"
-  },
   "leaders": {
     "gainers": "Gainers",
     "losers": "Losers",
@@ -111,9 +107,34 @@
     "ex_date": "Ex-date",
     "opens": "opens"
   },
+  "dates": {
+    "weekday_0": "Sunday",
+    "weekday_1": "Monday",
+    "weekday_2": "Tuesday",
+    "weekday_3": "Wednesday",
+    "weekday_4": "Thursday",
+    "weekday_5": "Friday",
+    "weekday_6": "Saturday",
+    "month_1": "January",
+    "month_2": "February",
+    "month_3": "March",
+    "month_4": "April",
+    "month_5": "May",
+    "month_6": "June",
+    "month_7": "July",
+    "month_8": "August",
+    "month_9": "September",
+    "month_10": "October",
+    "month_11": "November",
+    "month_12": "December",
+    "long": "{weekday}, {month} {day}, {year}"
+  },
   "furniture": {
     "attribution": "Data: TradingView, BSE",
     "as_on": "Session"
+  },
+  "closing": {
+    "thanks": "Thank you"
   },
   "disclosure": "Educational only · Not investment advice or a recommendation · Investments in securities markets are subject to risk",
   "metadata": {

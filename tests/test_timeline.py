@@ -66,12 +66,14 @@ class Order(unittest.TestCase):
 
 
 class Omission(unittest.TestCase):
-    def test_a_bundle_without_indexes_keeps_only_the_disclosure(self):
-        """A bundle with no index scoreboard cannot exist — `facts.build` refuses one — but if it did,
-        three of the four surviving cards (the cold open and the close included) would have no data. So
-        the timeline drops them rather than scheduling a card that would crash."""
+    def test_a_bundle_without_indexes_keeps_only_the_framing_blocks(self):
+        """A bundle with no index scoreboard cannot exist — `facts.build` refuses one — but if it did, the cold open
+        and the scoreboard would have no data and are dropped rather than scheduled empty.
+
+        ⚠️ The close is **not** dropped: it quotes no figure any more, so it needs nothing from the bundle and is
+        always scheduled. See `timeline.NEEDS`."""
         order = timeline.running_order({"meta": {}})
-        self.assertEqual([block["key"] for block in order], ["disclosure"])
+        self.assertEqual([block["key"] for block in order], ["disclosure", "close"])
 
     def test_the_minimum_valid_bundle_keeps_the_bookends(self):
         order = timeline.running_order({"meta": {}, "indexes": []})

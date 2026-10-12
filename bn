@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+#
+# bn — preview the **Bengali** edition of the Market Brief in Remotion Studio.
+#
+#   ./bn                # newest snapshot under store/
+#   ./bn 2026-10-12     # a specific date
+#   PREVIEW_PORT=3123 ./bn    # a different port (default 3000)
+#
+# Why this exists rather than a bare `npx remotion studio …`: the composition needs props, and the props
+# are the `{bundle, lang, mark}` wrapper the renderer builds for itself (`render._write_props`) and then
+# **deletes** after the render. So there is never one sitting on disk to point `--props` at. This script
+# rebuilds that wrapper from the day's `facts.json`, so `npm run studio` (which passes no props, and
+# therefore renders every card empty) is not the thing you have to remember to work around.
+#
+# ⚠️ **It also carries the branding and the music, which a plain `--props` file does not.** The mark is
+# inlined by `logo.load()` — the same data URI a real render receives — and the bed is normalised by the
+# *same* `audio.prepare()` the run uses (−14 LUFS, trimmed, faded), then staged into Remotion's `public/`
+# folder and passed as the preview-only `bed` prop, so Studio plays the real bed. Both are best-effort:
+# a missing or unusable asset is a warning here, never a dead preview.
+#
+# ⚠️ Studio needs **no** `--browser-executable` flag, unlike `remotion render` / `remotion still` on this
+# machine: Studio draws in *your* browser, so Remotion's bundled `chrome-headless-shell` — the one that
+# dies at "Getting composition" with `Target closed` — is never launched.
+set -euo pipefail
+
+# Resolve the repo root from this script's own location, so `./bn` works from anywhere.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+# Newest snapshot that actually has a facts bundle; `store/<date>` names sort lexically as dates.
+if [ "$#" -ge 1 ]; then
+  DATE="$1"
+else
+  DATE="$(find store -maxdepth 2 -name facts.json -print 2>/dev/null | sort | tail -1 | xargs -I{} dirname {} | xargs -I{} basename {})"
+fi
+
+if [ -z "${DATE:-}" ]; then
+  echo "bn: no snapshot found under store/ — build one first: uv run mo build --date YYYY-MM-DD" >&2
+  exit 1
+fi
+
+FACTS="store/${DATE}/facts.json"
+if [ ! -f "$FACTS" ]; then
+  echo "bn: no facts bundle at ${FACTS} — build it first: uv run mo build --date ${DATE}" >&2
+  exit 1
+fi
+
+PROPS="/tmp/preview-bn.json"
+
+# The wrapper, in the renderer's own shape plus the two things it deliberately leaves out: `bundle` + `lang`
+# (the language rides *beside* the bundle, never inside it — ADR 0003 / ticket 20, so both editions read the
+# identical facts file), the `mark`, and the preview-only `bed`.
+#
+# ⚠️ It goes through the project's own loaders rather than re-implementing them. A hand-rolled preview that
+# *approximates* the props is a preview that can disagree with the render, which is the one thing it must not do.
+DATE="$DATE" PROPS="$PROPS" uv run python - <<'PY'
+import json, os, pathlib, shutil
+
+from market_overview import audio, logo, render, store
+
+root = store.root()
+date = os.environ["DATE"]
+out = pathlib.Path(os.environ["PROPS"])
+
+bundle = json.loads((store.dir_for(date) / store.FACTS).read_text(encoding="utf-8"))
+
+# ⚠️ Best-effort, both of them: the shipping pipeline treats a missing mark as "a brief without branding" and a
+# missing bed as "a silent brief", so the preview must not be stricter than the thing it previews. An asset that
+# is present but unusable is still *reported*, because silently drawing nothing is how a wrong logo ships.
+mark = None
+mark_note = "none supplied"
+try:
+    mark = logo.load(root / "resource")
+except logo.LogoError as exc:
+    mark_note = f"REFUSED — {exc}"
+if mark is not None:
+    mark_note = f"{mark['name']} (ink {mark['polarity']}, chip {mark['chip']})"
+
+# ⚠️ The bed goes through the same `audio.prepare` a real run uses, so the preview *hears* the deliverable —
+# same level, same length, same fades. It lands in the run's own directory exactly where a run puts it
+# (`output/<date>/.bed.wav`), and is then copied into `public/`, because a composition can only serve assets
+# from there and the props must name a file inside it.
+bed = None
+bed_note = "silent"
+try:
+    prepared = audio.prepare(root / "output" / date, render.run_seconds(bundle), root=root)
+except audio.AudioError as exc:
+    prepared = None
+    bed_note = f"UNAVAILABLE — {exc}"
+if prepared is not None:
+    bed_path, bed_note = prepared
+    public = root / "public"
+    public.mkdir(exist_ok=True)
+    staged = public / f"preview-bed{bed_path.suffix}"
+    shutil.copyfile(bed_path, staged)
+    bed = staged.name
+
+out.write_text(
+    json.dumps({"bundle": bundle, "lang": "bn", "mark": mark, "bed": bed}),
+    encoding="utf-8",
+)
+
+timeline = bundle.get("timeline", {})
+print(f"bn: {date} → {out}")
+print(f"    {len(timeline.get('blocks', []))} slides, {timeline.get('total_frames', 0)} frames @ {timeline.get('fps', 30)}fps")
+print(f"    mark:  {mark_note}")
+print(f"    music: {bed_note.removeprefix('music: ')}")
+PY
+
+# exec, so Ctrl-C reaches Studio directly and no wrapper shell is left behind.
+exec npx remotion studio remotion/index.ts --props="$PROPS" --port="${PREVIEW_PORT:-3000}"

@@ -46,14 +46,14 @@ CAP_SECONDS = 180
 FPS = 30
 
 # Which bundle keys each block needs. A block whose data is absent is dropped whole rather than shown
-# empty. ⚠️ `cold_open` and `close` both read the index scoreboard — the cold open picks the day's hardest
-# move from it and the close quotes the headline — so declaring no dependency would schedule a card whose
+# empty. ⚠️ `cold_open` and `close` both read the index scoreboard — the cold open picks the day's headline
+# (Nifty 50) from it and the close quotes it too — so declaring no dependency would schedule a card whose
 # data was absent, which is a crash rather than a dropped block.
 NEEDS: dict[str, tuple[str, ...]] = {
     "disclosure": (),
-    # ⚠️ Both bookends read the index scoreboard: the cold open picks the day's hardest move from it,
-    # and the close quotes the headline figure. Declaring no dependency would let the timeline schedule
-    # a card whose data is absent — a crash rather than a dropped block.
+    # ⚠️ The cold open reads the index scoreboard — it is the block that states the day's headline figure — so a
+    # bundle without one must not schedule it. Declaring no dependency would let the timeline schedule a card whose
+    # data is absent, which is a crash rather than a dropped block.
     "cold_open": ("indexes",),
     "indexes": ("indexes",),
     "leaders": ("leaders",),
@@ -66,7 +66,9 @@ NEEDS: dict[str, tuple[str, ...]] = {
     "broader": ("broader",),
     # ⚠️ Any one of the three is enough — block 11 is the one block with no always-present part.
     "calendar": ("corporate_actions", "ipos", "announcements"),
-    "close": ("indexes",),
+    # ⚠️ `()`: the close quotes no figure any more — it ends on a thank-you — so it needs nothing from the bundle and
+    # is always scheduled. It used to declare `indexes` for the headline it repeated; see the note in `blocks.tsx`.
+    "close": (),
 }
 
 
