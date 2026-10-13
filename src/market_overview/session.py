@@ -19,14 +19,18 @@ SESSION_OPEN = _datetime.time(9, 15)
 SESSION_CLOSE = _datetime.time(15, 30)
 
 # The india feed is ~15 minutes delayed (`update_mode` = 'delayed_streaming_900'), so the
-# close only exists once the feed has caught up: 15:30 + that delay = **15:45 IST**.
+# close only exists once the feed has caught up. The design named the close plus that delay —
+# 15:45 — and then dropped the margin above it.
 #
-# ⚠️ **The margin is gone, and that is an operator decision rather than an oversight.** The
-# design named 16:00, which was the close plus the delay *plus a further 15 minutes*; this is
-# the delay alone, so the brief ships about a quarter of an hour earlier. What the margin was
-# insuring against is now what this trusts: that the delayed feed has delivered the closing
-# prints by 15:45. `tests/test_session.py` pins the boundary from both sides.
-FINAL_FROM = _datetime.time(15, 45)
+# ⚠️ **15:40, because 15:45 was a round number standing in for a delay the vendor controls.**
+# The two refusals are not the same shape: a bar that is still moving refuses *later* if you
+# wait, but a bar whose final write has already happened refuses **forever** — nothing a
+# re-run sends changes what is on the wire. 2026-10-13 refused for a whole day on a final
+# write of 15:44:03 IST, 57 seconds under the old threshold, and three samples over three
+# minutes read the same second; 2026-10-12's final write was 16:15 IST. Ten minutes past the
+# close is under both, and still clear of the intraday feed, which is the mistake this guard
+# exists to catch. `tests/test_session.py` pins the boundary from both sides.
+FINAL_FROM = _datetime.time(15, 40)
 
 
 class StaleSessionError(RuntimeError):

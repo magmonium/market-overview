@@ -1,0 +1,12 @@
+{
+  "name": "song-video-render",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Song Reel's render layer — Remotion compositions, themes and wave forms.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test remotion/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "studio": "remotion studio remotion/index.ts"
+  }
+}

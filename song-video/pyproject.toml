@@ -1,0 +1,36 @@
+[project]
+name = "song-video"
+version = "0.1.0"
+description = "Builds the Song Reel — a full-length 16:9 music video and its thumbnail, from one supplied song."
+readme = "README.md"
+requires-python = ">=3.14"
+# ⚠️ **The one dependency is the brief itself, on purpose.** The reel reuses `market_overview.logo` (one
+# operator mark, one place) and `market_overview.audio`'s toolchain discovery (the bundled ffmpeg/ffprobe
+# and the loader-path trap that comes with it) rather than re-implementing ~250 tested lines. The cost is
+# explicit: the reel inherits the brief's own dependency tree (`curl_cffi`) — see the map's
+# "reuse before repetition" note.
+dependencies = ["market-overview"]
+
+[tool.uv.sources]
+market-overview = { path = "..", editable = true }
+
+[project.scripts]
+# The long form is the tool's name; `sv` is the short one you actually type.
+song-video = "song_video.cli:main"
+sv = "song_video.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/song_video"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+# ⚠️ **Owned here, not inherited.** pytest resolves rootdir *upward*, so this suite was quietly running under
+# `market-overview/pyproject.toml`'s pytest options — correct today, and broken the moment the brief adds an
+# `addopts` or a `filterwarnings`. A nested project owns its own tests.
+testpaths = ["tests"]

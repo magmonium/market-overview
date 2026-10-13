@@ -173,7 +173,7 @@ nothing** — `1` for a refusal, `2` for a malformed `--date`.
 | Case | Exit | Why it refuses |
 |---|---|---|
 | **Holiday**, weekend, or a mistyped date | 1 | *"asked for X but the newest session is Y"*. A holiday produces no error at all — only *yesterday's* numbers, which would publish under today's date. |
-| **Mid-session** | 1 | *"session X has not finished printing"*. The india feed is ~15 min delayed, so "final" is the close plus that delay — 15:45 IST. Before that the numbers are still moving. |
+| **Mid-session** | 1 | *"session X has not finished printing"*. The india feed is ~15 min delayed, so "final" waits ten minutes past the close — 15:40 IST, under the earliest final write measured. Before that the numbers are still moving. |
 | **Spine down** | 1 | The india scan is the spine. A brief with no market in it is not a degraded brief, it is a wrong one. |
 | **Unusable mark** | 1 | `resource/logo.svg` has text that is not outlined, so it depends on a font being installed. Rendering it would look right here and different elsewhere (0085_10). |
 | **Unmixable bed** | 1 | `resource/music.*` is not a container the tool's `ffmpeg` can read (0085_11). |
@@ -390,6 +390,8 @@ remotion/   the render layer (React/TS), and the vendored typeface in remotion/f
 deploy/     the systemd units and the wrapper that run it daily — see deploy/README.md
 docs/adr/   decisions
 tests/      tests
+song-video/ the Song Reel — a separate tool and product, nested as its own uv project:
+            song-video/README.md
 ```
 
 A run writes to exactly two places, and neither is ever committed:
@@ -429,6 +431,11 @@ Two files are dropped into `resource/` when they are available — **both option
 - `music.*` — the background bed. Any container `ffmpeg` reads.
 
 See `resource/README.md`. The licence is yours; the pipeline records nothing and enforces nothing.
+
+⚠️ **The Song Reel's songs are not these.** The nested `song-video/` product keeps its own `resource/song/` for the
+masters it turns into reels — the **brief's** `resource/music.*` here is its music bed, and the **reel's** song goes
+there. Two folders called `resource/`, two products, one licence decision each: `song-video/README.md` says where
+the mp3 goes.
 
 ⚠️ **Both are optional, and the tool runs without them** — a markless, silent brief is a supported state, not a
 degraded one, so a missing asset is never a refusal. What *is* a refusal is an asset the tool cannot use:

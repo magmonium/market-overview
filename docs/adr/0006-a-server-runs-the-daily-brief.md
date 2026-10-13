@@ -99,3 +99,26 @@ firing — the exact failure `publish.py` exists to prevent, re-introduced by th
   it was a coincidence of round numbers. At 16:30 it now clears the guard by three quarters of an hour, so the fire
   time carries its own margin instead of inheriting the code's.
 
+## Addendum — the threshold moved to 15:40, because 15:45 refused a whole day
+
+- **`session.FINAL_FROM` moved from 15:45 to 15:40.** The session of 2026-10-13 finalised the clock row
+  (`NSE:NIFTY`'s `last_bar_update_time`) at **15:44:03 IST** — 57 seconds under the previous threshold — and then
+  stopped writing: three samples over three minutes read the same second. That is the distinction the previous
+  addendum missed. A bar that is still *moving* refuses later if you wait; a bar whose final write has already
+  happened refuses **forever**, because a re-run re-sends the same request and reads the same record. Every retry
+  that afternoon was refused, and `market-brief.timer`'s 16:30 firing would have refused with them — the silent
+  unattended failure this ADR warns about, reached through the guard rather than around it.
+- **The lesson is about the constant, not about the day.** 15:45 asserts that "the close plus 15 minutes" describes
+  when the vendor finishes writing, and the vendor's own record of the same field says otherwise: **16:15 IST for
+  2026-10-12** (in `store/2026-10-12/raw/tradingview-indexes.json`, and the value `tests/test_session.py` pinned as
+  "finished printing") against 15:44:03 for 2026-10-13. The delay is real; the minute is a round number. A threshold
+  that lands inside the spread of a timestamp the vendor controls will refuse on the days the vendor runs early.
+- **What this gives up, stated rather than implied.** The guard no longer waits for the feed's full ~15 minutes: a
+  run fired between roughly 15:40 and 15:45 now trusts that a final write *is* the closing print. Ten minutes past a
+  15:30 close is still clear of the intraday feed — the mistake the guard exists to catch — and it is under every
+  final write measured so far, which is the property a threshold needs to have.
+- **`OnCalendar` is unchanged**, and 16:30 now clears the guard by fifty minutes. The fire time keeps its own margin
+  rather than inheriting the code's, which is what makes moving the constant a one-file decision.
+- **`tests/test_session.py` pins the boundary from both sides** (15:39 refused, 15:40 accepted) and pins the
+  2026-10-13 write as accepted, so the next move has to move those cases with it.
+

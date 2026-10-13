@@ -1,0 +1,25 @@
+{
+  "song": "১১. বেশরম লতার মতো (unplugged)",
+  "title": "বেশরম লতার মতো",
+  "artist": "",
+  "lang": "bn",
+  "cover": {
+    "name": "মন পড়েছে প্রেমে — Live Concert.png",
+    "sha256": "017bb656e9e4994a22098625775aacb58cd49f4ffeab8998e7a6dd460a78abfe",
+    "bytes": 2009269
+  },
+  "themes": [
+    "vinyl"
+  ],
+  "wave": "bars",
+  "fps": 30,
+  "duration_seconds": 182.04,
+  "master": {
+    "name": "১১. বেশরম লতার মতো (unplugged).mp3",
+    "sha256": "78ff162da9dcaf902ca5bca4fe90276d8cfefe02866e4c1f1ff3cba8cc8683f6",
+    "bytes": 3913209
+  },
+  "toolchain": {
+    "ffprobe": "/Users/dibyendudas/Documents/magmonium/market-overview/node_modules/@remotion/compositor-darwin-arm64/ffprobe"
+  }
+}

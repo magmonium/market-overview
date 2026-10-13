@@ -1,0 +1,18 @@
+{
+  "song": "music",
+  "title": "Dure Kothay",
+  "themes": [
+    "vinyl"
+  ],
+  "wave": "ribbon",
+  "fps": 30,
+  "duration_seconds": 240.024,
+  "master": {
+    "name": "music.mp3",
+    "sha256": "ec3b44b912715b42810b53ecfc9303c4c9b6ddccc6f146e00b93a332213dea19",
+    "bytes": 5761197
+  },
+  "toolchain": {
+    "ffprobe": "/Users/dibyendudas/Documents/magmonium/market-overview/node_modules/@remotion/compositor-darwin-arm64/ffprobe"
+  }
+}

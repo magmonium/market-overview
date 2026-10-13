@@ -2,9 +2,9 @@
 Description=Market Brief — daily, after the close
 
 [Timer]
-# ⚠️ **16:30 IST, and the timezone is named rather than assumed.** `session.FINAL_FROM` is 15:45 — the close plus
-# the india feed's ~15 minute delay — so this fire time clears the guard with three quarters of an hour to spare,
-# and the fire time keeps a margin of its own rather than being derived from the threshold. A server running in UTC
+# ⚠️ **16:30 IST, and the timezone is named rather than assumed.** `session.FINAL_FROM` is 15:40 — ten minutes
+# past the close — so this fire time clears the guard by fifty minutes, and the fire time keeps a margin of its own
+# rather than being derived from the threshold. A server running in UTC
 # would otherwise fire this at 22:00 IST, after which the session guard refuses every single night — a schedule
 # that looks like it is working and never publishes anything.
 OnCalendar=Mon..Fri 16:30:00 Asia/Kolkata

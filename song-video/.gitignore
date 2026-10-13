@@ -1,0 +1,26 @@
+# ⚠️ The parent's .gitignore does **not** cover these paths: a pattern containing a slash is anchored to its
+# own directory, so `market-overview/`'s `output/*` and `resource/*` rules do not reach this folder. Without
+# this file the reel's media would be committed by accident.
+
+# Generated media — never committed. A reel is a build artefact, and `store/` carries the recorded run that
+# reproduces it.
+output/*
+!output/.gitkeep
+
+# The masters and their covers stay local: the licence is the operator's, and committing a master publishes
+# it. The mark is *not* here — it is the brief's own, read from the parent.
+resource/song/*
+!resource/song/.gitkeep
+
+# Remotion's `public/` folder is staging only: the song is copied there for the duration of a run and deleted
+# with it.
+public/*
+
+# The nested project's own environment and build noise.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.remotion/
+.DS_Store

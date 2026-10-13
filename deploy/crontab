@@ -17,8 +17,8 @@ MARKET_OVERVIEW_PRIVACY=private
 # ⚠️ The sixth field is the **user**, and `/etc/cron.d` entries carry one where a user crontab does not. Drop it and
 # cron reads `root` as the command; the entry then never runs and says nothing.
 #
-# 16:30 against a `session.FINAL_FROM` of 15:45 — the close plus the india feed's ~15 minute delay — so the
-# schedule clears the guard with three quarters of an hour to spare. Mon–Fri because a Saturday cannot have a
+# 16:30 against a `session.FINAL_FROM` of 15:40 — ten minutes past the close — so the schedule clears the guard
+# by fifty minutes. Mon–Fri because a Saturday cannot have a
 # session, and the guard's refusal is correct but not informative.
 #
 # ⚠️ Holidays are still scheduled and still refuse. **No holiday calendar is added here**: a refusal writes nothing

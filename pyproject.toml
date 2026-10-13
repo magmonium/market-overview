@@ -30,6 +30,15 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/market_overview"]
 
+[tool.pytest.ini_options]
+# ⚠️ **Named, not inferred — and this is the only line the nested project cost this one.**
+# `market-overview/song-video/` is a *separate* uv project with its own environment, so a bare `pytest` here
+# walked into its tests and died importing a package this environment does not have. Ownership is now
+# explicit: this suite owns `tests/`, and the reel's suite runs from its own folder
+# (`cd song-video && uv run pytest`). Nothing else about the brief changes.
+testpaths = ["tests"]
+
+
 [dependency-groups]
 # ⚠️ The publisher's libraries appear here as well as in the extra above, so the **tests** can drive the uploader
 # against a stub. The suite stays hermetic — nothing in it reaches the network — but it is not *dependency*-free,
