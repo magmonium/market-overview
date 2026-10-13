@@ -1,0 +1,18 @@
+[Unit]
+Description=Market Brief — daily, after the close
+
+[Timer]
+# ⚠️ **16:30 IST, and the timezone is named rather than assumed.** `session.FINAL_FROM` is 15:45 — the close plus
+# the india feed's ~15 minute delay — so this fire time clears the guard with three quarters of an hour to spare,
+# and the fire time keeps a margin of its own rather than being derived from the threshold. A server running in UTC
+# would otherwise fire this at 22:00 IST, after which the session guard refuses every single night — a schedule
+# that looks like it is working and never publishes anything.
+OnCalendar=Mon..Fri 16:30:00 Asia/Kolkata
+
+# ⚠️ The Linux answer to a machine that was asleep: a missed run happens at the next boot. The session guard
+# still refuses if the catch-up lands on the wrong day, so a catch-up can never publish a stale brief.
+Persistent=true
+Unit=market-brief.service
+
+[Install]
+WantedBy=timers.target

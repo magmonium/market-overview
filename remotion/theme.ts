@@ -61,9 +61,13 @@ export const SCRIM_STILL =
   'linear-gradient(180deg, rgba(11,14,19,0.86) 0%, rgba(11,14,19,0.62) 38%, ' +
   'rgba(11,14,19,0.28) 56%, rgba(11,14,19,0.06) 74%, rgba(11,14,19,0.40) 88%, rgba(11,14,19,0.72) 100%)';
 
-/** "Kohinoor Bangla" is the system Bengali face and must be named explicitly — a fallback face
- * silently changes the shaping, and the copy is the one thing the two editions differ in. */
-export const FONT = '"Kohinoor Bangla", system-ui, -apple-system, sans-serif';
+/**
+ * ⚠️ **The typeface moved out of this file.** It used to be the string that named macOS's own *Kohinoor
+ * Bangla* — which quietly made the rendered pixels a property of the machine, and made a Linux render a
+ * different picture from a macOS one. It now lives in `fonts.ts`, with the vendored bytes and the wait for
+ * them; `FONT` is re-exported so a surface still names the stack without knowing where the glyphs come from.
+ */
+export {FONT} from './fonts';
 
 /** U+2212 for the sign, so a minus is not a hyphen sitting next to a digit. */
 export const percent = (value: number | null, digits = 2): string =>

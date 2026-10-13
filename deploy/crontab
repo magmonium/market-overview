@@ -1,0 +1,32 @@
+# Debian's cron reads this file from /etc/cron.d/. Only the `scheduler` service in compose.yaml starts cron — the
+# one-shot job (`docker compose run --rm brief`) never does. See docs/adr/0006 for the decision.
+#
+# ⚠️ **A cron expression has no timezone of its own.** These five fields are read in the machine's local time, which
+# in a container is UTC unless `TZ` says otherwise — and a run at 22:00 IST is one the session guard refuses every
+# night, so the schedule would look healthy and publish nothing at all. compose.yaml pins `TZ=Asia/Kolkata` on the
+# scheduler and this file names it again, because 16:30 IST is 11:00 UTC and the two are easy to confuse on paper.
+#
+# ⚠️ **A cron job gets a minimal environment, not the container's** — `PATH`, `HOME`, `SHELL` and nothing else. So
+# anything the run needs is declared here rather than in compose.yaml, which means **this file is the containerised
+# schedule's configuration**: to change the privacy on this path, change it here, not in the environment.
+# cron requires the spaces around `=`.
+PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/bin
+TZ=Asia/Kolkata
+MARKET_OVERVIEW_PRIVACY=private
+
+# ⚠️ The sixth field is the **user**, and `/etc/cron.d` entries carry one where a user crontab does not. Drop it and
+# cron reads `root` as the command; the entry then never runs and says nothing.
+#
+# 16:30 against a `session.FINAL_FROM` of 15:45 — the close plus the india feed's ~15 minute delay — so the
+# schedule clears the guard with three quarters of an hour to spare. Mon–Fri because a Saturday cannot have a
+# session, and the guard's refusal is correct but not informative.
+#
+# ⚠️ Holidays are still scheduled and still refuse. **No holiday calendar is added here**: a refusal writes nothing
+# and exits non-zero, and a second source of truth about which days trade is how the first one starts disagreeing
+# with the exchange.
+#
+# The output is deliberately **not** redirected. `daily-brief.sh` writes the real log into the mounted `var/` volume,
+# so anything still reaching cron's stdout is a failure the wrapper could not log — the one signal that would
+# otherwise be thrown away.
+30 16 * * 1-5 root /app/deploy/daily-brief.sh
+

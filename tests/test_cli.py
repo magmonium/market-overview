@@ -10,7 +10,17 @@ import tempfile
 import unittest
 from unittest import mock
 
-from market_overview import audio, cli, logo, package, metadata as metadata_module, render, store, universe
+from market_overview import (
+    audio,
+    cli,
+    logo,
+    package,
+    metadata as metadata_module,
+    publish,
+    render,
+    store,
+    universe,
+)
 from market_overview.cli import main
 from market_overview.fetch import bse, tradingview
 
@@ -566,6 +576,61 @@ class Build(unittest.TestCase):
         code = self._run(["build", "--date", "2026-10-08"])
         self.assertEqual(code, 0)
         self.assertEqual(self.render_calls[0].args[0], "2026-10-08")
+
+
+class PublishDryRun(unittest.TestCase):
+    """⚠️ `tests/test_publish.py` covers the rehearsal itself; this covers the one thing it cannot see — that the
+    flag the operator types actually reaches the uploader.
+
+    A `--dry-run` that stopped at `argparse` would be the worst possible version of this feature: it would look
+    exactly like a successful rehearsal and upload for real. So the assertion that matters is on the call, not on
+    the output.
+    """
+
+    def _run(self, argv):
+        self.out, self.err = io.StringIO(), io.StringIO()
+        self.calls = []
+
+        def fake_run(*args, **kwargs):
+            self.calls.append(mock.call(*args, **kwargs))
+            return 0
+
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(contextlib.redirect_stdout(self.out))
+            stack.enter_context(contextlib.redirect_stderr(self.err))
+            stack.enter_context(mock.patch.object(publish, "run", side_effect=fake_run))
+            return main(argv)
+
+    def test_the_flag_reaches_the_uploader(self):
+        with mock.patch.object(cli, "_today", return_value=SESSION):
+            code = self._run(["publish", "--dry-run", "--lang", "bn"])
+        self.assertEqual(code, 0)
+        self.assertTrue(self.calls[0].kwargs["dry_run"])
+
+    def test_without_the_flag_the_upload_is_a_real_one(self):
+        """⚠️ The default has to stay the real upload. A rehearsal that became the default would simply stop
+        publishing, and it would say nothing while it did so."""
+        with mock.patch.object(cli, "_today", return_value=SESSION):
+            self._run(["publish", "--lang", "bn"])
+        self.assertFalse(self.calls[0].kwargs["dry_run"])
+
+    def test_the_date_defaults_to_today_like_every_other_command(self):
+        with mock.patch.object(cli, "_today", return_value=SESSION):
+            self._run(["publish", "--dry-run", "--lang", "bn"])
+        self.assertEqual(self.calls[0].args[0], SESSION)
+
+    def test_an_unknown_privacy_is_a_usage_error(self):
+        with self.assertRaises(SystemExit) as caught:
+            self._run(["publish", "--privacy", "sort-of-private"])
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_check_runs_the_credential_probe(self):
+        """⚠️ And needs no `--date`: the whole point of the probe is that it runs *before* there is anything to
+        publish, so a date would be a requirement nothing in it has."""
+        with mock.patch.object(publish, "check", return_value=0) as probe:
+            code = self._run(["publish", "--check"])
+        self.assertEqual(code, 0)
+        self.assertTrue(probe.called)
 
 
 if __name__ == "__main__":

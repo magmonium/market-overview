@@ -9,7 +9,7 @@ import argparse
 import datetime as _datetime
 import sys
 
-from . import audio, facts, logo, package, render, session, store, universe
+from . import audio, facts, logo, package, publish, render, session, store, universe
 from .fetch import bse, tradingview
 
 # The primary edition renders first, so it is never hostage to the secondary.
@@ -287,6 +287,36 @@ def _fetch(date: str) -> int:
     return 0
 
 
+def _publish(args: argparse.Namespace) -> int:
+    """Upload one date's built editions to YouTube.
+
+    ⚠️ **`--authorise` is checked before the date is parsed**, because it is the one subcommand that has nothing to
+    do with a date: it opens a consent window, writes a token and exits. Validating a date first would refuse the
+    one thing that does not need it.
+
+    ⚠️ **`--check` is checked in the same place, for the same reason** — and because its whole point is to be run
+    *before* there is anything to publish. A date would be a requirement nothing in it has.
+    """
+    if args.authorise:
+        return publish.authorise()
+    if args.check:
+        return publish.check()
+
+    requested = args.date if args.date is not None else _today()
+    try:
+        date = _datetime.date.fromisoformat(requested).isoformat()
+    except ValueError:
+        print(f"--date must be YYYY-MM-DD, got {requested!r}", file=sys.stderr)
+        return 2
+    return publish.run(
+        date,
+        _editions(args.lang),
+        privacy=args.privacy,
+        force=args.force,
+        dry_run=args.dry_run,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="market-overview",
@@ -322,6 +352,71 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     build_cmd.set_defaults(func=build)
+
+    publish_cmd = sub.add_parser(
+        "publish",
+        help="upload one date's built packages to YouTube",
+        description=(
+            "Upload each edition's video and thumbnail from output/<date>/<lang>/, straight from the "
+            "package's own metadata. Idempotent: an edition already uploaded from the same facts bundle "
+            "is skipped rather than posted twice."
+        ),
+    )
+    publish_cmd.add_argument(
+        "--date",
+        default=None,
+        metavar="YYYY-MM-DD",
+        help="the date whose packages to upload — defaults to today",
+    )
+    publish_cmd.add_argument(
+        "--lang",
+        nargs="+",
+        choices=ALL_LANGUAGES,
+        default=None,
+        help=(
+            "which edition(s) to upload, in the order given — "
+            f"default: {' '.join(LANGUAGES)}"
+        ),
+    )
+    publish_cmd.add_argument(
+        "--privacy",
+        choices=publish.PRIVACY,
+        default=publish.DEFAULT_PRIVACY,
+        help=(
+            "how the video lands on YouTube — "
+            f"default: {publish.DEFAULT_PRIVACY} (see the note in publish.py)"
+        ),
+    )
+    publish_cmd.add_argument(
+        "--force",
+        action="store_true",
+        help="upload again even though this edition has already been posted",
+    )
+    publish_cmd.add_argument(
+        "--dry-run",
+        action="store_true",
+        help=(
+            "walk the whole upload and print what would be sent, without sending or recording anything — "
+            "the way to rehearse the flow on a machine with no credentials"
+        ),
+    )
+    publish_cmd.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "check that the credentials on disk still work, then exit — needs no package and uploads nothing. "
+            "Run it before a build, not after one"
+        ),
+    )
+    publish_cmd.add_argument(
+        "--authorise",
+        action="store_true",
+        help=(
+            "run the OAuth consent flow once and store a refresh token, then exit — "
+            "the only step that needs a browser"
+        ),
+    )
+    publish_cmd.set_defaults(func=_publish)
 
     args = parser.parse_args(argv)
     return args.func(args)

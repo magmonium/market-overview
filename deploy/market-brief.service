@@ -1,0 +1,21 @@
+[Unit]
+Description=Market Brief — build the day's editions and publish them
+Documentation=file:///srv/market-overview/docs/adr/0006-a-server-runs-the-daily-brief.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=market-brief
+WorkingDirectory=/srv/market-overview
+ExecStart=/srv/market-overview/deploy/daily-brief.sh
+
+# ⚠️ Generous, and it has to be. Two editions plus two uploads runs well over an hour, and a timeout that kills
+# the render halfway is worse than no timeout at all: it leaves a date folder that is visibly unfinished and
+# spends the next firing re-rendering the edition it already had.
+TimeoutStartSec=4h
+
+# ⚠️ **Never restart**, and this is not tidiness. The failure that matters is the one *after* `videos.insert`
+# succeeded and *before* the upload was recorded — a retry then posts the brief a second time. `publish.py` is
+# idempotent against that, and the right reading of "the API was flaky" is still "a human looks", not "loop".
+Restart=no

@@ -1,0 +1,51 @@
+# The brief in Docker: one **job**, plus — optionally — something that fires it.
+#
+#   docker compose run --rm brief                 # run it once, now
+#   docker compose --profile scheduled up -d      # or keep a scheduler running
+#
+# ⚠️ **The volumes are load-bearing, not tidiness.** `output/` holds `.published-<lang>.json` — the record that
+# stops the next run uploading the same brief again. Let that directory live only inside a container and every
+# scheduled run posts the day a second time, which is exactly the failure `publish.py` is built to prevent; the
+# container is disposable, the record is not. `store/` is the other half of the same idea: it is what makes a
+# re-render possible without re-fetching (ADR 0003), and `var/` is where the wrapper's log lands — without it a
+# scheduled run is *completely silent*, because the wrapper redirects everything into that file.
+
+# `credentials/` holds the OAuth client secret and the refresh token. Never in the image; see deploy/README.md.
+x-state: &state
+  - ../store:/app/store
+  - ../output:/app/output
+  - ../resource:/app/resource
+  - ../var:/app/var
+  - ../credentials:/credentials:ro
+
+services:
+  brief:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: market-overview:latest
+    environment:
+      # ⚠️ Defaults to `private` — see the note in publish.py. A schedule that published straight to `public`
+      # would delete the pre-publish check without saying so; the operator flips this once, deliberately.
+      MARKET_OVERVIEW_PRIVACY: ${MARKET_OVERVIEW_PRIVACY:-private}
+    volumes: *state
+
+  # ⚠️ The same image with a different command: **Debian's own cron**, running in the foreground inside this
+  # container, so the scheduler needs no Docker socket, no privileges and no second image. `profiles` keeps it out of
+  # the way unless it is asked for — and if you already have a cron or a systemd timer on the host, you do not need
+  # this service at all: point it at `docker compose run --rm brief` instead. See deploy/README.md.
+  scheduler:
+    profiles: ["scheduled"]
+    image: market-overview:latest
+    command: ["cron", "-f"]
+    restart: unless-stopped
+    environment:
+      # ⚠️ **A cron expression has no timezone of its own.** It is read in the container's local time, which is UTC
+      # unless this is set — and a run at 22:00 IST is one the session guard refuses every single night, so a
+      # misconfigured schedule looks healthy and publishes nothing.
+      #
+      # ⚠️ `MARKET_OVERVIEW_PRIVACY` is deliberately **not** set here. A cron job gets a minimal environment and
+      # never sees the container's variables, so on this path the privacy is set in `deploy/crontab` — one source
+      # per path, rather than two that can disagree.
+      TZ: Asia/Kolkata
+    volumes: *state

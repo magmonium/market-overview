@@ -18,10 +18,15 @@ IST = _datetime.timezone(_datetime.timedelta(hours=5, minutes=30), "IST")
 SESSION_OPEN = _datetime.time(9, 15)
 SESSION_CLOSE = _datetime.time(15, 30)
 
-# The india feed is ~15 minutes delayed (`update_mode` = 'delayed_streaming_900'), so
-# "final" is the close plus that delay plus a margin — and 16:00 IST is already the
-# post-close build time the design names.
-FINAL_FROM = _datetime.time(16, 0)
+# The india feed is ~15 minutes delayed (`update_mode` = 'delayed_streaming_900'), so the
+# close only exists once the feed has caught up: 15:30 + that delay = **15:45 IST**.
+#
+# ⚠️ **The margin is gone, and that is an operator decision rather than an oversight.** The
+# design named 16:00, which was the close plus the delay *plus a further 15 minutes*; this is
+# the delay alone, so the brief ships about a quarter of an hour earlier. What the margin was
+# insuring against is now what this trusts: that the delayed feed has delivered the closing
+# prints by 15:45. `tests/test_session.py` pins the boundary from both sides.
+FINAL_FROM = _datetime.time(15, 45)
 
 
 class StaleSessionError(RuntimeError):

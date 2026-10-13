@@ -31,6 +31,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import sys
 
 
 # ── the level ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -82,10 +83,25 @@ MUSIC_NAMES: tuple[str, ...] = (
 #: Point at a specific binary — including a full system `ffmpeg`, which has filters this build lacks.
 FFMPEG_ENV = "MARKET_OVERVIEW_FFMPEG"
 
-#: ⚠️ The bundled build is `--enable-shared`, so its dylibs sit *beside* the binary and it will not start without
-#: being told where they are: run bare it aborts with `Library not loaded: libavdevice.dylib`. That is why the
-#: binary is never invoked without an environment built by `binary_env()`.
-_SHARED_LIB_PATH = "DYLD_LIBRARY_PATH"
+def loader_variable(platform: str) -> str:
+    """The dynamic loader's search-path variable, for a `sys.platform` value.
+
+    ⚠️ **The variable's name belongs to the platform, not to this module.** macOS's loader reads
+    `DYLD_LIBRARY_PATH`; Linux's reads `LD_LIBRARY_PATH`. Setting the wrong one is a **silent no-op** — no error,
+    no warning, nothing in the log — and what follows is Remotion's bundled ffmpeg refusing to start, reported as an
+    ffmpeg failure that says nothing about a loader. On macOS that failure is `Library not loaded:
+    libavdevice.dylib`, which is at least legible; on Linux it is not.
+
+    Taking the platform as a parameter rather than reading it here is what lets both branches be tested from
+    whichever one the suite happens to run on. See ADR 0006: the brief renders on Linux too.
+    """
+    return "DYLD_LIBRARY_PATH" if platform == "darwin" else "LD_LIBRARY_PATH"
+
+
+#: ⚠️ A **platform-specific name**, resolved once. The bundled build is `--enable-shared`, so its libraries sit
+#: beside the binary and it will not start without being told where they are — which is why the binary is never
+#: invoked without an environment built by `binary_env()`.
+_SHARED_LIB_PATH = loader_variable(sys.platform)
 
 #: The filters and encoders this module is allowed to assume. ⚠️ Remotion's build is `--disable-filters` plus an
 #: allow-list, so `afade`, `acrossfade`, `volumedetect` and `astats` are all **absent** — the obvious tools for

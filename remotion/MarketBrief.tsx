@@ -1,6 +1,7 @@
 import {AbsoluteFill, Audio, Sequence, staticFile} from 'remotion';
 import {Backdrop} from './Backdrop';
 import {CornerBug, type Mark} from './Brand';
+import {Typeface} from './fonts';
 import * as blocks from './blocks';
 import type {FactsBundle} from './bundle';
 import type {Language} from './copy';
@@ -66,6 +67,10 @@ const REGISTRY: Record<string, React.ComponentType<FactsBundle>> = {
 
 export const MarketBrief = ({bundle, backdrop = true, mark = null, bed = null}: MarketBriefProps) => (
   <AbsoluteFill style={{background: '#0b0e13'}}>
+    {/* ⚠️ Mounted **first**, so the render blocks before a single frame is captured. A brief set in a fallback
+        face is the one failure the copy budget cannot see: it measures a face the render might not have used. */}
+    <Typeface />
+
     {/* ⚠️ The animated backdrop goes behind the DOM, once, for the whole brief — one layer rather than one per
         block, so the field is continuous from the pre-roll to the close. Turning `backdrop` off removes this and
         nothing else: the cards are a complete brief on their own, which is the fallback the old 3D layer asked

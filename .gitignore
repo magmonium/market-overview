@@ -25,5 +25,9 @@ remotion-out/
 # everything in this folder exists for `./bn` and nothing here belongs in a commit.
 public/*
 
+# The scheduled wrapper's own log — `deploy/daily-brief.sh` writes `var/log/daily-<date>.log`. That is one
+# machine's history, not the repository's.
+var/
+
 # macOS
 .DS_Store

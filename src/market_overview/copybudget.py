@@ -14,18 +14,25 @@ frame the content sits in, not copy to be read; the footer's own line is charged
 disclosure pre-roll that exists to carry it. Charging it per card would add 14 units to a brief that has
 no room, for a line the viewer reads once and then stops seeing.
 
-⚠️ **Width is measured in a real browser, not estimated.** Only the browser knows Kohinoor Bangla's
-metrics, and Bengali conjuncts make width-per-character nothing like English's. The first measurement
-already overturned an assumption in the map: Bengali and English are **the same average width** (ratio
-0.998 over 40 labels), and the widest strings are frequently the *English* ones.
+⚠️ **Width is measured in a real browser, not estimated.** Only the browser knows the face's metrics, and Bengali
+conjuncts make width-per-character nothing like English's. The first measurement already overturned an assumption
+in the map: Bengali and English are **the same average width** (ratio 0.998 over 40 labels), and the widest
+strings are frequently the *English* ones.
+
+⚠️ **And the face is now the renderer's own, byte for byte.** It used to be whatever "Kohinoor Bangla" the host
+had installed, which is a macOS font: the gate was measuring on the operator's laptop a face the server did not
+have. `remotion/fonts.json` is read here so the measurement and the render are the same face by construction.
 """
 from __future__ import annotations
 
+import base64
 import json
 import math
 import pathlib
 import re
+import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass
 
 from market_overview import store
@@ -37,11 +44,32 @@ COMFORT = 3.5
 
 CAP_SECONDS = 180
 
-FONT = '"Kohinoor Bangla", system-ui, -apple-system, sans-serif'
+#: ⚠️ **The face is read from the renderer, not restated.** `remotion/fonts.json` describes the typeface once and
+#: `remotion/fonts.ts` builds the renderer's `@font-face` rules from it. This gate's whole premise is that it
+#: measures the face the brief is *set* in, so a second, hand-written copy of the family here is precisely how
+#: the two would drift apart — and the drift would present as a *passing* budget.
+FONTS_JSON = store.root() / "remotion" / "fonts.json"
+_FONTS = json.loads(FONTS_JSON.read_text(encoding="utf-8"))
+
+FONT_FAMILY = _FONTS["family"]
+
+#: Every weight the face ships, so the measuring page waits for exactly the instances the renderer waits for.
+FONT_WEIGHTS = sorted({face["weight"] for face in _FONTS["faces"]})
+
+#: The stack both editions are measured against, with the same fallbacks the renderer names — so a glyph the
+#: face lacks is measured in the face it would actually render in.
+FONT = f'"{FONT_FAMILY}", system-ui, -apple-system, sans-serif'
+
+#: ⚠️ **macOS first, then Linux.** `render.py` carries the same shape for the same reason: the brief renders on
+#: both platforms now, and a search that only knows `/Applications` finds nothing at all on a server.
 DEFAULT_BROWSERS = (
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
 )
+
+#: The Linux names, resolved through `PATH` rather than hard-coded to `/usr/bin` — a distro is free to put them
+#: elsewhere, and a guessed absolute path is a failure with no explanation.
+BROWSER_PROGRAMS = ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser")
 
 # The card's own content box, from `Card`'s padding at 1920x1080: 1920 - 2x96.
 CONTENT_WIDTH = 1728
@@ -57,6 +85,10 @@ def _browser(explicit: str | None = None) -> str:
     for candidate in ([explicit] if explicit else []) + list(DEFAULT_BROWSERS):
         if candidate and pathlib.Path(candidate).exists():
             return candidate
+    for program in BROWSER_PROGRAMS:
+        found = shutil.which(program)
+        if found:
+            return found
     raise BrowserMissing(
         "no Chrome or Chromium found to measure text with — pass chrome=... or install one. "
         "The budget is not something to estimate: Bengali and English differ per string, not per language."
@@ -155,10 +187,43 @@ def prose(key: str, bundle: dict, labels: dict) -> list[Run]:
     return []
 
 
-_PAGE = """<!doctype html><meta charset="utf-8"><pre id="out">pending</pre>
+def _font_css() -> str:
+    """`@font-face` rules for the renderer's own face, carried **inline** as data URIs.
+
+    ⚠️ **Inline, not linked.** The measuring page is written to a temp file and opened as `file://`, and a
+    `file://` page reaching for a `file://` font is exactly where Chrome's origin rules get in the way — and the
+    failure mode would be a *silently different face*, faithfully measured. The bytes are already on disk beside
+    the renderer's copies, so there is nothing to fetch.
+
+    ⚠️ **The subsets stay separate rules with their own `unicode-range`**, exactly as `fonts.ts` emits them: one
+    file carries Bengali and `₹`, another carries the digits and the `−`. Collapsing them into a single `src`
+    list would leave the browser using whichever it happened to load for *every* glyph.
+    """
+    root = store.root()
+    rules = []
+    for face in _FONTS["faces"]:
+        payload = base64.b64encode((root / "remotion" / face["file"]).read_bytes()).decode("ascii")
+        rules.append(
+            f"@font-face{{font-family:'{FONT_FAMILY}';font-style:normal;"
+            f"font-weight:{face['weight']};font-display:block;"
+            f"src:url(data:font/woff2;base64,{payload}) format('woff2');"
+            f"unicode-range:{face['unicode_range']};}}"
+        )
+    return "".join(rules)
+
+
+_PAGE = """<!doctype html><meta charset="utf-8"><style>%s</style><pre id="out">pending</pre>
 <script>
 const RUNS = %s;
 const FAMILY = %s;
+const WEIGHTS = %s;
+// ⚠️ The measurement must **wait for the face**, or it measures whichever fallback the browser reached for
+// first — the exact defect this harness exists to catch, arriving as a plausible number instead of an error.
+// The text handed to `fonts.load` is the copy itself, so the subsets the brief needs are the ones that load.
+const TEXT = RUNS.map((r) => r.text).join('');
+const ready = Promise.all(WEIGHTS.map((w) => document.fonts.load(`${w} 64px ${FAMILY}`, TEXT)));
+(async () => {
+await ready;
 const ctx = document.createElement('canvas').getContext('2d');
 const width = (t, s, w) => { ctx.font = `${w} ${s}px ${FAMILY}`; return ctx.measureText(t).width; };
 // Greedy wrap at the real box, with the browser's own metrics — an estimate would be exactly the thing
@@ -181,6 +246,9 @@ const out = RUNS.map(r => ({
   box: r.width,
 }));
 document.getElementById('out').textContent = 'RESULT' + JSON.stringify(out) + 'END';
+})().catch((error) => {
+  document.getElementById('out').textContent = 'FONT-ERROR' + error + 'END';
+});
 </script>"""
 
 
@@ -193,30 +261,58 @@ def measure(runs: list[Run], *, chrome: str | None = None) -> dict[str, dict]:
         ensure_ascii=False,
     )
     page = pathlib.Path(store.root()) / ".measure.html"
-    page.write_text(_PAGE % (payload, json.dumps(FONT)), encoding="utf-8")
-    try:
-        completed = subprocess.run(
-            [
-                _browser(chrome),
-                "--headless=new",
-                "--disable-gpu",
-                "--no-sandbox",
-                "--virtual-time-budget=10000",
-                "--dump-dom",
-                f"file://{page}",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
-    finally:
-        page.unlink(missing_ok=True)
+    page.write_text(
+        _PAGE % (_font_css(), payload, json.dumps(FONT_FAMILY), json.dumps(FONT_WEIGHTS)),
+        encoding="utf-8",
+    )
+    # ⚠️ **A profile of its own, or Chrome is not reliably one new process.** Without `--user-data-dir` the
+    # headless launch can be handed to an *already running* Chrome, which answers "Multiple targets are not
+    # supported in headless mode" and prints no DOM at all — so the dump comes back empty and the gate reports a
+    # missing result. It only appears **under load**, which is precisely when a measurement must not be the
+    # flaky thing in the suite. The temp profile also keeps the measurement hermetic: no extension, no font the
+    # operator happens to have installed, no profile state from the last run.
+    with tempfile.TemporaryDirectory(prefix="market-overview-measure-") as profile:
+        try:
+            completed = subprocess.run(
+                [
+                    _browser(chrome),
+                    "--headless=new",
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    f"--user-data-dir={profile}",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    # ⚠️ Raised from 10 s because the page now **waits on the face**. It has to outlast the font
+                    # decode, or the budget expires and the dump carries `pending` instead of a measurement.
+                    "--virtual-time-budget=20000",
+                    "--dump-dom",
+                    f"file://{page}",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
+        finally:
+            page.unlink(missing_ok=True)
 
-    start = completed.stdout.find("RESULT")
-    end = completed.stdout.find("END", start)
-    if start < 0 or end < 0:
-        raise BrowserMissing(f"measurement page produced no result:\n{completed.stderr[-1200:]}")
-    return {row["key"]: row for row in json.loads(completed.stdout[start + 6:end])}
+    # ⚠️ Read the result from the **`<pre>`**, never from `stdout` at large. `--dump-dom` prints the `<script>`
+    # source beside the page, so *both* markers are present in the output whether or not they ever ran — and the
+    # inlined base64 face could in principle contain the word `RESULT` on its own. Which is also why this is a
+    # `startswith` and not a `find`: the `<pre>`'s text is exactly what the page chose to write.
+    written = re.search(r'<pre id="out">(.*?)</pre>', completed.stdout, re.S)
+    printed = written.group(1) if written else ""
+
+    if printed.startswith("FONT-ERROR"):
+        raise BrowserMissing(
+            f"the measuring page could not load {FONT_FAMILY}, so its widths would describe a fallback face: "
+            f"{printed[len('FONT-ERROR'):].removesuffix('END').strip()}"
+        )
+    if not printed.startswith("RESULT"):
+        raise BrowserMissing(
+            f"measurement page produced no result ({printed[:200]!r}):\n{completed.stderr[-1200:]}"
+        )
+    body = printed[len("RESULT"):].removesuffix("END")
+    return {row["key"]: row for row in json.loads(body)}
 
 
 @dataclass(frozen=True)

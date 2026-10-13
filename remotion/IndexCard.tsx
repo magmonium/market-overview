@@ -1,6 +1,7 @@
 import {AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig} from 'remotion';
 import type {FactsBundle} from './bundle';
 import BN from './copy.bn.json';
+import {FONT, useFonts} from './fonts';
 
 /**
  * 0085_02's card: one index, six windows, six seconds.
@@ -47,6 +48,9 @@ const percent = (value: number | null): string =>
     : `${value >= 0 ? '+' : '\u2212'}${Math.abs(value).toFixed(2)}%`;
 
 export const IndexCard = ({meta, indexes}: FactsBundle) => {
+  // ⚠️ The same wait the brief and the still make. The skeleton renders a *subset* of the brief's own cards, so
+  // it is only a smoke test if it can fail for the same reasons — a face that never arrived included.
+  useFonts();
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
 
@@ -61,9 +65,7 @@ export const IndexCard = ({meta, indexes}: FactsBundle) => {
   const shell: React.CSSProperties = {
     background: BG,
     color: INK,
-    // "Kohinoor Bangla" is the system Bengali face; it must be named explicitly,
-    // because a fallback silently changes the shaping.
-    fontFamily: '"Kohinoor Bangla", system-ui, -apple-system, sans-serif',
+    fontFamily: FONT,
     // 96px keeps clear of the footer register.
     padding: '72px 96px',
     display: 'flex',

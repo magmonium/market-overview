@@ -228,6 +228,18 @@ class Toolchain(unittest.TestCase):
     def test_a_system_binary_needs_no_library_path_at_all(self):
         self.assertEqual(audio.binary_env(pathlib.Path("/usr/local/bin/ffmpeg")), {})
 
+    def test_the_loader_variable_is_the_platform_s_own(self):
+        """⚠️ **Both branches, from whichever platform the suite is running on**, because the consequence of getting
+        this wrong is a *silent no-op*: setting `DYLD_LIBRARY_PATH` on Linux raises nothing and warns about nothing,
+        and the only symptom is the bundled ffmpeg failing to start with no mention of a loader. See `loader_variable`
+        and ADR 0006 — the brief renders on Linux now, so the macOS-only name was a real defect waiting for a server.
+        """
+        self.assertEqual(audio.loader_variable("darwin"), "DYLD_LIBRARY_PATH")
+        self.assertEqual(audio.loader_variable("linux"), "LD_LIBRARY_PATH")
+
+    def test_the_constant_is_one_of_the_two_real_names(self):
+        self.assertIn(audio._SHARED_LIB_PATH, ("DYLD_LIBRARY_PATH", "LD_LIBRARY_PATH"))
+
 
 
 class TheAsset(unittest.TestCase):

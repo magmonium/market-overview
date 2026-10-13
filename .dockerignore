@@ -1,0 +1,28 @@
+# ⚠️ The build context is the **repository root** (see deploy/Dockerfile), so this file is what keeps a machine's
+# state out of the image. Everything excluded here is either installed inside the image or is data that must only
+# ever arrive as a mounted volume.
+node_modules/
+.venv/
+.git/
+.gitignore
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# ⚠️ **Machine state, and the reason the exclusion matters is not size.** `store/` and `output/` are mounted as
+# volumes at run time; baking a copy into the image would freeze one machine's history — and would give the
+# container an `output/` missing the `.published-<lang>.json` records that the volume exists to preserve, which is
+# one re-upload away from posting the same brief twice.
+store/
+output/
+resource/
+var/
+credentials/
+.config/
+
+# Not needed to build. `remotion/fonts/` is **not** excluded — the vendored face is source, not an asset.
+docs/
+tests/
+public/
+remotion-out/
+.remotion/

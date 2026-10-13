@@ -2,6 +2,7 @@ import {AbsoluteFill} from 'remotion';
 import {Backdrop} from './Backdrop';
 import {ThumbnailMark, type Mark} from './Brand';
 import {copy} from './Furniture';
+import {Typeface} from './fonts';
 import {headline} from './headline';
 import {longDate} from './dates';
 import type {FactsBundle} from './bundle';
@@ -45,6 +46,9 @@ export const Thumbnail = ({bundle, backdrop = true, mark = null}: ThumbnailProps
   const featured = headline(bundle.indexes);
   return (
     <AbsoluteFill style={{background: BG, color: INK, fontFamily: FONT}}>
+      {/* ⚠️ The still is a *static* composition, so a fallback face would be frozen into the one artefact that
+          outlives the video. The wait matters here at least as much as it does in the brief. */}
+      <Typeface />
       {/* ⚠️ The same backdrop the video uses, at frame 0 — so the still is the settled field rather than a
           snapshot of it mid-move. `backdrop` is a prop for the same reason the video's is: on a machine where the
           layer misbehaves the still degrades to type over a flat field — a plainer thumbnail, not a missing one. */}

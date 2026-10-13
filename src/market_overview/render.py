@@ -55,9 +55,18 @@ CONCURRENCY_ENV = "MARKET_OVERVIEW_CONCURRENCY"
 # there is no `--disable-multiprocess` flag to reach for. Pointing Remotion at a full
 # Chrome renders the same composition without complaint. So a full browser is named
 # explicitly rather than trusting the default.
+#: ⚠️ **macOS first, then Linux — because the brief renders on both now.** A Linux box has no `/Applications`,
+#: so the old two-entry tuple silently produced no flag at all and Remotion fell back to its own bundled
+#: `chrome-headless-shell` — the build that SIGABRTs on the operator's machine. The list is a *search*, not a
+#: platform check: the first entry that exists wins.
 DEFAULT_BROWSERS: tuple[str, ...] = (
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/snap/bin/chromium",
 )
 
 

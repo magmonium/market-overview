@@ -93,7 +93,7 @@ export const Disclosure = () => {
       style={{
         background: SCRIM_OPEN,
         color: INK,
-        fontFamily: '"Kohinoor Bangla", system-ui, sans-serif',
+        fontFamily: FONT,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -120,7 +120,7 @@ export const ColdOpen = ({indexes, meta}: FactsBundle) => {
       style={{
         background: SCRIM_OPEN,
         color: INK,
-        fontFamily: '"Kohinoor Bangla", system-ui, sans-serif',
+        fontFamily: FONT,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
