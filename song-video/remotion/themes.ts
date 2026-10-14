@@ -40,6 +40,16 @@ export type Palette = {
   readonly wave: string;
   /** The pulse's halo. */
   readonly glow: string;
+  /**
+   * The **needle on the progress dial** — the operator's ask in their own words: *"white line … progress is with red
+   * bar"*, then *"the bar will be vertical and thin like radio indicator"*.
+   *
+   * ⚠️ **Authored per theme rather than one shared red**, for the reason the rest of the palette is: a red that reads
+   * as a marker on `parchment`'s paper is lurid on `neon`'s near-black, and one that sings on `neon` disappears into
+   * `vinyl`'s barn reds. The line the needle travels is the theme's own `ink` at low strength, so the pair belongs to
+   * the theme's world on the light theme *and* the dark ones.
+   */
+  readonly progress: string;
 };
 
 export type Theme = {
@@ -98,6 +108,8 @@ export const THEMES: readonly Theme[] = [
       // Amber rather than white: the wave should read as *light* coming off a record, not as more text.
       wave: '#e8b04b',
       glow: '#ffd489',
+      // A warm red that survives the amber field, and reads as a marker rather than as another light.
+      progress: '#e2564a',
     },
     curve: lift(0.6),
     // ⚠️ 0.4 s of settling: a record turning is unhurried, and the halo should swell rather than flicker.
@@ -121,6 +133,8 @@ export const THEMES: readonly Theme[] = [
       wave: '#22d3ee',
       // A magenta halo against a cyan wave, so the pulse is visible even where the wave is thin.
       glow: '#ff4fd8',
+      // The hot one: a red-pink with enough teeth to hold its own beside cyan and magenta.
+      progress: '#ff3d6e',
     },
     curve: lift(0.5),
     // The punchiest of the four — a sign in a window — but still settled enough to swell rather than strobe.
@@ -146,6 +160,8 @@ export const THEMES: readonly Theme[] = [
       muted: '#cfc3a6',
       wave: '#3a382f',
       glow: '#a3937a',
+      // Burnt rather than bright: a primary red on paper is a warning, and this is a bookmark.
+      progress: '#b3402f',
     },
     // The gentlest lift of the four: paper does not shout, and the quiet passages are the point of this theme.
     curve: lift(0.75),
@@ -169,6 +185,8 @@ export const THEMES: readonly Theme[] = [
       muted: '#173a44',
       wave: '#5eead4',
       glow: '#a78bfa',
+      // A rose, not a fire engine: it has to sit beside teal and violet without becoming the subject.
+      progress: '#fb7185',
     },
     // The most lifted, and therefore the closest to abstract: quiet passages stay legible as *movement*, which
     // is what makes this the soothing one.

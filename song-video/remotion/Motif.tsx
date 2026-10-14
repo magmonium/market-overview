@@ -5,8 +5,9 @@
  * without anything on screen changing, so the disc carries a **sheen** that turns with it. With a cover supplied,
  * the cover does that job instead — and with neither, the rotation would be decoration nobody could see.
  *
- * ⚠️ **The pulse is scale, never speed.** The baseline turn is the traversal; the amplitude only makes the disc
- * *breathe*. Making it spin faster on loud moments would read as a glitch rather than as music.
+ * ⚠️ **The pulse is scale, never speed.** The turn is a **constant rate** — `SECONDS_PER_TURN` in `motif.ts` — and the
+ * amplitude only makes the disc *breathe*. Spinning faster on loud moments would read as a glitch rather than as music,
+ * and a tempo the music does not have is the one thing the envelope exists to avoid inventing.
  *
  * ⚠️ **The motif is drawn from shapes, not glyphs.** A musical `♪` in a title would resolve out of the brief's
  * vendored Noto subsets into whatever face the host happens to own — the exact non-determinism the vendored
@@ -16,9 +17,6 @@ import {Img} from 'remotion';
 import {discAngle, noteAt} from './motif.ts';
 import type {Mark} from './props.ts';
 import type {Theme} from './themes.ts';
-
-/** How many whole turns the disc makes across the piece. Slow on purpose: this is a record, not a fidget. */
-const TURNS = 6;
 
 /** How much a loud moment swells the disc. Small, because a heartbeat is small. */
 const PULSE = 0.05;
@@ -91,18 +89,19 @@ export const Disc = ({
   theme,
   cover,
   mark,
-  travelled,
+  turned,
   amplitude,
   size = 340,
 }: {
   readonly theme: Theme;
   readonly cover: string | null;
   readonly mark: Mark;
-  readonly travelled: number;
+  /** Revolutions already turned — ⚠️ a **rate** (`turnedAt`), not the traversal. */
+  readonly turned: number;
   readonly amplitude: number;
   readonly size?: number;
 }) => {
-  const turn = discAngle(travelled, {turns: TURNS});
+  const turn = discAngle(turned);
   const breathe = 1 + amplitude * PULSE;
 
   return (

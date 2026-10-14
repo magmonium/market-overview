@@ -253,6 +253,8 @@ last two belong to a theme:
 
 | | |
 |---|---|
+| **the record turns — in every theme** | twelve seconds a revolution — `motif.ts`'s `SECONDS_PER_TURN`. A *rate*, so a longer song simply gets more revolutions; six turns across a whole piece is ~11° a second, which reads as a disc standing still. ⚠️ The `disc`/`notes` split decides whether glyphs also drift in the field, **not** whether the artwork moves |
+| **the progress is a dial** | directly above the landscape and the same width as it: the theme's `ink` as a hairline track, its authored `progress` red as a thin **needle** travelling it. Same `travelled` as the playhead, so the needle lands on the playhead's own x — one instrument, not two progress marks |
 | **the motion settles** | the pulse and the light average over `theme.smooth` frames, so a transient becomes a swell rather than a frame-rate strobe. `aurora`/`parchment` settle most, `neon` least |
 | **the light is a warmth, not a lamp** | three pools at 42% of full strength, plus one of the theme's own `glow`, then a vignette reaching in to 46% so the corners settle back into the theme's field |
 | **the landscape stays readable ahead** | the unplayed half is *quiet*, never erased — the shape in front of the playhead is the design's own claim, and a shape nobody can see is not a narrative |

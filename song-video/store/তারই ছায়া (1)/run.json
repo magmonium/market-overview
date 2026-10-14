@@ -1,0 +1,25 @@
+{
+  "song": "তারই ছায়া (1)",
+  "title": "মন পড়েছে প্রেমে",
+  "artist": "",
+  "lang": "bn",
+  "cover": {
+    "name": "image.png",
+    "sha256": "f9207a7e2743956ceec280b0ef69daed3e505659ccd0cd36ccc6084531f7a7f7",
+    "bytes": 834477
+  },
+  "themes": [
+    "vinyl"
+  ],
+  "wave": "bars",
+  "fps": 30,
+  "duration_seconds": 261.1735,
+  "master": {
+    "name": "তারই ছায়া (1).wav",
+    "sha256": "3b6e7d5d793c954d94c047e5a98f83c499ed6bf18dee7e21af09d8a99005f739",
+    "bytes": 50145484
+  },
+  "toolchain": {
+    "ffprobe": "/Users/dibyendudas/Documents/magmonium/market-overview/node_modules/@remotion/compositor-darwin-arm64/ffprobe"
+  }
+}

@@ -4,19 +4,38 @@
  * ⚠️ Not a style choice: **JSX is not erasable TypeScript**, so `node --test` cannot load a `.tsx` file at all.
  * Anything a test must be able to see therefore lives here, and only the drawing lives next door.
  *
- * ⚠️ And the angle is a function of the **traversal**, never of a wall clock: two renders of the same song place
- * the disc identically, which is ADR 0006's promise in its smallest possible form.
+ * ⚠️ And the angle is a function of the **frame**, at a **constant rate** — never of a wall clock, so two renders of
+ * the same song place the disc identically (ADR 0006's promise in its smallest possible form).
  */
 
 /**
- * How far the disc has turned, in degrees, at a point in the piece.
+ * How long one revolution takes — **the turntable's rate, and the number the disc's whole look hangs on.**
  *
- * ⚠️ **`turns` is never zero and never fractional-at-the-end.** Ticket 11's rule is that the motif must never
- * rest — a disc that parks is a screensaver's prop — and a whole number of turns means the last frame is a clean
- * angle rather than a disc left mid-wobble.
+ * ⚠️ **A record is a *rate*, not a traversal.** The disc used to make a fixed six turns across the piece, which is
+ * ~11° a second over a three-minute song: it *was* turning, and nobody could see it turn, which is the same defect as
+ * standing still. A turntable turns at a speed; a song that is twice as long therefore gets twice the revolutions, and
+ * that is the physics the motif is quoting.
+ *
+ * ⚠️ **Twelve seconds, and not the 1.8 s of a real LP.** 33⅓ RPM whirls a cover's own lettering — and most covers carry
+ * lettering — past the eye about a hundred times in a three-minute piece, which is a fairground ride rather than a
+ * backdrop. Twelve seconds is 5 RPM: unmistakable motion, and unhurried.
+ *
+ * ⚠️ **Which makes it exactly one degree per frame at 30 fps** (`360 / 12 / 30 = 1`), and that is not a coincidence —
+ * it is the finest step a 30 fps render can express, so the turn is as smooth as this pipeline can draw it.
  */
-export const discAngle = (travelled: number, {turns}: {readonly turns: number}): number =>
-  travelled * turns * 360;
+export const SECONDS_PER_TURN = 12;
+
+/** Revolutions turned by `frame` of a render at `fps`. Frame-derived, so it is as reproducible as the frames are. */
+export const turnedAt = (frame: number, fps: number): number => frame / (fps * SECONDS_PER_TURN);
+
+/**
+ * How far the disc has turned, in degrees, after `turns` revolutions.
+ *
+ * ⚠️ **A named conversion rather than an inline `* 360`.** It is the one place the motif's rotation is defined, so the
+ * rate and the angle cannot drift apart — and it is what the tests assert against, which is the only way "it turns"
+ * stops being a claim somebody made once.
+ */
+export const discAngle = (turns: number): number => turns * 360;
 
 /**
  * Irrational steps, one per property, so nothing lines up: the start positions, lanes, sizes and paces of the

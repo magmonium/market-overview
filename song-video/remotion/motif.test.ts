@@ -5,25 +5,42 @@
  * design and a screensaver, so it is asserted here between *consecutive* frames: a disc that parks, or that
  * turns backwards, fails — it does not merely disappoint.
  *
- * ⚠️ And the angle is driven by the **traversal**, not by a wall clock. Two renders of the same song put the
- * disc in exactly the same place, which is the one promise this pipeline never trades away (ADR 0006).
+ * ⚠️ **And it turns at a rate, not across the traversal — the correction the operator asked for.** Six turns spread
+ * over a whole piece is ~11° a second, which is motion nobody can see, so "the disc is not rotating" was a fair
+ * reading of a disc that was. A record has a *speed*: the tests below assert the speed, the angle it produces, and the
+ * one-degree-per-frame smoothness that picking twelve seconds buys at 30 fps.
+ *
+ * ⚠️ The angle is still a function of the **frame**, never of a wall clock. Two renders of the same song put the disc
+ * in exactly the same place, which is the one promise this pipeline never trades away (ADR 0006).
  */
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 
-import {NOTE_SWAY, discAngle, noteAt} from './motif.ts';
+import {NOTE_SWAY, SECONDS_PER_TURN, discAngle, noteAt, turnedAt} from './motif.ts';
 
-test('the disc turns forward, never rests, and lands on whole turns at the end', () => {
-  const turns = 6;
+test('the disc turns forward, never rests, and never runs backwards', () => {
+  for (let frame = 0; frame < 200; frame += 1) {
+    const before = discAngle(turnedAt(frame, 30));
+    const after = discAngle(turnedAt(frame + 1, 30));
 
-  assert.equal(discAngle(0, {turns}), 0, 'the first frame is the disc at rest');
-  assert.equal(discAngle(1, {turns}), turns * 360, 'the last frame is a whole number of turns, not a stray angle');
-
-  for (let step = 0; step < 200; step += 1) {
-    const before = discAngle(step / 200, {turns});
-    const after = discAngle((step + 1) / 200, {turns});
-    assert.ok(after > before, `the disc must have moved between frames ${step} and ${step + 1}`);
+    assert.ok(after > before, `the disc must have moved between frames ${frame} and ${frame + 1}`);
   }
+});
+
+test('the rate is a turntable, so a longer song simply gets more revolutions', () => {
+  assert.equal(discAngle(0), 0, 'the first frame is the disc at rest');
+  assert.equal(discAngle(turnedAt(30, 30)), 360 / SECONDS_PER_TURN, 'one second of a 30 fps render');
+  assert.equal(discAngle(turnedAt(30 * SECONDS_PER_TURN, 30)), 360, 'and one revolution after twelve of them');
+
+  // ⚠️ Twice the song, twice the turning — the property the traversal-bound version could not have.
+  assert.equal(turnedAt(6000, 30), 2 * turnedAt(3000, 30));
+});
+
+test('twelve seconds a turn is exactly one degree per frame at 30 fps', () => {
+  // ⚠️ Not a coincidence: it is the finest step a 30 fps render can draw, so the turn is as smooth as this pipeline
+  // can make it. A rate that did not divide evenly would judder, however slowly it turned.
+  assert.equal(discAngle(turnedAt(1, 30)), 1);
+  assert.equal(discAngle(turnedAt(30, 30)) / 30, 1);
 });
 
 test('the notes flow: each one moves every frame, and none of them leaves the frame', () => {

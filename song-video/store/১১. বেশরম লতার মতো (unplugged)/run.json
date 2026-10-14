@@ -1,15 +1,15 @@
 {
   "song": "১১. বেশরম লতার মতো (unplugged)",
-  "title": "বেশরম লতার মতো",
+  "title": "মন পড়েছে প্রেমে",
   "artist": "",
   "lang": "bn",
   "cover": {
-    "name": "মন পড়েছে প্রেমে — Live Concert.png",
-    "sha256": "017bb656e9e4994a22098625775aacb58cd49f4ffeab8998e7a6dd460a78abfe",
-    "bytes": 2009269
+    "name": "image.png",
+    "sha256": "f9207a7e2743956ceec280b0ef69daed3e505659ccd0cd36ccc6084531f7a7f7",
+    "bytes": 834477
   },
   "themes": [
-    "vinyl"
+    "neon"
   ],
   "wave": "bars",
   "fps": 30,

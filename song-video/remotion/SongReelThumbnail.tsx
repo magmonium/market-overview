@@ -38,7 +38,16 @@ const ART = 400;
  * rather than a claim about what the song does at any moment. The disc's sheen sits at the angle this rotation
  * puts it on, which is the whole reason the pose is a named number rather than `0`.
  */
-const POSE = {travelled: 0.34, amplitude: 0.62} as const;
+const POSE = {
+  travelled: 0.34,
+  /**
+   * ⚠️ **The disc's pose, in revolutions — and it is the angle the traversal used to land on.** The old still drew the
+   * disc at `discAngle(0.34, {turns: 6})` = 14.4°, so `0.04` revolutions reproduces the thumbnail exactly while the
+   * *reel* stops quoting the traversal and starts quoting a turntable. A still has no rate; it has one pose.
+   */
+  turned: 0.04,
+  amplitude: 0.62,
+} as const;
 
 export const SongReelThumbnail = ({title, theme: themeId, cover, mark, seed, lang, duration}: SongReelProps) => {
   // ⚠️ Refuses rather than defaults, like the reel: a thumbnail in the wrong theme is indistinguishable from one
@@ -87,7 +96,7 @@ export const SongReelThumbnail = ({title, theme: themeId, cover, mark, seed, lan
                 // record *turns* and the label is part of it; here it is drawn raw, once, in the corner above — and
                 // twice in one frame is a mark that looks like a mistake rather than a signature.
                 mark={null}
-                travelled={POSE.travelled}
+                turned={POSE.turned}
                 amplitude={POSE.amplitude}
                 size={ART * 0.82}
               />

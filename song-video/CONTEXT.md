@@ -67,6 +67,18 @@ a fact is what a still can carry; the reel walks through that same number, becau
 Python's string and is never recomputed, and the elapsed half is a pure function of the frame — so a rebuild ticks
 identically (ADR 0003).
 
+**progress dial** — the reel's line directly above the landscape: a **white hairline** the landscape's own width, with
+the piece's progress as a **thin red needle** travelling it. The operator's own words, twice: *"white line … progress is
+with red bar"* — and then the correction that settled the shape: *"the bar will be vertical and thin like radio
+indicator"*, which is exactly what a tuning needle is.
+⚠️ **It sits above the landscape at the landscape's width for a reason**: the needle's position and the landscape's
+playhead are the *same* number (`travelled`), so giving them the same x makes the frame read as **one instrument** — a
+dial over the song's shape — rather than two progress marks pointing at different places. ⚠️ **Every theme authors its
+own red** (`palette.progress`), because one that reads as a marker on `parchment`'s paper is lurid on `neon`'s
+near-black; the line the needle travels is the theme's own `ink` at low strength, so the pair belongs to the theme's
+world on the light theme and the dark ones. ⚠️ **Not on the still**: a thumbnail has no progress to report, and a
+needle frozen at a third would be a small lie about a song nobody has heard yet.
+
 **recorded run** — `store/<song>/run.json`: the answers and the master's digest. ⚠️ An interface and a contract, not
 a cache — a run replays it rather than asking again, and a master whose digest has changed is refused.
 
@@ -84,6 +96,14 @@ recognisably `vinyl` in all four.
 **motif** — the theme's own moving object — the disc, the notes. ⚠️ Not a wave form. It is the frame's **artwork**,
 and the structure around it is shared by every theme: **the artwork on the left, the song written on the right, the
 landscape beneath** — a theme changes its palette, its type and how its colour moves, never where the eye goes.
+⚠️ **The disc turns at a *rate*, not across the piece** — twelve seconds a revolution (5 RPM, and exactly one degree
+per frame at 30 fps, the finest step the renderer can draw). A record has a speed, so a longer song simply gets more
+revolutions; six turns spread over a whole piece was ~11° a second, and *"the disc is not rotating"* was a fair reading
+of a disc that was.
+⚠️ **And the artwork turns in *every* theme.** The `disc`/`notes` split decides the theme's *motif* — a record it turns,
+or glyphs drifting in the field — and nothing else. `neon` and `aurora` used to draw it as a card that only floated,
+and a round thing with a centre label **is** a record on screen whatever the code calls it, so the one difference the
+card produced was a disc that stood still. The operator read it as a fault, twice, and was right both times.
 
 **wave form** — the envelope's **geometry**: `bars`, `ribbon`, `ring`, `bloom`. ⚠️ Not a theme — it is one choice,
 shared by every theme in a run.

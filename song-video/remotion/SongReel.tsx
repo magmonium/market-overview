@@ -8,6 +8,13 @@
  * how its colour moves — never where the eye goes. Someone who has watched one reel can read the next one's shape
  * instantly, which is the whole reason to have a structure at all.
  *
+ * ⚠️ **And the artwork turns in every theme, which it once did not.** The `disc`/`notes` split decides the theme's
+ * *motif* — a record it turns, or glyphs drifting in the field — and nothing else. `neon` and `aurora` used to draw the
+ * artwork as a card that only floated, and a round thing with a centre label **is** a record on screen whatever the
+ * code calls it: so the one difference the card produced was a disc standing still, which the operator reported as a
+ * fault, twice, and read exactly right both times. What separates the themes is the palette, the type and the drifting
+ * notes — not withheld motion.
+ *
  * ⚠️ **The mark is the artwork's centre, not a corner badge.** It used to sit top-right on the brief's chip; it is
  * now the record's **label** and turns with the disc, which is why the disc lost its spindle hole — a hole punched
  * through somebody's logo is a hole punched through their logo.
@@ -21,16 +28,17 @@
  */
 import {useMemo} from 'react';
 import {useAudioData} from '@remotion/media-utils';
-import {AbsoluteFill, Audio, Img, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Audio, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Typeface} from '../../remotion/fonts.ts';
 import {FONT} from '../../remotion/theme.ts';
 import {accentFor} from './accent.ts';
 import {Backdrop} from './Backdrop.tsx';
 import {clockFor} from './clock.ts';
 import {envelopeFromAudio} from './envelope.ts';
-import {Disc, MarkLabel, Notes} from './Motif.tsx';
-import type {Mark, SongReelProps} from './props.ts';
-import {themeFor, type Theme} from './themes.ts';
+import {Disc, Notes} from './Motif.tsx';
+import {turnedAt} from './motif.ts';
+import type {SongReelProps} from './props.ts';
+import {themeFor} from './themes.ts';
 import {bars, playhead, smoothed} from './waves.ts';
 
 /** How the landscape is resolved. A theme will own this once themes exist; the geometry does not care. */
@@ -51,53 +59,6 @@ const DISC = 430;
 const TEXT_LEFT = INSET + ART + 80;
 /** The band the artwork and the title share, above the landscape. */
 const BAND = 560;
-
-/**
- * The cover, when the theme has no disc to put it on.
- *
- * ⚠️ **A card, not a second disc.** `neon` and `aurora` are not records, so a turning vinyl circle there would
- * dissolve the difference between the themes — and the difference between the themes is the product. It floats
- * instead: a slow rise and fall with the traversal, which is motion without pretending to be a turntable.
- *
- * ⚠️ **With no cover there is still a centre.** A soft disc of the theme's own `muted` gives the mark something to
- * be the label *of*, and gives the drifting notes something to cross — an empty column beside a full one would read
- * as a theme that failed rather than a theme that is quiet.
- */
-const ArtCard = ({
-  art,
-  mark,
-  theme,
-  travelled,
-  amplitude,
-}: {
-  readonly art: string | null;
-  readonly mark: Mark;
-  readonly theme: Theme;
-  readonly travelled: number;
-  readonly amplitude: number;
-}) => (
-  <div style={{position: 'absolute', transform: `translateY(${(travelled - 0.5) * 44}px)`}}>
-    <div
-      style={{
-        position: 'relative',
-        width: DISC,
-        height: DISC,
-        borderRadius: '50%',
-        background: art
-          ? theme.palette.muted
-          : `radial-gradient(circle at 40% 32%, ${theme.palette.muted}, ${theme.palette.field})`,
-        boxShadow: `0 40px 110px rgba(0, 0, 0, 0.42), inset 0 0 0 2px ${theme.palette.ink}14`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      {art ? <Img src={art} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : null}
-      <MarkLabel mark={mark} size={DISC * 0.34} amplitude={amplitude} />
-    </div>
-  </div>
-);
 
 export const SongReel = ({title, song, theme: themeId, cover, mark, seed, lang, duration}: SongReelProps) => {
   const frame = useCurrentFrame();
@@ -175,13 +136,12 @@ export const SongReel = ({title, song, theme: themeId, cover, mark, seed, lang, 
           justifyContent: 'center',
         }}
       >
-        {/* ⚠️ The theme's own object (issue 05) — a record it can turn, or a card it can float. Either way it is
-            **the** artwork, and either way the mark is its centre. */}
-        {theme.motif === 'disc' ? (
-          <Disc theme={theme} cover={art} mark={mark} travelled={travelled} amplitude={amplitude} size={DISC} />
-        ) : (
-          <ArtCard art={art} mark={mark} theme={theme} travelled={travelled} amplitude={amplitude} />
-        )}
+        {/* ⚠️ **The theme's own object (issue 05) — and in every theme it is the record.** The `disc`/`notes` split
+            decides the theme's *motif* (a record it turns, or glyphs drifting in the field); it no longer decides
+            whether the artwork moves. ⚠️ **`turnedAt`, not `travelled`**: a record turns at a *rate*, so a long song
+            simply gets more revolutions — where the old traversal-bound spin made six turns across the whole piece,
+            about eleven degrees a second, and read as a disc standing still. */}
+        <Disc theme={theme} cover={art} mark={mark} turned={turnedAt(frame, fps)} amplitude={amplitude} size={DISC} />
       </div>
 
       {/* ── the song, right ─────────────────────────────────────────────────────────────────────────────────── */}
@@ -231,6 +191,10 @@ export const SongReel = ({title, song, theme: themeId, cover, mark, seed, lang, 
         >
           {clockFor(frame, fps, lang, duration)}
         </div>
+        {/* ⚠️ **The rail is not in this column any more.** It became a *radio dial* — a thin white line with a red
+            needle — and a needle that travels a different line from the landscape's own playhead is two progress marks
+            pointing at two different x's. It now sits directly above the landscape, spanning the same width, so the
+            needle and the playhead are the same vertical line seen twice. */}
       </div>
 
       {/* The wave region. The inset is the composition's business, not the geometry's: the landscape and the
@@ -239,52 +203,83 @@ export const SongReel = ({title, song, theme: themeId, cover, mark, seed, lang, 
           ⚠️ Drawn only once the clock exists — before that the frame is the title and the mark and nothing
           else, a *partial* frame that no render emits because the hook has already paused it. */}
       {clock ? (
-        <div style={{position: 'absolute', left: INSET, right: INSET, bottom: 120, height: WAVE_HEIGHT}}>
-          {bands.map((band, index) => {
-            const played = band.at <= travelled;
-            return (
-              <div
-                key={index}
-                style={{
-                  position: 'absolute',
-                  left: `${band.at * 100}%`,
-                  bottom: 0,
-                  width: `${100 / COLUMNS}%`,
-                  // ⚠️ Through the theme's curve: the clock stays honest, and the picture still has to read.
-                  height: theme.curve(band.height) * WAVE_HEIGHT,
-                  transform: 'translateX(-50%)',
-                  // ⚠️ **Graded, not switched** — but only the *strengths* moved. The played half used to arrive at
-                  // almost full strength against a flat grey, and what a long video needs is the two halves closer
-                  // together: the amber still reads as progress, and the road ahead is still a road. ⚠️ The unplayed
-                  // half is **not** faded to nothing — the landscape ahead of the playhead is the design's own claim
-                  // (*the song's own shape is the narrative*), and a shape nobody can see is not a narrative.
-                  background: played ? theme.palette.wave : theme.palette.muted,
-                  opacity: played ? 0.84 : 0.4,
-                  borderRadius: 4,
-                }}
-              />
-            );
-          })}
+        <>
+          {/* ⚠️ **The radio dial.** The operator's words, as they typed them: *"white line … progress is with red bar"* —
+              and then the correction that settled it: *"the bar will be vertical and thin like radio indicator"*, which
+              is precisely what a tuning needle is. So the track is a hairline of the theme's own ink, and the progress
+              is a narrow red needle that travels along it.
 
-          {/* ⚠️ **The pulse.** The playhead brightens and widens with the amplitude at *this* frame, so the picture
-              reports the music's present moment and not only its overall shape. It reads the frame's own envelope
-              value, so it is as deterministic as the landscape is. */}
-          <div
-            style={{
-              position: 'absolute',
-              left: `${travelled * 100}%`,
-              top: -28,
-              bottom: 0,
-              // ⚠️ **A breath, not a cursor.** Softer and narrower than it was, with a smaller halo: the pulse is the
-              // music's present moment and it should *swell*, which is also why the amplitude feeding it is the
-              // settled one (`theme.smooth`) rather than the frame's raw peak.
-              width: 2 + amplitude * 3,
-              background: theme.palette.ink,
-              opacity: 0.7,
-              boxShadow: `0 0 ${18 + amplitude * 30}px ${accent.tint}`,
-            }}
-          />
-        </div>
+              ⚠️ **It spans the landscape's own width and sits just above it, deliberately.** The needle's position and
+              the landscape's playhead are the same number (`travelled`), so giving them the same x makes the frame read
+              as **one instrument** — a dial over the song's shape — instead of two progress marks pointing at different
+              places.
+
+              ⚠️ **And it is not on the still.** A thumbnail has no progress to report: a needle frozen a third of the
+              way along would be a small lie about a song nobody has heard yet. */}
+          <div style={{position: 'absolute', left: INSET, right: INSET, bottom: 120 + WAVE_HEIGHT + 30, height: 2}}>
+            <div style={{position: 'absolute', inset: 0, background: `${theme.palette.ink}30`, borderRadius: 999}} />
+            {/* The needle: taller than the track it reads, which is what makes it an indicator rather than a tick. */}
+            <div
+              style={{
+                position: 'absolute',
+                left: `${travelled * 100}%`,
+                top: -9,
+                width: 3,
+                height: 20,
+                borderRadius: 999,
+                background: theme.palette.progress,
+                transform: 'translateX(-50%)',
+              }}
+            />
+          </div>
+
+          <div style={{position: 'absolute', left: INSET, right: INSET, bottom: 120, height: WAVE_HEIGHT}}>
+            {bands.map((band, index) => {
+              const played = band.at <= travelled;
+              return (
+                <div
+                  key={index}
+                  style={{
+                    position: 'absolute',
+                    left: `${band.at * 100}%`,
+                    bottom: 0,
+                    width: `${100 / COLUMNS}%`,
+                    // ⚠️ Through the theme's curve: the clock stays honest, and the picture still has to read.
+                    height: theme.curve(band.height) * WAVE_HEIGHT,
+                    transform: 'translateX(-50%)',
+                    // ⚠️ **Graded, not switched** — but only the *strengths* moved. The played half used to arrive at
+                    // almost full strength against a flat grey, and what a long video needs is the two halves closer
+                    // together: the amber still reads as progress, and the road ahead is still a road. ⚠️ The unplayed
+                    // half is **not** faded to nothing — the landscape ahead of the playhead is the design's own claim
+                    // (*the song's own shape is the narrative*), and a shape nobody can see is not a narrative.
+                    background: played ? theme.palette.wave : theme.palette.muted,
+                    opacity: played ? 0.84 : 0.4,
+                    borderRadius: 4,
+                  }}
+                />
+              );
+            })}
+  
+            {/* ⚠️ **The pulse.** The playhead brightens and widens with the amplitude at *this* frame, so the picture
+                reports the music's present moment and not only its overall shape. It reads the frame's own envelope
+                value, so it is as deterministic as the landscape is. */}
+            <div
+              style={{
+                position: 'absolute',
+                left: `${travelled * 100}%`,
+                top: -28,
+                bottom: 0,
+                // ⚠️ **A breath, not a cursor.** Softer and narrower than it was, with a smaller halo: the pulse is the
+                // music's present moment and it should *swell*, which is also why the amplitude feeding it is the
+                // settled one (`theme.smooth`) rather than the frame's raw peak.
+                width: 2 + amplitude * 3,
+                background: theme.palette.ink,
+                opacity: 0.7,
+                boxShadow: `0 0 ${18 + amplitude * 30}px ${accent.tint}`,
+              }}
+            />
+          </div>
+        </>
       ) : null}
     </AbsoluteFill>
   );
