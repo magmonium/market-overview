@@ -1,0 +1,44 @@
+{
+  "status": "OK",
+  "num_results": 3,
+  "results": {
+    "list_name": "Hardcover Fiction",
+    "list_name_encoded": "hardcover-fiction",
+    "published_date": "2026-10-14",
+    "books": [
+      {
+        "rank": 1,
+        "rank_last_week": 3,
+        "weeks_on_list": 4,
+        "primary_isbn13": "9780385547345",
+        "title": "The Widow",
+        "author": "John Grisham",
+        "publisher": "Doubleday Books",
+        "price": "32.00",
+        "book_image": "https://storage.googleapis.com/du-prd/books/images/9780385547345.jpg"
+      },
+      {
+        "rank": 2,
+        "rank_last_week": 0,
+        "weeks_on_list": 1,
+        "primary_isbn13": "9781250328175",
+        "title": "The Black Wolf",
+        "author": "Louise Penny",
+        "publisher": "Minotaur Books",
+        "price": "30.00",
+        "book_image": "https://storage.googleapis.com/du-prd/books/images/9781250328175.jpg"
+      },
+      {
+        "rank": 3,
+        "rank_last_week": 0,
+        "weeks_on_list": 1,
+        "primary_isbn13": "",
+        "title": "A Book With No ISBN",
+        "author": "Nobody",
+        "publisher": "Somewhere",
+        "price": "0.00",
+        "book_image": ""
+      }
+    ]
+  }
+}

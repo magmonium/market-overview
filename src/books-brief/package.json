@@ -1,0 +1,12 @@
+{
+  "name": "books-brief-render",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Books Brief's render layer — four Top-100 chart videos, their slides and their cover collages.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test remotion/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "studio": "remotion studio remotion/index.ts"
+  }
+}

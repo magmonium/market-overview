@@ -1,0 +1,28 @@
+# ⚠️ **This project's own, because the repository's `public/*` does not reach here.** A pattern with a slash in it is
+# anchored to the `.gitignore` that holds it, so the root's rule covers `./public/` and nothing else — and
+# `src/books-brief/public/` is **not** ignored by it. Left unignored, a bare `git add -A` would commit a staged copy of
+# every week's snapshot: not a licensed asset, but the same committed evidence **twice**, and the second copy is the
+# one nobody would think to update. Verified rather than assumed —
+# `git check-ignore src/books-brief/public/weeks/x/facts.json` answers "not ignored" without this file.
+
+# ⚠️ **`output/` and `resource/` are not part of this project** — the data root is outside the repository (ADR 0007),
+# namespaced `output/books/` and `resource/books/`. These two rules are **inert here**, and they stay for a checkout
+# that has not migrated: in that window a bare `git add -A` would commit the cover cache and the rendered videos.
+output/*
+resource/*
+
+# ⚠️ **`store/` deliberately has no rule.** The weekly snapshot is the rebuild evidence *and* the input the six-month
+# ranking window is accumulated from (ticket 23), so pruning it would silently shrink the window. It is committed, and
+# that is the difference between the tool's evidence and its data.
+
+# Remotion's `public/` folder is **staging only**: a week's snapshot is copied there for the duration of a render.
+public/*
+
+# The nested project's own environment and build noise.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.remotion/
+.DS_Store

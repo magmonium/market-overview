@@ -1,0 +1,25 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 1,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "Zx9kDwAAQBAJ",
+      "volumeInfo": {
+        "title": "Ekti Shonar Boi",
+        "authors": ["Sunil Gangopadhyay"],
+        "publisher": "Ananda Publishers",
+        "publishedDate": "2026-10",
+        "categories": ["Fiction / Literary"],
+        "industryIdentifiers": [
+          {"type": "ISBN_10", "identifier": "8172151232"},
+          {"type": "ISBN_13", "identifier": "9788172151234"}
+        ],
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=Zx9kDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=Zx9kDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        }
+      }
+    }
+  ]
+}

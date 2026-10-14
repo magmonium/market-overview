@@ -1,0 +1,36 @@
+[project]
+name = "books-brief"
+version = "0.1.0"
+description = "Builds the Books Brief — four weekly Top-100 book charts as 16:9 videos."
+requires-python = ">=3.14"
+# ⚠️ **The one dependency is the brief itself, on purpose** — the same trade `song-video` documents. The charts reuse
+# `market_overview.paths` (one data root and one env var for every product), `market_overview.store` (the committed
+# snapshot), `market_overview.render`'s browser discovery, and `market_overview.logo`. The cost is explicit: this
+# product inherits the brief's own dependency tree (`curl_cffi`).
+dependencies = [
+    "market-overview",
+    "selectolax>=1.0.0",
+]
+
+[tool.uv.sources]
+market-overview = { path = "../..", editable = true }
+
+[project.scripts]
+books-brief = "books_brief.cli:main"
+bb = "books_brief.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["books_brief"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+# ⚠️ **Owned here, not inherited.** pytest resolves rootdir *upward*, so this suite would quietly run under the
+# brief's own pytest options — correct today, and broken the moment the brief adds an `addopts`. A nested project
+# owns its own tests, exactly as `song-video`'s does.
+testpaths = ["tests"]
