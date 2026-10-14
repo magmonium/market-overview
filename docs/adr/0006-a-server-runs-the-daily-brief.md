@@ -77,7 +77,7 @@ rather than choices it made.
 - **Remotion passes `--no-sandbox` unconditionally**, so a real Chrome runs as root in a container with no extra
   flags and no added capabilities. Worth knowing rather than assumed.
 - **Remotion renders `--single-process` on Linux unless `enableMultiProcessOnLinux` is set.** It works either way;
-  the flag is a speed knob, it is **not** set here, and `deploy/README.md` says how to measure it. The same rule as
+  the flag is a speed knob, it is **not** set here, and the README's server section says how to measure it. The same rule as
   `MARKET_OVERVIEW_CONCURRENCY`: a render setting is a property of the box, and an unmeasured one is a guess.
 
 **Packaging is Docker or a host timer, and it does not change the decision above** — both run the same

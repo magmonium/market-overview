@@ -1,7 +1,7 @@
 """Publish a finished package to YouTube — the deferred upload step. (0085_13)
 
 ⚠️ **The package was designed for this, and this module is the only thing it was waiting on.** `package.py` builds
-each edition into `output/<date>/<lang>/` and says so: the folder "has to be handable to its own uploader without
+each edition into `output/brief/<date>/<lang>/` and says so: the folder "has to be handable to its own uploader without
 picking files out of a mixed folder". `metadata.py` names `metadata-<lang>.json` *"the JSON the deferred upload
 step will read"* and writes the video and thumbnail filenames into it. So nothing here decides *what* to upload —
 the manifest already did, and it is generated from the bundle, so the upload cannot disagree with the video.
@@ -136,7 +136,7 @@ def payload(date: str, lang: str) -> dict[str, Any]:
 
 
 def marker(date: str, lang: str) -> pathlib.Path:
-    """Where the record of an upload lives: `output/<date>/.published-<lang>.json`.
+    """Where the record of an upload lives: `output/brief/<date>/.published-<lang>.json`.
 
     ⚠️ **Beside the language folders, never inside one.** `package.py` is explicit that a package holds "four
     files and nothing else" — a viewer's folder, not plumbing — so this goes one level up, in the run's own

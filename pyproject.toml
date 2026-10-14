@@ -32,7 +32,7 @@ packages = ["src/market_overview"]
 
 [tool.pytest.ini_options]
 # ⚠️ **Named, not inferred — and this is the only line the nested project cost this one.**
-# `market-overview/song-video/` is a *separate* uv project with its own environment, so a bare `pytest` here
+# `market-overview/src/song-video/` is a *separate* uv project with its own environment, so a bare `pytest` here
 # walked into its tests and died importing a package this environment does not have. Ownership is now
 # explicit: this suite owns `tests/`, and the reel's suite runs from its own folder
 # (`cd song-video && uv run pytest`). Nothing else about the brief changes.

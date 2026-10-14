@@ -58,7 +58,7 @@ described once in `remotion/fonts.json` and loaded by both the renderer and the 
 - ⚠️ **The delivered artefacts for `2026-10-12` were re-rendered.** The still and the video in `output/` are
   gitignored and were rebuilt from the snapshot, so nothing was fetched to do it — which is ADR 0003 working.
 - ⚠️ **A face update is now a commit.** Google's `unicode-range`s must be refreshed from its CSS at the same
-  time as the files, and `remotion/fonts/README.md` says how.
+  time as the files, and the README's typeface section says how.
 - **Cost:** 185 KB of committed binary, and the brief's Bengali is set in a different face than it was for the
   first two deliveries. That is a visible change to the product, taken deliberately, in exchange for the same
   face everywhere.

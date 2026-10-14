@@ -165,7 +165,7 @@ def build(args: argparse.Namespace) -> int:
                 print(f"refusing to publish {day}: {exc}", file=sys.stderr)
                 return 1
     finally:
-        # ⚠️ The derived bed is scratch, and it lives inside `output/<date>/` — the folder a human opens to find the
+        # ⚠️ The derived bed is scratch, and it lives inside `output/brief/<date>/` — the folder a human opens to find the
         # day's deliverable. Left behind it is a file with no explanation, so it goes whether the run succeeded or
         # not. The master in `resource/` is untouched either way; this is a copy.
         if bed is not None:
@@ -329,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
         help="build one date's Bengali and English packages",
         description=(
             "Fetch, compute the facts bundle, render both editions and assemble "
-            "output/<date>/<lang>/. Refuses to publish on a stale session."
+            "output/brief/<date>/<lang>/. Refuses to publish on a stale session."
         ),
     )
     build_cmd.add_argument(
@@ -357,7 +357,7 @@ def main(argv: list[str] | None = None) -> int:
         "publish",
         help="upload one date's built packages to YouTube",
         description=(
-            "Upload each edition's video and thumbnail from output/<date>/<lang>/, straight from the "
+            "Upload each edition's video and thumbnail from output/brief/<date>/<lang>/, straight from the "
             "package's own metadata. Idempotent: an edition already uploaded from the same facts bundle "
             "is skipped rather than posted twice."
         ),

@@ -33,6 +33,8 @@ import shutil
 import subprocess
 import sys
 
+from . import paths
+
 
 # ── the level ─────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -363,13 +365,15 @@ def prepare(
 ) -> tuple[pathlib.Path, str] | None:
     """Normalise the supplied bed for this run, or `None` if none was supplied.
 
-    `date` is the run's own directory (`output/<date>/`), `root` is the repository — the one that holds
-    `node_modules`, and so the toolchain.
+    `date` is the run's own directory (`output/brief/<date>/`), `root` is the repository — the one that holds
+    `node_modules`, and so the toolchain. ⚠️ `root` is *not* where the bed is found: the operator's assets moved
+    out of the repository (see `paths`), so `resource` defaults to `paths.brief_resource()` and a caller with
+    anything else to point at passes it.
 
     Returns the derived bed's path and a one-line report. ⚠️ The **master is never written**: it is passed to
     ffmpeg as an input, and the derived audio lands in the run's own directory.
     """
-    supplied = resource if resource is not None else root / "resource"
+    supplied = resource if resource is not None else paths.brief_resource()
     master = find(supplied)
     if master is None:
         return None

@@ -1,4 +1,4 @@
-"""TradingView scanner client — the **spine** (see CONTEXT.md).
+"""TradingView scanner client — the **spine** (see the README's glossary).
 
 Plain HTTP, no API key, no cookie priming. One request carries every price the
 brief needs, which is why nothing else fetches prices.

@@ -23,7 +23,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from market_overview import publish, render, store
+from market_overview import paths, publish, render, store
 
 DATE = "2026-10-12"
 LANG = "bn"
@@ -103,7 +103,7 @@ class Repo(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = pathlib.Path(self.tmp.name)
 
-        self.directory = self.root / "output" / DATE / LANG
+        self.directory = self.root / "output" / "brief" / DATE / LANG
         self.directory.mkdir(parents=True)
         self.write_manifest(MANIFEST)
 
@@ -112,11 +112,16 @@ class Repo(unittest.TestCase):
         (self.directory / MANIFEST["video"]).write_bytes(b"a picture with sound")
         (self.directory / MANIFEST["thumbnail"]).write_bytes(b"a still")
 
-        # `render.date_dir` is built on `store.root`, so patching that redirects `output/` as well — the same seam
-        # `test_package.py` uses.
-        self.enter = mock.patch.object(store, "root", return_value=self.root)
-        self.enter.start()
-        self.addCleanup(self.enter.stop)
+        # ⚠️ **Two seams, because there are two roots now.** `render.date_dir` reads the shared data root
+        # (`paths.brief_output()`), while the snapshot still reads `store.root` — so patching only one of them
+        # would leave the other pointed at the operator's real folders, and a test that "passes" while reading
+        # yesterday's package is worse than one that fails.
+        for patcher in (
+            mock.patch.object(store, "root", return_value=self.root),
+            mock.patch.object(paths, "data_root", return_value=self.root),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def write_manifest(self, data: dict) -> None:
         (self.directory / f"metadata-{LANG}.json").write_text(
@@ -236,7 +241,7 @@ class TwicePosted(Repo):
 class ThePackageStaysClean(Repo):
     def test_the_record_is_not_written_into_the_package(self):
         """⚠️ `package.py` is explicit that a package holds four files and nothing else — a folder a viewer could be
-        handed. The upload record is plumbing, so it lives in `output/<date>/`, one level up."""
+        handed. The upload record is plumbing, so it lives in `output/brief/<date>/`, one level up."""
         publish.run(DATE, (LANG,), privacy="private", force=False, api=Stub())
         self.assertEqual(
             self.package_files(),

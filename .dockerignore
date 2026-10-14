@@ -9,16 +9,25 @@ node_modules/
 __pycache__/
 *.py[cod]
 
-# ⚠️ **Machine state, and the reason the exclusion matters is not size.** `store/` and `output/` are mounted as
-# volumes at run time; baking a copy into the image would freeze one machine's history — and would give the
-# container an `output/` missing the `.published-<lang>.json` records that the volume exists to preserve, which is
-# one re-upload away from posting the same brief twice.
+# ⚠️ **Machine state, and the reason the exclusion matters is not size.** `store/` is mounted as a volume at run
+# time; baking a copy into the image would freeze one machine's history and give the container a `store/` that
+# nothing updates. `var/` is where the wrapper's log lands — without it a scheduled run is *completely silent*,
+# because the wrapper redirects everything into that file.
+#
+# ⚠️ **`output/` and `resource/` are no longer listed, and their absence is now structural rather than a rule.**
+# They left the repository for the shared data root (see `docs/adr/0007`), so a data root that is outside the
+# build context **cannot** be baked into the image even by mistake — which is a stronger guarantee than a line
+# here. The brief's data arrives mounted at `/data` (`MARKET_OVERVIEW_DATA`), never copied.
 store/
-output/
-resource/
 var/
 credentials/
 .config/
+
+# ⚠️ **The Song Reel is a second product and is never in this image.** It lives at `src/song-video/` — inside the
+# very tree the `COPY src ./src` line copies — so without this line the brief's image would ship the reel's Remotion
+# program, its committed `store/` and its `pyproject.toml`. The reel is built and run by hand from a checkout
+# (ADR 0004); nothing about it belongs in a container whose whole job is one brief a day.
+src/song-video/
 
 # Not needed to build. `remotion/fonts/` is **not** excluded — the vendored face is source, not an asset.
 docs/

@@ -1,0 +1,26 @@
+# ⚠️ **This file's original reason is gone** — `output/` and `resource/` are no longer part of this project: both
+# left the repository for the shared data root, namespaced `output/reel/` and `resource/reel/` (ADR 0007). This
+# checkout's copies have been moved out, so these two rules are **inert here**.
+#
+# ⚠️ **They stay anyway, for a checkout that has not migrated.** A second clone still has the old folders until the
+# one-time `mv` in `../../README.md` runs there, and in that window a bare `git add -A` would commit a master
+# *song* — the one thing the reel's own `.gitignore` was written to prevent. Delete them once every checkout has
+# migrated.
+output/*
+resource/*
+#
+# ⚠️ **`store/` still has no rule, deliberately.** It holds the recorded run that reproduces a reel — the same
+# reason the brief commits its per-date snapshot. Machine state and rebuild evidence are not the same thing.
+
+# Remotion's `public/` folder is staging only: the song is copied there for the duration of a run and deleted
+# with it.
+public/*
+
+# The nested project's own environment and build noise.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.remotion/
+.DS_Store

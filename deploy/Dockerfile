@@ -8,7 +8,7 @@
 # Silencing it deliberately, in one line, keeps a real warning from being lost in the noise of a standing one.
 #
 # The Market Brief as a **one-shot job**: build the day's editions, publish them, exit. There is no scheduler in
-# this image — see compose.yaml, or deploy/README.md for the host-timer alternative.
+# this image — see compose.yaml, or the README's server section for the host-timer alternative.
 #
 # ⚠️ Adapted from Remotion's own Docker recipe (remotion.dev/docs/docker). Four things are this project's and not
 # Remotion's:
@@ -74,8 +74,19 @@ RUN chmod 0644 /etc/cron.d/market-brief \
 
 # ⚠️ `/app/.venv/bin` on PATH is what makes the wrapper call `mo` directly instead of `uv run` — see the note in
 # `daily-brief.sh` for why that difference matters on a schedule.
+#
+# ⚠️ **`MARKET_OVERVIEW_DATA=/data` is load-bearing, and the failure it prevents is silent.** The pipeline resolves
+# the operator's assets and the day's packages from the shared data root, whose default is
+# `Path.home()/.local/share/market-overview` — and in here `Path.home()` is `/root`, a path in the container's own
+# writable layer. Unpinned, a scheduled run would "succeed" while writing the day's deliverable *and* its
+# `.published-<lang>.json` record into a layer that is discarded with the container: the file is gone, and the next
+# run re-uploads the same day. `/data` is the mount in `compose.yaml`, so container and host look at one folder.
+#
+# ⚠️ `MARKET_OVERVIEW_ROOT` is **not** that. It is the *repository* (`/app`), read by `daily-brief.sh` to `cd` and
+# by no Python module at all. Two names because they are two different things — see `src/market_overview/paths.py`.
 ENV PATH="/app/.venv/bin:${PATH}" \
     MARKET_OVERVIEW_ROOT=/app \
+    MARKET_OVERVIEW_DATA=/data \
     MARKET_OVERVIEW_CREDENTIALS=/credentials
 
 CMD ["/app/deploy/daily-brief.sh"]

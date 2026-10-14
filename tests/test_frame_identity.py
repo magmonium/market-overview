@@ -83,7 +83,7 @@ class FrameIdentity(unittest.TestCase):
         directory = self.work / name
         directory.mkdir()
         bundle = store.read_facts(DATE)
-        mark = logo.load(self.root / render.RESOURCE)
+        mark = logo.load(render.resource_dir())
         wrapper = render._write_props(directory, LANG, bundle, mark)
 
         output = directory / "run.mp4"

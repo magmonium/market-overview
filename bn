@@ -56,7 +56,7 @@ PROPS="/tmp/preview-bn.json"
 DATE="$DATE" PROPS="$PROPS" uv run python - <<'PY'
 import json, os, pathlib, shutil
 
-from market_overview import audio, logo, render, store
+from market_overview import audio, logo, paths, render, store
 
 root = store.root()
 date = os.environ["DATE"]
@@ -70,7 +70,7 @@ bundle = json.loads((store.dir_for(date) / store.FACTS).read_text(encoding="utf-
 mark = None
 mark_note = "none supplied"
 try:
-    mark = logo.load(root / "resource")
+    mark = logo.load(paths.brief_resource())
 except logo.LogoError as exc:
     mark_note = f"REFUSED — {exc}"
 if mark is not None:
@@ -78,12 +78,12 @@ if mark is not None:
 
 # ⚠️ The bed goes through the same `audio.prepare` a real run uses, so the preview *hears* the deliverable —
 # same level, same length, same fades. It lands in the run's own directory exactly where a run puts it
-# (`output/<date>/.bed.wav`), and is then copied into `public/`, because a composition can only serve assets
+# (`output/brief/<date>/.bed.wav`), and is then copied into `public/`, because a composition can only serve assets
 # from there and the props must name a file inside it.
 bed = None
 bed_note = "silent"
 try:
-    prepared = audio.prepare(root / "output" / date, render.run_seconds(bundle), root=root)
+    prepared = audio.prepare(paths.brief_output() / date, render.run_seconds(bundle), root=root)
 except audio.AudioError as exc:
     prepared = None
     bed_note = f"UNAVAILABLE — {exc}"

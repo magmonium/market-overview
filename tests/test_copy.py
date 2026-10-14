@@ -221,9 +221,12 @@ class Seam(unittest.TestCase):
             mock.patch.object(render, "video_path", lambda date, lang: target),
             mock.patch.object(render.subprocess, "Popen", fake_popen),
             # ⚠️ Pointed at an empty folder, so this test asserts the same thing whether or not the operator
-            # has dropped `logo.svg` into the real `resource/`. A test whose result depends on a licensed asset
+            # has dropped a mark into the real `resource/brief/`. A test whose result depends on a licensed asset
             # being present is a test that fails for the wrong reason on someone else's machine.
-            mock.patch.object(render, "RESOURCE", tmp),
+            # ⚠️ It patches the **resolver**, not a constant: the bed and the mark both go through
+            # `render.resource_dir()`, so one patch keeps them resolving to the same folder — which is the
+            # property the old `RESOURCE` constant could only keep by convention.
+            mock.patch.object(render, "resource_dir", return_value=pathlib.Path(tmp)),
         ):
             rendered = render.render("2026-10-12", "bn")
 

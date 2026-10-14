@@ -15,7 +15,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from market_overview import package, render, store
+from market_overview import package, paths, render, store
 
 DATE = "2026-10-12"
 LANG = "bn"
@@ -46,14 +46,20 @@ class Repo(unittest.TestCase):
 
         # The two artefacts the renderers own. ⚠️ Written here as bytes, because assembly must not care *how* they
         # were made — only that they are there.
-        self.directory = self.root / "output" / DATE / LANG
+        self.directory = self.root / "output" / "brief" / DATE / LANG
         self.directory.mkdir(parents=True)
         (self.directory / render.video_name(DATE, LANG)).write_bytes(b"a picture with sound")
         (self.directory / render.thumbnail_name(DATE, LANG)).write_bytes(b"a still")
 
-        self.enter = mock.patch.object(store, "root", return_value=self.root)
-        self.enter.start()
-        self.addCleanup(self.enter.stop)
+        # ⚠️ **Two seams: the snapshot stays in the repository, the package does not.** `store.root` redirects the
+        # committed facts bundle; `paths.data_root` redirects `output/brief/`. Patching one and not the other is
+        # how a suite quietly starts reading — and writing — the operator's real delivery folder.
+        for patcher in (
+            mock.patch.object(store, "root", return_value=self.root),
+            mock.patch.object(paths, "data_root", return_value=self.root),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def names(self) -> dict:
         return package.filenames(DATE, LANG)

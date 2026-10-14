@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# build — the front door: one menu over both products.
+#
+#   ./build                        # ask which product, then ask what it needs
+#   ./build brief --lang bn en     # the daily pair, asks nothing
+#   ./build reel --song dure-kothay --title "…" --theme vinyl --wave ribbon
+#
+# ⚠️ **Why this is a script rather than a console script.** The menu has to import *both* packages, and only the
+# reel's environment can: `song-video` depends on `market-overview`, never the reverse. So this runs the menu
+# module through that project — `--project` picks the environment, and the working directory stays wherever the
+# operator typed `./build` from. See `src/song-video/src/song_video/menu.py`.
+#
+# ⚠️ **A front end, not a replacement.** `mo build`, `mo publish` and `sv build` are unchanged and stay the
+# scriptable path — `deploy/daily-brief.sh` runs `mo build --lang bn en` on a timer, and `sv build --replay` is the
+# rebuild contract. Nothing here is reachable *only* through the menu.
+#
+# ⚠️ **Publishing is deliberately not in this menu.** The upload is the one step that cannot be tidied up
+# afterwards, and it is already guarded by its own idempotency record and privacy default; a menu that offered it
+# beside "build" would put the irreversible act one keystroke from the reversible one.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# ⚠️ Unset, so `uv` does not warn on every run. Whichever environment the shell happens to have active — the
+# brief's, typically, because that is where `mo` lives — is *not* the one this needs, and `uv` says so in a warning
+# that reads like a misconfiguration. `--project` below is the choice; this just stops the announcement.
+unset VIRTUAL_ENV
+
+exec uv run --project "$ROOT/src/song-video" python -m song_video.menu "$@"

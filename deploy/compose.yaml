@@ -3,18 +3,23 @@
 #   docker compose run --rm brief                 # run it once, now
 #   docker compose --profile scheduled up -d      # or keep a scheduler running
 #
-# ⚠️ **The volumes are load-bearing, not tidiness.** `output/` holds `.published-<lang>.json` — the record that
-# stops the next run uploading the same brief again. Let that directory live only inside a container and every
-# scheduled run posts the day a second time, which is exactly the failure `publish.py` is built to prevent; the
-# container is disposable, the record is not. `store/` is the other half of the same idea: it is what makes a
-# re-render possible without re-fetching (ADR 0003), and `var/` is where the wrapper's log lands — without it a
-# scheduled run is *completely silent*, because the wrapper redirects everything into that file.
-
-# `credentials/` holds the OAuth client secret and the refresh token. Never in the image; see deploy/README.md.
+# ⚠️ The volumes are load-bearing, not tidiness. The **data root** mount holds `output/brief/`, and
+# `output/brief/<date>/` is where `.published-<lang>.json` lives — the record that stops the next run uploading
+# the same brief again. Let that live only inside a container and every scheduled run posts the day a second time,
+# which is exactly the failure `publish.py` is built to prevent; the container is disposable, the record is not.
+# `store/` is the other half of the same idea — what makes a re-render possible without re-fetching (ADR 0003) —
+# and it stays in the repository because it is committed evidence rather than data. `var/` is where the wrapper's
+# log lands: without it a scheduled run is *completely silent*, because the wrapper redirects everything there.
+#
+# ⚠️ **One mount for the data root, not one per folder.** The host's shared root is mounted whole at `/data`, and
+# the container is told so with `MARKET_OVERVIEW_DATA=/data` (see the Dockerfile) — so the brief writes to the very
+# same folders the operator's own `mo build` writes to, with no container-only layout in between. `MARKET_OVERVIEW_DATA`
+# on the **host** overrides the source side for an operator who keeps their data somewhere else.
+#
+# `credentials/` holds the OAuth client secret and the refresh token. Never in the image; see the README.
 x-state: &state
   - ../store:/app/store
-  - ../output:/app/output
-  - ../resource:/app/resource
+  - ${MARKET_OVERVIEW_DATA:-${HOME}/.local/share/market-overview}:/data
   - ../var:/app/var
   - ../credentials:/credentials:ro
 
@@ -33,7 +38,7 @@ services:
   # ⚠️ The same image with a different command: **Debian's own cron**, running in the foreground inside this
   # container, so the scheduler needs no Docker socket, no privileges and no second image. `profiles` keeps it out of
   # the way unless it is asked for — and if you already have a cron or a systemd timer on the host, you do not need
-  # this service at all: point it at `docker compose run --rm brief` instead. See deploy/README.md.
+  # this service at all: point it at `docker compose run --rm brief` instead. See the README.
   scheduler:
     profiles: ["scheduled"]
     image: market-overview:latest

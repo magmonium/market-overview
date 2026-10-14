@@ -1,12 +1,19 @@
-# Generated media — never committed. A day's video is a build artefact, and
-# `store/` already carries everything needed to rebuild it.
+# ⚠️ **`output/` and `resource/` are no longer part of this repository** — the data root is outside it (ADR 0007),
+# namespaced `output/brief/` and `resource/brief/`, and nothing in here can reach it. This checkout's copies have
+# been moved out, so these two rules are **inert here**.
+#
+# ⚠️ **They stay anyway, and the reason is another checkout.** A second clone or a deploy box still has the old
+# folders until the one-time `mv` in `README.md` has been run there — and in that window a bare `git add -A` would
+# commit the operator's licensed mark, their music bed and their unpublished videos, which is precisely what this
+# file exists to stop. Two inert lines are cheaper than that. Delete them once every checkout has migrated.
+#
+# The `!…/README.md` negations are already gone: the resource contracts moved into `docs/`.
 output/*
-!output/.gitkeep
-
-# Operator-supplied licensed assets stay local. See resource/README.md —
-# the licence is the operator's, and committing a music bed publishes it.
 resource/*
-!resource/README.md
+
+# ⚠️ **And `store/` deliberately has none.** The per-date snapshot is the rebuild evidence: it is committed, so a
+# clone can re-render a day without re-fetching it. `store/` never was gitignored, and that is the difference
+# between the tool's evidence and its data.
 
 # Python
 __pycache__/

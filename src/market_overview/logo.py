@@ -199,7 +199,7 @@ def polarity(ink_hex: str | None, override: str | None = None) -> Polarity:
     ⚠️ **Defaults to `light` when the ink cannot be read**, which is the common case on this video: the frame
     is near-black throughout, so most marks drawn for it are drawn light. A raster's ink is genuinely
     unreadable without decoding it (and a wrong guess flips the chip and makes the mark *less* legible, not
-    more), so `MARKET_OVERVIEW_LOGO_INK` is the escape hatch — see `resource/README.md`.
+    more), so `MARKET_OVERVIEW_LOGO_INK` is the escape hatch — see the README's asset contract.
     """
     if override in (INK_LIGHT, INK_DARK):
         return override  # type: ignore[return-value]
@@ -228,7 +228,7 @@ def assert_outlined(svg: str, name: str) -> None:
     if _TEXT.search(_without_comments(svg)):
         raise LogoError(
             f"{name} contains <text>, so it depends on a font being installed. Outline the text to paths, "
-            f"or supply a 2x PNG instead (see resource/README.md). Refusing to render a mark that would "
+            f"or supply a 2x PNG instead (see the README's asset contract). Refusing to render a mark that would "
             f"differ on another machine."
         )
 

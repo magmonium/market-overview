@@ -1,4 +1,4 @@
-"""The package — `output/<date>/<lang>/`, assembled atomically. (0085_13)
+"""The package — `output/brief/<date>/<lang>/`, assembled atomically. (0085_13)
 
 **A package is one language's complete deliverable**, and it has to be handable to its own uploader without picking
 files out of a mixed folder. So the folder holds the video, the metadata text, the metadata JSON and the thumbnail,

@@ -1,7 +1,12 @@
-"""The per-date snapshot — `store/<date>/` (see CONTEXT.md).
+"""The per-date snapshot — `store/<date>/` (see the README's glossary).
 
 It holds the raw source responses and the facts bundle, which is what makes the rebuild
 promise real: a re-render reads this instead of fetching.
+
+⚠️ **This is the one of the tool's three folders that stays in the repository.** `output/` and `resource/`
+are data and live outside it, under `paths.data_root()`; this is *evidence*, it is committed, and `root()`
+below therefore means the repository — the folder holding `src/`, `node_modules` and `store/`. Reading it as
+"where the output goes" was already a stretch and is now wrong.
 
 Writes are atomic. A half-written bundle is worse than a missing one, because it looks
 complete.

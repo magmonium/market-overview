@@ -16,6 +16,7 @@ from market_overview import (
     logo,
     package,
     metadata as metadata_module,
+    paths,
     publish,
     render,
     store,
@@ -156,6 +157,10 @@ class Build(unittest.TestCase):
             stack.enter_context(contextlib.redirect_stderr(self.err))
             stack.enter_context(contextlib.redirect_stdout(self.out))
             stack.enter_context(mock.patch.object(store, "root", return_value=self.store))
+            # ⚠️ **And the data root separately.** `store/` stayed in the repository while `output/` and
+            # `resource/` moved to the shared data root, so one patch no longer redirects both: a run pointed at
+            # a temporary `store.root()` would still render into the operator's *real* `output/brief/`.
+            stack.enter_context(mock.patch.object(paths, "data_root", return_value=self.store))
             # ⚠️ Recorded, not merely stubbed: the point of the audio tests is *what each edition was handed*, and
             # a `return_value` mock throws that away.
             self.render_calls = []

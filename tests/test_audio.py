@@ -27,7 +27,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from market_overview import audio, logo, render, store
+from market_overview import audio, logo, paths, render, store
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -717,7 +717,9 @@ class TheRenderWiring(unittest.TestCase):
         self.store_dir = self.root / "store" / "2026-10-12"
         self.store_dir.mkdir(parents=True, exist_ok=True)
         (self.store_dir / "facts.json").write_text(json.dumps({"indexes": []}), encoding="utf-8")
-        self.target = self.root / "output" / "2026-10-12" / "bn" / "market-brief-2026-10-12-bn.mp4"
+        self.target = (
+            self.root / "output" / "brief" / "2026-10-12" / "bn" / "market-brief-2026-10-12-bn.mp4"
+        )
         self.target.parent.mkdir(parents=True, exist_ok=True)
         # A delivery that already exists, so "did this run destroy it?" is answerable.
         self.target.write_bytes(b"a previous, good delivery")
@@ -733,7 +735,13 @@ class TheRenderWiring(unittest.TestCase):
             return _StubProcess(returncode)
 
         with contextlib.ExitStack() as stack:
+            # ⚠️ **Two seams, and they are no longer the same one.** `store.root` still redirects the snapshot (the
+            # repo's committed evidence), while the day's output and the operator's assets now resolve through the
+            # shared data root — so patching only `store.root` would leave this test writing into the *real*
+            # `output/brief/` folder. The seam split when the data root moved out of the repository; a test that
+            # kept the old single patch would still pass while doing exactly that.
             stack.enter_context(mock.patch.object(store, "root", return_value=self.root))
+            stack.enter_context(mock.patch.object(paths, "data_root", return_value=self.root))
             stack.enter_context(mock.patch.object(logo, "load", return_value=None))
             stack.enter_context(mock.patch.object(render.subprocess, "Popen", side_effect=fake_popen))
             self.mux = stack.enter_context(mock.patch.object(audio, "mux"))

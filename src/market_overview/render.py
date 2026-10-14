@@ -17,7 +17,7 @@ import subprocess
 import sys
 import threading
 
-from . import audio, logo, store, timeline
+from . import audio, logo, paths, store, timeline
 
 ENTRY = "remotion/index.ts"
 COMPOSITION = "MarketBrief"
@@ -37,9 +37,6 @@ MAX_STILL_BYTES = 2 * 1024 * 1024
 #: How many trailing lines of a render's output are kept for the failure message. Bounded, because a run is
 #: thousands of progress lines and the reason is always at the end — an unbounded buffer would push it out.
 TAIL_LINES = 40
-
-#: Operator-supplied licensed assets — read, never written. See `resource/README.md`.
-RESOURCE = "resource"
 
 BROWSER_ENV = "MARKET_OVERVIEW_BROWSER"
 
@@ -225,13 +222,28 @@ def run_seconds(bundle: dict) -> float:
     return timeline.total_seconds(timeline.running_order(bundle))
 
 
+def resource_dir() -> pathlib.Path:
+    """The brief's licensed assets — `resource/brief/` under the shared data root.
+
+    ⚠️ **A function, not the `RESOURCE` constant it replaces.** The folder is no longer inside the repository,
+    so it is resolved through `paths` — the seam a test relocates. Everything that reads an asset goes through
+    here, which is what keeps the mark and the bed resolving to the *same* directory: honouring a constant in
+    one call site and not the other is exactly the bug `tests/test_copy.py` once caught in the bed.
+    """
+    return paths.brief_resource()
+
+
 def date_dir(date: str) -> pathlib.Path:
-    """The run's own directory, `output/<date>/` — one level above the language folders.
+    """The run's own directory, `output/brief/<date>/` — one level above the language folders.
 
     ⚠️ It is the run's, not an edition's: the derived bed lives here so that "both editions carry the same bed"
     holds by construction — there is one file, so there is nothing for the editions to disagree about.
+
+    ⚠️ And it is the **product's** as well as the run's: the brief's packages sit under `output/brief/`, beside
+    the reel's `output/reel/`, so two products can share one data root without sharing a filename space. That
+    is what makes a brief and a reel safe to render at the same time — see `paths`.
     """
-    return store.root() / "output" / date
+    return paths.brief_output() / date
 
 
 def out_dir(date: str, lang: str) -> pathlib.Path:
@@ -267,7 +279,7 @@ def render(
     bed: pathlib.Path | None | _Unprepared = UNPREPARED,
     timeout: float | None = None,
 ) -> pathlib.Path:
-    """Render one edition to `output/<date>/<lang>/`, music and all. Returns the video's path.
+    """Render one edition to `output/brief/<date>/<lang>/`, music and all. Returns the video's path.
 
     `bed` is the run's already-normalised music. ⚠️ **`UNPREPARED` (the default) is not `None`**: it means *work it
     out* — this call prepares its own bed, so a direct call still gets music when the operator has supplied some.
@@ -289,21 +301,21 @@ def render(
     bundle = json.loads(props.read_text(encoding="utf-8"))
 
     if isinstance(bed, _Unprepared):
-        # ⚠️ **`resource=` is threaded, and that is a fix rather than tidiness.** `RESOURCE` is the one constant
-        # that locates the operator's assets, and the mark below already honours it. Leaving this call to its own
-        # default meant the two assets could resolve to *different* directories — so patching `RESOURCE` (which
-        # `tests/test_copy.py` does, precisely so the suite does not depend on whether an asset has been dropped
-        # in) redirected the mark and not the bed. It stayed hidden only because no `music.*` existed to be found;
-        # the moment one did, that test's stubbed subprocess met an `ffprobe` instead of the render command.
+        # ⚠️ **`resource=` is threaded, and that is a fix rather than tidiness.** `resource_dir()` is what locates
+        # the operator's assets, and the mark below reads the same call. Passing it explicitly is what stops the
+        # two assets resolving to *different* directories — patching the one seam (which `tests/test_copy.py`
+        # does, precisely so the suite does not depend on whether an asset has been dropped in) redirects the bed
+        # and the mark together. It stayed hidden only because no `music.*` existed to be found; the moment one
+        # did, that test's stubbed subprocess met an `ffprobe` instead of the render command.
         prepared = audio.prepare(
-            target.parent.parent, run_seconds(bundle), root=root, resource=root / RESOURCE
+            target.parent.parent, run_seconds(bundle), root=root, resource=resource_dir()
         )
         bed = prepared[0] if prepared is not None else None
 
     # ⚠️ The mark is loaded **before** the render rather than during it. An unusable asset is a refusal, and a
     # refusal that arrives after a multi-minute render is a multi-minute wait to learn that nothing was ever
     # going to work. `logo.LogoError` propagates: the CLI reports it as a refusal, not as a crash.
-    mark = logo.load(root / RESOURCE)
+    mark = logo.load(resource_dir())
 
     # ⚠️ The language rides **beside** the bundle, never inside it. Both editions must read the
     # identical facts file, or they could disagree about a number — which is exactly the drift
@@ -314,7 +326,7 @@ def render(
     # editions — which is what keeps the bilingual pair honest at the branding layer (issue 21).
     wrapper = _write_props(target.parent, lang, bundle, mark)
 
-    # ⚠️ The render **always** goes to a dot-prefixed sibling, and `output/<date>/<lang>/market-brief-*.mp4` is only
+    # ⚠️ The render **always** goes to a dot-prefixed sibling, and `output/brief/<date>/<lang>/market-brief-*.mp4` is only
     # ever written at the end. Two reasons, and the second is why this is not conditional on there being a bed:
     #
     # 1. A crash mid-render cannot leave a silent video where the package file is expected — indistinguishable from
@@ -367,7 +379,7 @@ def render(
 
 
 def still(date: str, lang: str, *, timeout: float | None = None) -> pathlib.Path:
-    """Render one edition's thumbnail to `output/<date>/<lang>/`. Returns the image's path.
+    """Render one edition's thumbnail to `output/brief/<date>/<lang>/`. Returns the image's path.
 
     ⚠️ **`remotion still`, not a frame grabbed from the video** (issue 14). A grabbed frame is composed for motion —
     mid-move, possibly half-faded — and the class of arbitrary outcome the pipeline is built to avoid. The still is
@@ -388,7 +400,7 @@ def still(date: str, lang: str, *, timeout: float | None = None) -> pathlib.Path
     bundle = json.loads(props.read_text(encoding="utf-8"))
     # ⚠️ Loaded before the render, like the video's: an unusable mark is a refusal, and a refusal that arrives after
     # a render is a wait to learn that nothing was ever going to work.
-    mark = logo.load(root / RESOURCE)
+    mark = logo.load(resource_dir())
     wrapper = _write_props(target.parent, lang, bundle, mark, kind="still-")
 
     staging = target.with_name(f".still-{lang}.jpg")
