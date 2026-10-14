@@ -347,6 +347,95 @@ class TheRun(unittest.TestCase):
         self.assertEqual(order, ["thumbnail", "video", "package"])
 
 
+class ChoosingTheCharts(unittest.TestCase):
+    """⚠️ Ticket 13's partial delivery, one flag along — **a run may be asked for a single chart.**
+
+    ⚠️ **`--chart` narrows the *render* and never the *gather***: the bundle is the week's evidence and the replay path
+    (ADR 0003), so a run asked for one chart still snapshots the whole week. ⚠️ What these tests pin is the
+    **reporting** — an asked-for chart that is not in the bundle has to be said out loud, because the alternative is a
+    run that prints nothing, exits zero and produces no video, which reads as success.
+    """
+
+    def _build(self, only: tuple[str, ...]) -> tuple[int, list[str], str]:
+        """Run `build` against a one-chart snapshot, returning `(exit code, what rendered, what was said)`."""
+        rendered: list[str] = []
+        complaints = io.StringIO()
+
+        with temporary_store():
+            store.write_facts("2026-W41", snapshot())
+            with (
+                mock.patch.object(cli, "stage"),
+                mock.patch.object(cli, "package"),
+                mock.patch.object(
+                    cli, "_produce", side_effect=lambda chart, week, *, kind: rendered.append(chart.slug)
+                ),
+                contextlib.redirect_stderr(complaints),
+            ):
+                code = cli.build("2026-W41", only)
+
+        return code, rendered, complaints.getvalue()
+
+    def test_the_one_chart_the_week_built_is_the_one_that_renders(self):
+        """⚠️ The snapshot holds `bengali` alone, and asking for it renders it — the narrowed run is the ordinary case
+        now, not an edge one.
+        """
+        code, rendered, complaints = self._build(("bengali",))
+
+        self.assertEqual(code, 0)
+        self.assertEqual(rendered, ["bengali", "bengali"], "a thumbnail and then a video")
+        self.assertEqual(complaints, "")
+
+    def test_a_chart_the_week_could_not_build_is_said_rather_than_silently_skipped(self):
+        """⚠️ ⚠️ **The sentence this filter exists for.** Asking for a chart that is absent must not look like success —
+        and today it is the *ordinary* case, because `comics` and `all-language` depend on a source that cannot be
+        date-verified and are therefore absent every week.
+        """
+        code, rendered, complaints = self._build(("english",))
+
+        self.assertEqual(code, 1, "nothing rendered, so nothing succeeded")
+        self.assertEqual(rendered, [])
+        self.assertIn("english: not in this week's bundle", complaints)
+
+    def test_a_name_that_is_not_a_chart_says_which_ones_are(self):
+        """⚠️ A typo is answered with the list — not with a traceback, and not with silence."""
+        code, rendered, complaints = self._build(("hindi",))
+
+        self.assertEqual(code, 1)
+        self.assertEqual(rendered, [])
+        self.assertIn("not a chart", complaints)
+        self.assertIn("english", complaints)
+
+    def test_asking_for_two_charts_renders_the_one_the_week_has(self):
+        """⚠️ **Partial delivery**, and the run is still a success — because one of the two answered. The absent one is
+        still named, so *"did I ask for comics"* is answered on screen rather than by opening a folder.
+        """
+        code, rendered, complaints = self._build(("english", "bengali"))
+
+        self.assertEqual(code, 0)
+        self.assertEqual(rendered, ["bengali", "bengali"])
+        self.assertIn("english: not in this week's bundle", complaints)
+
+
+class TheCoversAChartNeeds(unittest.TestCase):
+    """⚠️ `_covered` reads the bundle, and a narrowed run should not stage a cover nobody is going to draw."""
+
+    def test_only_the_asked_for_charts_covers_are_staged(self):
+        bundle = snapshot()
+        widened = {
+            **bundle,
+            "charts": {
+                **bundle["charts"],
+                "english": {"ranked": [{"isbn": "9780000000002", "cover": "covers/x.jpg"}]},
+            },
+        }
+
+        # ⚠️ `bengali`'s own row records no cover, so asking for it stages nothing — which is the assertion that proves
+        # the filter reads the *asked-for* chart rather than merely the bundle.
+        self.assertEqual(cli._covered(widened, only=("bengali",)), [])
+        self.assertEqual(cli._covered(widened, only=("english",)), ["9780000000002"])
+        self.assertEqual(cli._covered(widened), ["9780000000002"], "no filter means every chart")
+
+
 class ProducingOneArtefact(unittest.TestCase):
     def test_the_render_goes_to_scratch_and_moves_into_place_only_once_it_exists(self):
         """⚠️ **Remotion's `--overwrite` unlinks its target before writing it.**

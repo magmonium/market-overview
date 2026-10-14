@@ -259,6 +259,13 @@ ALL: tuple[Chart, ...] = (
 )
 
 
+#: ⚠️ **The chart slugs, in declaration order** — for a caller that has to offer them or report them.
+#:
+#: ⚠️ **Derived, never spelled twice.** A menu that listed the charts itself would be a second place to keep them right,
+#: and a `--chart` flag that named one the table does not have would be a typo the run only discovers mid-gather.
+KNOWN: tuple[str, ...] = tuple(chart.slug for chart in ALL)
+
+
 def get(slug: str) -> Chart:
     """One chart by slug.
 

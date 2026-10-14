@@ -10,7 +10,7 @@ import sys
 import unittest
 from unittest import mock
 
-from books_brief import cli, menu
+from books_brief import charts, cli, menu
 
 
 class TheWeek(unittest.TestCase):
@@ -101,6 +101,124 @@ class TheWeek(unittest.TestCase):
 
         self.assertEqual(code, 0)
         self.assertEqual(seen, [["build", "--week", "2026-W41"]])
+
+
+class TheChart(unittest.TestCase):
+    """⚠️ **The second question** — and the two rules it has to keep to be worth adding.
+
+    ⚠️ **It is a convenience over `--chart`, never a capability of its own**: the number is the prompt and the slug is
+    what reaches the conductor. ⚠️ And **a week named as a flag is asked nothing** — that is the path a timer or a CI
+    job runs, and a second prompt on it would turn a command into a question no timer can answer.
+    """
+
+    def _run(
+        self, argv: list[str], *, answers: list[str] = (), tty: bool = True
+    ) -> tuple[int, list[list[str]]]:
+        """Run the menu with the prompts answered from `answers`, returning `(exit code, what was handed on)`.
+
+        ⚠️ **`_line` is the seam, not stdin.** The prompts are the only thing under test here, and patching them is both
+        simpler and stricter than feeding a fake terminal — ⚠️ with no answers left, a prompt this test did not expect
+        **raises** rather than quietly passing.
+        """
+        seen: list[list[str]] = []
+
+        with (
+            mock.patch.object(cli, "main", side_effect=lambda handed: seen.append(handed) or 0),
+            mock.patch.object(menu, "_line", side_effect=answers),
+            mock.patch.object(sys, "stdin", mock.Mock(isatty=lambda: tty)),
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            return menu.main(argv), seen
+
+    def test_a_numbered_answer_reaches_the_conductor_as_the_chart_flag(self):
+        """⚠️ **The number is the prompt and the slug is the answer.** The operator types `2`; what the conductor is
+        handed is `--chart english` — so the question is a front end for the flag, not a second vocabulary.
+
+        ⚠️ **The numbers follow `charts.ALL`'s own order** — `bengali` first, because that is the chart the product is
+        named after — which is why `2` is `english` and not `1`.
+        """
+        code, seen = self._run([], answers=["2026-W41", "2"])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [["build", "--week", "2026-W41", "--chart", "english"]])
+
+    def test_the_prompt_is_built_from_the_declaration_rather_than_a_copy_of_it(self):
+        """⚠️ **A menu that listed the charts itself would be a second place to keep them right**, and it would be wrong
+        the first time a chart was added or removed. ⚠️ Pinned as an equality, so adding a chart to `charts.ALL` cannot
+        leave this prompt behind.
+        """
+        self.assertEqual(menu.CHARTS, charts.KNOWN)
+        self.assertEqual(menu._offered(), "1 bengali, 2 english, 3 all-language, 4 comics")
+
+    def test_a_name_is_accepted_as_well_as_a_number(self):
+        """⚠️ The prompt shows numbers and the flag takes names, so an operator will type either — refusing one of them
+        would be the front end inventing a rule the tool does not have.
+        """
+        code, seen = self._run([], answers=["2026-W41", "comics"])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [["build", "--week", "2026-W41", "--chart", "comics"]])
+
+    def test_several_are_accepted_because_the_flag_is_repeatable(self):
+        """⚠️ **A prompt narrower than its flag is a limit the front end invented.** `--chart` may be given more than
+        once, so the question may be answered with more than one — ⚠️ and the answer comes back in `charts.ALL` order,
+        so `4,2` and `2,4` ask for the same run rather than two orders of the same one.
+        """
+        code, seen = self._run([], answers=["2026-W41", "4,2"])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [["build", "--week", "2026-W41", "--chart", "english", "--chart", "comics"]])
+
+    def test_the_same_two_charts_typed_the_other_way_round_ask_for_the_same_run(self):
+        """⚠️ **The determinism rule, one layer up.** The flags reach the conductor in declaration order whatever order
+        the numbers were typed, so a re-typed answer cannot produce a different run.
+        """
+        _, forwards = self._run([], answers=["2026-W41", "2,4"])
+        _, backwards = self._run([], answers=["2026-W41", "4,2"])
+
+        self.assertEqual(forwards, backwards)
+
+    def test_blank_means_every_chart_and_is_said_with_no_flags_at_all(self):
+        """⚠️ **The quiet default.** *Every chart the week could build* is exactly what an absent `--chart` means, so
+        saying it with four flags would turn a default into three warnings about charts nobody asked for.
+        """
+        code, seen = self._run([], answers=["2026-W41", ""])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [["build", "--week", "2026-W41"]])
+
+    def test_a_chart_that_is_not_a_chart_is_refused_before_the_conductor_is_asked(self):
+        """⚠️ The week's own rule, one question along: a typo is the operator's to fix **before** a run starts, not
+        after — because by then the question has been answered and the render may already be committed to.
+        """
+        for wrong in ("7", "hindi", "0", "english-ish"):
+            with self.subTest(answer=wrong):
+                code, seen = self._run([], answers=["2026-W41", wrong])
+
+                self.assertEqual(code, 1)
+                self.assertEqual(seen, [], "the conductor must not have been reached")
+
+    def test_a_week_named_as_a_flag_asks_nothing_at_all(self):
+        """⚠️ ⚠️ **The rule that keeps the menu safe to extend.**
+
+        `./build books --week 2026-W41` is the scriptable path — a timer or a CI job runs exactly that — so it must not
+        acquire a second question. ⚠️ The chart question belongs to the **interactive** run: the one where the week was
+        not supplied either. ⚠️ Asserted by giving `_line` no answers at all, so a prompt here would raise.
+        """
+        code, seen = self._run(["--week", "2026-W41"], answers=[])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [["build", "--week", "2026-W41"]])
+
+    def test_a_chart_named_as_a_flag_is_handed_on_and_not_asked_again(self):
+        """⚠️ *"Asks for whatever a flag did not supply"* — so a chart given as a flag passes through, and only the week
+        is asked for.
+        """
+        code, seen = self._run(["--chart", "english"], answers=["2026-W41"])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [["build", "--week", "2026-W41", "--chart", "english"]])
 
 
 if __name__ == "__main__":

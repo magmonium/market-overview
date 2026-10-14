@@ -9,7 +9,7 @@ import argparse
 import datetime as _datetime
 import sys
 
-from . import audio, facts, logo, package, publish, render, session, store, universe
+from . import audio, env, facts, logo, package, publish, render, session, store, universe
 from .fetch import bse, tradingview
 
 # The primary edition renders first, so it is never hostage to the secondary.
@@ -318,6 +318,11 @@ def _publish(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # ⚠️ **Read before the parser, because a flag cannot come from a file.** `<repo>/.env` fills in only the variables
+    # the environment does not already set — so an exported value still wins, and a checkout with no `.env` does
+    # nothing here at all. See `env` for why this is a courtesy rather than a config system.
+    env.load()
+
     parser = argparse.ArgumentParser(
         prog="market-overview",
         description="Builds the daily Market Brief from live market data.",

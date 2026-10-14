@@ -20,7 +20,7 @@ import dataclasses
 import pathlib
 import sys
 
-from market_overview import logo
+from market_overview import env, logo
 
 from . import caption, catalogue, library, master, package, paths, plan, record, render, seo, sound, stage
 
@@ -640,6 +640,11 @@ def _names(songs: list[library.Song]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     """Parse the command line and run one command. Returns the process exit status."""
+    # ⚠️ **The repository's `.env`, read once, and only where nothing is already set** (see `market_overview.env`).
+    # The reel reads no credential today; this is here so that the shared file means one thing to every product
+    # rather than being a books-brief habit that happens to live at the repository's root.
+    env.load()
+
     parser = argparse.ArgumentParser(prog="sv", description="Builds the Song Reel.")
     commands = parser.add_subparsers(dest="command", required=True)
 

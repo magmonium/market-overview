@@ -15,8 +15,8 @@
  * cannot fail on a decode.
  */
 import {AbsoluteFill, Img, staticFile} from 'remotion';
-import {Typeface} from '../../remotion/fonts.ts';
-import {FONT} from '../../remotion/theme.ts';
+import {Typeface} from '../../../remotion/fonts.ts';
+import {FONT} from '../../../remotion/theme.ts';
 import {accentFor} from './accent.ts';
 import {Backdrop} from './Backdrop.tsx';
 import {Disc, Notes} from './Motif.tsx';

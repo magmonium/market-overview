@@ -1,29 +1,31 @@
 # market-overview — the repository
 
-⚠️ **Two products are built from here, from one `src/`, sharing one data root and one render toolchain.** This is
-the repository's README and it documents both. [Install](#install), [Configuration](#configuration) and
+⚠️ **Three products are built from here, from one `src/`, sharing one data root and one render toolchain.** This is
+the repository's README and it documents all three. [Install](#install), [Configuration](#configuration) and
 [Running](#running) cover each of them; everything after those is reference.
 
 | Product | Tool | Source | What it makes |
 |---|---|---|---|
 | the **Market Brief** | `market-overview` — `mo` | `src/market_overview/` | one day's silent, music-backed, ≤3 min, 16:9 video about the Indian market, in Bengali and English |
 | the **Song Reel** | `song-video` — `sv` | `src/song-video/` | one supplied song as a full-length 16:9 music video and its thumbnail, in one or more themes |
+| the **Books Brief** | `books-brief` — `bb` | `src/books-brief/` | four weekly Top-100 book charts — Bengali, English, Indian all-language and Comics — each a ~2 min 49 s 16:9 video with its SEO metadata and its cover-collage thumbnail |
 
-⚠️ **`./build` is the front door** — one command over both. It asks which product, then what that product needs, and
-hands the answers to `mo` or `sv` as flags, so neither product's own CLI changes: see [Running](#running).
+⚠️ **`./build` is the front door** — one command over all three. It asks which product, then what that product needs,
+and hands the answers to `mo`, `sv` or `bb` as flags, so no product's own CLI changes: see [Running](#running).
 
-⚠️ **The data lives outside the repository.** Both products' assets and packages share one root —
-`~/.local/share/market-overview` by default — namespaced per product, so a brief and a reel can render at the same
-time without a lock: see [Configuration](#configuration).
+⚠️ **The data lives outside the repository.** Every product's assets and packages share one root —
+`~/.local/share/market-overview` by default — namespaced per product, so a brief, a reel and a books run can render at
+the same time without a lock: see [Configuration](#configuration).
 
 ## Where everything is
 
-⚠️ **This is the repository's only README, and it is the whole document.** How to run both products, where their
+⚠️ **This is the repository's only README, and it is the whole document.** How to run all three products, where their
 data lives, what their assets are, what every term means, and how to put the brief on a server — all of it is
 below, in this file.
 
-The only other documents are the **decision records**: `docs/adr/` (the brief's seven) and
-`src/song-video/docs/adr/` (the reel's six). They are kept separate deliberately — they record *why* a choice was
+The only other documents are the **decision records**: `docs/adr/` (the brief's seven),
+`src/song-video/docs/adr/` (the reel's six) and `src/books-brief/docs/adr/` (the Books Brief's six). They are kept
+separate deliberately — they record *why* a choice was
 made and *when*, they are cited by name from the code (`docs/adr/0006`, `ADR 0003`, `publish.py`), and interleaving
 them with instructions would make both harder to read.
 
@@ -33,10 +35,10 @@ them with instructions would make both harder to read.
 
 | | Why |
 |---|---|
-| **Python ≥ 3.14** and [`uv`](https://docs.astral.sh/uv/) | both products are uv projects |
+| **Python ≥ 3.14** and [`uv`](https://docs.astral.sh/uv/) | every product is a uv project |
 | **Node ≥ 24** | the render layer — installed once, used by both |
 | **Chrome or Chromium** | ⚠️ Remotion's bundled `chrome-headless-shell` cannot be relied on — it aborts at "Getting composition" on some machines — so `render.py` searches for a real browser first |
-| **No system `ffmpeg`** | Remotion ships its own, and both products use it — see below |
+| **No system `ffmpeg`** | Remotion ships its own, and every product uses it — see below |
 | **No fonts, no GPU** | the typeface is vendored, and nothing needs a display |
 
 ✅ **No system `ffmpeg` is required, and that question is settled.** Remotion ships its own build in
@@ -70,11 +72,23 @@ uv sync                      # its own environment; the brief arrives as an edit
 ⚠️ **It installs no second runtime and no second `ffmpeg`** — the reel renders with the brief's `node_modules` and
 finds the toolchain through the brief's `audio` module, so those two `uv sync`s are the whole install.
 
+### The Books Brief
+
+```bash
+cd src/books-brief
+uv sync                      # its own environment; the brief arrives as an editable path dependency
+```
+
+⚠️ **The same trade as the reel's** — no second runtime and no second `ffmpeg`: the four charts render through the
+brief's `node_modules` and find the toolchain through its `audio` module. ⚠️ And its own `store/` is **committed**,
+because it is the evidence a week is rebuilt from *and* the input the six-month ranking window is accumulated from:
+see [its ADR 0006](src/books-brief/docs/adr/0006-nothing-is-pruned.md).
+
 ## Configuration
 
 ### Common — one data root, one variable
 
-Both products read their assets and write their packages into **one root outside the repository**, namespaced per
+Every product reads its assets and write their packages into **one root outside the repository**, namespaced per
 product so a brief and a reel can render at the same time:
 
 | | |
@@ -119,7 +133,7 @@ and `sv` remain the scriptable path, unchanged.
 ### Both — `./build`
 
 ⚠️ **`./build` is the front door** — one command over *both* products, which asks which one and then what it
-needs, and hands the answers to the tool that owns them (ADR 0007's two products, `src/song-video/song_video/menu.py`):
+needs, and hands the answers to the tool that owns them (ADR 0007's products, `src/books-brief/` and `src/song-video/song_video/menu.py`):
 
 ```bash
 ./build                    # ask: project → language → that product's own questions
@@ -318,6 +332,83 @@ Or through the front door, from the repository root:
 ⚠️ **A recorded song replays rather than re-asks**, and a master whose `sha256` has changed is **refused** — the
 recorded title, themes and wave form describe the take that was approved. To answer again, remove
 `store/<song>/run.json`.
+
+### The Books Brief — `bb`
+
+⚠️ **Its own tool, its own environment, one command by hand** — a weekly run rather than a schedule
+([its ADR 0002](src/books-brief/docs/adr/0002-a-python-cli-conducts-the-run.md)).
+
+```bash
+cd src/books-brief
+uv run bb build --week 2026-W41       # fetch, corroborate, rank, snapshot, render — whatever could be built
+uv run bb publish --week 2026-W41 --dry-run   # read the packages and report, contacting nothing
+uv run bb publish --week 2026-W41             # one video per chart, private
+```
+
+Or through the front door, from the repository root: `./build books --week 2026-W41`.
+
+⚠️ **A recorded week replays rather than re-fetches.** With `store/2026-W41/facts.json` present the run reads it and
+touches no vendor — which is what makes a past week rebuildable and a re-render identical.
+
+⚠️ **A chart whose vendors did not answer is simply absent**, and a week where *every* chart is absent **refuses and
+writes nothing** — because a snapshot *is* the replay path, so a week written empty would be read back later as a real
+week containing no charts.
+
+⚠️ **A stale source is a missing source.** Every list must be dated inside the week being built — the week's **Monday
+through the Wednesday after it**, because a Sun–Sat sales week closes on Sunday and the lists compiled from it land
+Monday to Wednesday. A list dated before that is dropped **and its vendor counts as not having answered**, so the chart
+goes **absent** rather than quietly shipping last week's ranking. ⚠️ Without this a stale scrape is invisible: the chart
+looks complete, and the week-over-week Δ reports **zero movement** — which reads as *nothing happened* rather than
+*nothing was fetched*.
+
+⚠️ **An undated list is stale, not fresh.** The guard exists to **verify** that a source published for the week being
+built, not to assume that a response which arrived is a response about this week; a default of *"no date, so nothing to
+check, so let it through"* would switch the guard off for exactly the source that broke, silently, on the day it broke.
+
+⚠️ **Two labels ride on every row, and they are declared per *list* rather than per chart.** Each row carries its
+**country** and its **language** as ISO codes — `in`, `bd`, `bn`, `hi` — taken from the list the title ranked on. ⚠️ They
+cannot be chart-level fields: the Bengali chart spans **India and Bangladesh**, and the all-language chart is nine
+Amazon.in lists in **one country and nine languages**. The words are the renderer's, so *India* becomes *ভারত* without
+re-running a week.
+
+⚠️ **A label draws only where it varies.** A label that says the same thing on all 100 rows is not information — the
+header already names the chart — so a constant (or absent) label's slot simply does not render. ⚠️ That is why the
+**English chart shows neither label** (all three of its vendors are US lists) and why the **Bengali chart shows only the
+country**: ticket 20's rule, not a gap.
+
+⚠️ **Publishing is `bb publish`, one video per chart, `private` by default** (ticket 24). It reads each chart's
+`metadata-<chart>.json` — so the upload cannot disagree with the video — and it is **idempotent**: a re-run of the same
+bundle posts nothing, and a **rebuilt** week refuses rather than putting a second, different chart under one title.
+
+⚠️ **The credentials are the brief's, and there is no `bb publish --authorise`.** The token and the scope
+(`youtube.upload`) live under `~/.config/market-overview/` for both products, so `mo publish --authorise` already grants
+everything this can do — one authorisation, one expiry, one place to re-authorise. `bb publish --check` verifies it
+without uploading anything.
+
+⚠️ **Where the sources actually stand — and it is not *"five parsers pending"*.**
+
+The *code* for every source is written: **four clients** — `nyt`, `amazon`, `indie`, `rokomari` — each with a parser, a
+fetch and a committed **verbatim** fixture, on the contract **fetch → snapshot → parse** (the brief's own `_degrade`
+shape, so every response lands in `store/<week>/raw/` before anything reads it). ⚠️ **What is missing is addresses,
+dates and declarations** — and for one chart, a source that exists at all.
+
+| Chart | Declared vendors | What is actually reachable |
+|---|---|---|
+| **English** | NYT · PW · Indie | ✅ **NYT** and **Indie** are both implemented and tested. ⚠️ **PW is paywalled** — its free pages are a 2012 archive |
+| **Bengali** | Anandabazar · Amazon.in · Rokomari | ✅ **Rokomari** is implemented — ⚠️ but **undated**, so the guard refuses it as stale. ⚠️ Amazon.in **publishes no Bengali list**. ⚠️ Anandabazar unlocated |
+| **All-language** | Amazon.in × 9 | ⚠️ **The nine lists do not exist.** Amazon publishes **one** mixed-language ranking at `…/books/86946561031/` |
+| **Comics** | NYT · Amazon.in | ✅ **Both halves located** — NYT complete, and `…/books/1318104031/` parses |
+
+⚠️ **Every one of these fails safe rather than wrong.** A vendor that produces no usable rows is a **missing source**, and
+a chart missing a source is **absent** (ticket 18) — so a week built today ships the charts it can prove and refuses the
+rest, rather than ranking an unordered search page, a paywalled archive or a list of unknown vintage. ⚠️ That check
+needed no new code: the freshness guard, written for a *stale* list, catches *"this vendor has no list"*, *"this vendor's
+list is behind a paywall"* and *"this vendor's list has no date"* for the same reason — none of them can be **verified**.
+
+⚠️ **The Bengali chart is the one to decide about.** Ticket 17 requires **two vendors** before any title is admitted, and
+its three declared vendors are one undated list, one that does not exist, and one unlocated. That is the same shape as
+ticket 19's finding about India-market English — which was answered by **changing the chart** — and it deserves the same
+treatment rather than a workaround.
 
 ### On a schedule
 
@@ -675,32 +766,39 @@ because YouTube has no replace and two videos under one title is worse than none
 
 ## Layout
 
-⚠️ **The repository holds code and evidence. The data lives outside it** — both products' assets and packages, in
+⚠️ **The repository holds code and evidence. The data lives outside it** — every product's assets and packages, in
 one shared root, namespaced so neither can write the other's files. See
 [ADR 0007](docs/adr/0007-the-data-lives-outside-the-repository.md).
 
 ```
 store/      per-date snapshots: raw source responses + facts.json — **committed**, the rebuild evidence
-src/        the Python package — `market_overview` — and, inside it, the **Song Reel's** own project:
-            `src/song-video/` is a separate tool and product, a nested uv project of its own,
-            never in the brief's image (see `.dockerignore`)
+src/        the Python package — `market_overview` — and, inside it, two nested projects, each a separate
+            tool and product with its own environment: `src/song-video/` (the **Song Reel**) and
+            `src/books-brief/` (the **Books Brief**), neither in the brief's image (see `.dockerignore`)
 remotion/   the render layer (React/TS), and the vendored typeface in remotion/fonts/
 deploy/     the systemd units and the wrapper that run it daily
-docs/adr/   the thirteen decision records — the brief's seven and the reel's six
+docs/adr/   the nineteen decision records — the brief's seven, the reel's six and the Books Brief's six
 tests/      tests
 ```
 
-The **data root** defaults to `~/.local/share/market-overview`; `MARKET_OVERVIEW_DATA` overrides it. A brief and a
-reel may render at the same time, because each writes only its own namespace:
+The **data root** defaults to `~/.local/share/market-overview`; `MARKET_OVERVIEW_DATA` overrides it. A brief, a reel
+and a books run may all render at the same time, because each writes only its own namespace:
 
 ```
 $MARKET_OVERVIEW_DATA/resource/brief/logo.*         the mark — read, never written
 $MARKET_OVERVIEW_DATA/resource/brief/music.*        the bed — read, normalised into the run, never written
 $MARKET_OVERVIEW_DATA/resource/reel/song/*          the reel's masters, beside the brief's assets
+$MARKET_OVERVIEW_DATA/resource/books/covers/*.jpg   the Books Brief's cover cache — **keyed by ISBN**, so one
+                                                    fetch serves every chart and every week it appears in
 $MARKET_OVERVIEW_DATA/output/brief/<date>/<lang>/   the deliverable, four files and nothing else:
                                                     market-brief-<date>-<lang>.mp4 · metadata-<lang>.txt ·
                                                     metadata-<lang>.json · thumbnail-<date>-<lang>.jpg
 $MARKET_OVERVIEW_DATA/output/reel/<song>/<theme>/   the reel's packages, beside the brief's
+$MARKET_OVERVIEW_DATA/output/books/<week>/<chart>/  the Books Brief's packages — **one per chart**, four files:
+                                                    <chart>-<week>.mp4 · metadata-<chart>.txt ·
+                                                    metadata-<chart>.json · thumbnail-<week>-<chart>.jpg
+                                                    ⚠️ the two that leave the folder name the week **and** the chart;
+                                                    the two that stay name the chart, and the week is the folder
 ```
 
 A run writes its **snapshot into the repository**, and that is the one part of the layout that is not data:
@@ -895,12 +993,13 @@ Adding either later changes nothing else about the output.
 The day the music lands, the run starts printing what it did — `music: music.wav → .bed.wav (-14 LUFS, 175s,
 fade 1.5/4s)` — because a bed at the wrong level is the one defect that is invisible in a still and in a diff.
 
-### Two products, two asset folders — and one mark between them
+### Three products, three asset folders — and one mark between them
 
-⚠️ **The reel's songs are not these.** The nested `src/song-video/` product keeps its masters in
-`resource/reel/song/` **beside this folder** under the same shared data root. Two folders, two products, two
-licence decisions — and one mark: the reel draws the `logo.*` from *this* folder, through the brief's own loader,
-so there is one licensed file to replace rather than two that can disagree.
+⚠️ **The other two products' assets are not these.** The nested `src/song-video/` product keeps its masters in
+`resource/reel/song/`, and the nested `src/books-brief/` product caches its covers in `resource/books/covers/` — both
+**beside this folder** under the same shared data root. Three folders, three products, three licence decisions — and
+**one mark**: the reel and the charts both draw the `logo.*` from *this* folder, through the brief's own loader, so
+there is one licensed file to replace rather than three that can disagree.
 
 ### Rules
 
@@ -923,7 +1022,7 @@ longer in the repository: the songs moved to the shared data root outside it (se
 
 Only the **songs** live here. ⚠️ The **mark does not**: the logo is the brief's own operator asset, at
 `resource/brief/logo.*` under the same data root — read through the brief's own loader, so one licensed file
-serves both products and there is one place to change it.
+serves every product and there is one place to change it.
 
 Nothing here is committed — committing a master song publishes it.
 
@@ -1003,7 +1102,7 @@ predefined set of visual themes, driven entirely by the song's own **amplitude e
 ### Where this lives, and what it reuses
 
 ⚠️ **A nested sub-project of `market-overview`, not a sibling repository** — reversed from the original
-design by decision, so both products live in one repository. This folder is its **own uv project** with its
+design by decision, so the products live in one repository. This folder is its **own uv project** with its
 own `store/` and `public/`; its **assets and packages moved out of the repository** to the shared data root
 (`~/.local/share/market-overview`, or `MARKET_OVERVIEW_DATA`), under a `reel/` namespace beside the brief's
 `brief/`. See [ADR 0007](docs/adr/0007-the-data-lives-outside-the-repository.md).
@@ -1079,7 +1178,7 @@ thumbnail is composed from the mark, the title and the **caption**: the word *mu
 `সংগীত · ৩:০২`, written in the script the title is typed in.
 
 ⚠️ **The mark is not here.** The logo is the brief's own operator asset at `resource/brief/logo.*` under the same
-shared data root, read through the brief's loader, so one licensed file serves both products.
+shared data root, read through the brief's loader, so one licensed file serves every product.
 
 ⚠️ **This folder is read, never written, and never committed** — committing a master publishes it, and by dropping a
 file in you declare it licensed for this product including publication. The full contract, including the
@@ -1549,13 +1648,13 @@ rebuilt.
 
 ### Where it lives
 
-**data root** — the folder **outside the repository** holding both products' assets and packages:
+**data root** — the folder **outside the repository** holding every product's assets and packages:
 `~/.local/share/market-overview` unless `MARKET_OVERVIEW_DATA` says otherwise. ⚠️ The **snapshot** is deliberately
 not in it, and neither is the reel's recorded run: the data root is *data*, a snapshot is *evidence*, and only the
 evidence is committed.
 
 **namespace** — one product's half of the data root: the brief's is `brief`. It is what makes the root shareable —
-two products cannot write the same file, so nothing needs a lock to keep them apart.
+no two products can write the same file, so nothing needs a lock to keep them apart.
 
 ### The sources
 

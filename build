@@ -1,30 +1,71 @@
 #!/usr/bin/env bash
 #
-# build — the front door: one menu over both products.
+# build — the front door: one menu over three products.
 #
 #   ./build                        # ask which product, then ask what it needs
 #   ./build brief --lang bn en     # the daily pair, asks nothing
 #   ./build reel --song dure-kothay --title "…" --theme vinyl --wave ribbon
+#   ./build books --week 2026-W41  # one week's four Top-100 charts, asks nothing
 #
-# ⚠️ **Why this is a script rather than a console script.** The menu has to import *both* packages, and only the
-# reel's environment can: `song-video` depends on `market-overview`, never the reverse. So this runs the menu
-# module through that project — `--project` picks the environment, and the working directory stays wherever the
-# operator typed `./build` from. See `src/song-video/src/song_video/menu.py`.
+# ⚠️ **Why this dispatches an *environment* rather than running one menu.**
 #
-# ⚠️ **A front end, not a replacement.** `mo build`, `mo publish` and `sv build` are unchanged and stay the
+# The menu has to import the packages it drives, and the dependency runs one way only: `song-video → market-overview`
+# and `books-brief → market-overview`. ⚠️ **No sibling depends on another**, so *no single environment can import all
+# three* — and that is the boundary that keeps a third product from becoming a fourth package inside the second, which
+# is exactly what the brief's own `paths.py` refuses.
+#
+# So the product is chosen **here** and the environment follows it:
+#
+#   brief · reel → `song_video.menu`   the reel's environment — the only one holding both
+#   books        → `books_brief.menu`  the books environment — the reel's cannot import it
+#
+# ⚠️ **A front end, not a replacement.** `mo build`, `mo publish`, `sv build` and `bb build` are unchanged and stay the
 # scriptable path — `deploy/daily-brief.sh` runs `mo build --lang bn en` on a timer, and `sv build --replay` is the
-# rebuild contract. Nothing here is reachable *only* through the menu.
+# rebuild contract. Nothing here is reachable *only* through the menu, and **no option exists in a menu that a flag
+# cannot express**.
 #
-# ⚠️ **Publishing is deliberately not in this menu.** The upload is the one step that cannot be tidied up
-# afterwards, and it is already guarded by its own idempotency record and privacy default; a menu that offered it
-# beside "build" would put the irreversible act one keystroke from the reversible one.
+# ⚠️ **Publishing is deliberately not in any menu.** The upload is the one step that cannot be tidied up afterwards, and
+# it is already guarded by its own idempotency record and privacy default; a menu that offered it beside "build" would
+# put the irreversible act one keystroke from the reversible one.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ⚠️ Unset, so `uv` does not warn on every run. Whichever environment the shell happens to have active — the
-# brief's, typically, because that is where `mo` lives — is *not* the one this needs, and `uv` says so in a warning
-# that reads like a misconfiguration. `--project` below is the choice; this just stops the announcement.
+# ⚠️ Unset, so `uv` does not warn on every run. Whichever environment the shell happens to have active — the brief's,
+# typically, because that is where `mo` lives — is *not* the one this needs, and `uv` says so in a warning that reads
+# like a misconfiguration. `--project` below is the choice; this just stops the announcement.
 unset VIRTUAL_ENV
 
-exec uv run --project "$ROOT/src/song-video" python -m song_video.menu "$@"
+# ⚠️ **The product question, when it was not answered on the command line.** `select` is bash's own numbered menu: it
+# prints the list to **stderr** and answers with a number, which is the convention both Python menus keep — so the front
+# door looks the same whichever layer asks.
+if [ "$#" -eq 0 ]; then
+  select product in brief reel books; do
+    case "$product" in
+      brief | reel | books)
+        set -- "$product"
+        break
+        ;;
+      *)
+        echo "  choose 1, 2 or 3" >&2
+        ;;
+    esac
+  done
+fi
+
+product="$1"
+shift
+
+case "$product" in
+  brief | reel)
+    exec uv run --project "$ROOT/src/song-video" python -m song_video.menu "$product" "$@"
+    ;;
+  books)
+    exec uv run --project "$ROOT/src/books-brief" python -m books_brief.menu "$@"
+    ;;
+  *)
+    echo "build: unknown product '$product' — the choices are brief, reel and books" >&2
+    exit 2
+    ;;
+esac
+

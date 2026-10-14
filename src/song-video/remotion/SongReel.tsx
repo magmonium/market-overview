@@ -29,8 +29,8 @@
 import {useMemo} from 'react';
 import {useAudioData} from '@remotion/media-utils';
 import {AbsoluteFill, Audio, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {Typeface} from '../../remotion/fonts.ts';
-import {FONT} from '../../remotion/theme.ts';
+import {Typeface} from '../../../remotion/fonts.ts';
+import {FONT} from '../../../remotion/theme.ts';
 import {accentFor} from './accent.ts';
 import {Backdrop} from './Backdrop.tsx';
 import {clockFor} from './clock.ts';

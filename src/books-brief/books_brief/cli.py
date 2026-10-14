@@ -32,6 +32,7 @@ from . import (
     window,
 )
 from .fetch import amazon, google_books, indie, nyt
+from market_overview import env
 
 #: ⚠️ The source clients, by vendor slug. **Adding a client is one entry here and nothing else** — which is the point
 #: of a registry: `gather` stays ignorant of which vendors exist, and a vendor it has no client for simply does not
@@ -357,17 +358,23 @@ def gather(week: str) -> dict:
     )
 
 
-def _covered(bundle: dict) -> list[str]:
-    """Every ISBN whose row records a cover — **across all four charts at once.**
+def _covered(bundle: dict, only: tuple[str, ...] | None = None) -> list[str]:
+    """Every ISBN whose row records a cover — **across the charts that are about to draw.**
 
     ⚠️ **One call, not one per chart.** The superset repeats titles (ticket 14), so staging per chart would copy the
     same file up to four times — and the cache is keyed by ISBN precisely so that one copy serves every chart.
+
+    ⚠️ `only` narrows it to the charts a run was *asked* for; `None` means every chart in the bundle. A cover copied
+    for a chart nobody is going to render is a slower run and nothing else.
     """
+    charts_in_bundle = bundle.get("charts", {})
+    slugs = sorted(charts_in_bundle) if only is None else [slug for slug in only if slug in charts_in_bundle]
+
     return sorted(
         {
             row["isbn"]
-            for chart in bundle.get("charts", {}).values()
-            for row in chart.get("ranked", [])
+            for slug in slugs
+            for row in charts_in_bundle[slug].get("ranked", [])
             if row.get("cover") is not None
         }
     )
@@ -408,11 +415,16 @@ def _produce(chart: charts.Chart, week: str, *, kind: str) -> pathlib.Path:
     return target
 
 
-def build(week: str) -> int:
+def build(week: str, only: tuple[str, ...] = ()) -> int:
     """Build one week's charts — or **replay** the snapshot when the week is already recorded.
 
     ⚠️ **The order is the run.** Thumbnails before videos (ticket 16's quality gate), and the package last — because the
     metadata describes artefacts that have to exist, and the manifest is what says the folder is finished.
+
+    ⚠️ ⚠️ **`only` narrows the *render*, never the *gather*.** The bundle is the week's evidence and the replay path
+    (ADR 0003), so a run asked for one chart still fetches, corroborates and snapshots the **whole** week — a partial
+    snapshot would leave a later re-render of a different chart with nothing to replay. ⚠️ What the filter buys is the
+    expensive half, which is the render.
     """
     snapshot = store.dir_for(week) / store.FACTS
 
@@ -427,8 +439,28 @@ def build(week: str) -> int:
             return 1
         store.write_facts(week, bundle)
 
+    built = {slug: charts.get(slug) for slug in sorted(bundle["charts"])}
+
+    # ⚠️ ⚠️ **A chart that was asked for and is not in the bundle is said out loud.** The alternative is a run that
+    # prints nothing, exits zero and produces no video — which reads as success. ⚠️ And it is the *ordinary* case
+    # today: `comics` and `all-language` depend on a source that cannot be date-verified, so they are absent every week,
+    # and an operator who asked for one of them is owed that sentence rather than a folder to go and check.
+    wanted = list(built)
+    if only:
+        asked = list(dict.fromkeys(only))
+        for slug in asked:
+            if slug in built:
+                continue
+            print(
+                f"{slug}: not in this week's bundle — it could not be built"
+                if slug in charts.KNOWN
+                else f"{slug}: not a chart — the charts are {', '.join(charts.KNOWN)}",
+                file=sys.stderr,
+            )
+        wanted = [slug for slug in asked if slug in built]
+
     # ⚠️ **Staged once, before any render.** A composition can only fetch from the render project's `public/`, and one
-    # staged bundle serves all four renders (ticket 13) — the chart id is the only thing that varies. Staging inside the
+    # staged bundle serves every render (ticket 13) — the chart id is the only thing that varies. Staging inside the
     # loop would copy the same bytes four times, and worse, would let the first render succeed against a file a later
     # iteration had not written yet.
     stage.snapshot(week, paths.public_dir())
@@ -437,22 +469,29 @@ def build(week: str) -> int:
     # `null` — because a fetch that 404s is a failed render, not a chart without branding.
     stage.mark(paths.public_dir())
     # ⚠️ Read off the **snapshot**, not off a live object: a replay reaches here with nothing but the committed facts,
-    # and staging has to work identically on that path.
-    stage.covers(_covered(bundle), paths.public_dir())
+    # and staging has to work identically on that path. ⚠️ Staged for the charts that are about to draw — a cover copied
+    # for a chart nobody asked for is a slower run and nothing else.
+    stage.covers(_covered(bundle, only=wanted), paths.public_dir())
 
-    wanted = [charts.get(slug) for slug in sorted(bundle["charts"])]
+    rendering = [built[slug] for slug in wanted]
+
+    if not rendering:
+        # ⚠️ **Non-zero when nothing is going to be rendered.** The week may well be snapshotted by now, but the operator
+        # asked for a video and there is none — and a run that exits zero having produced nothing is the silence ticket
+        # 10 refuses.
+        return 1
 
     # ⚠️ **Every thumbnail before any video.** Four one-frame stills cost seconds, so a chart whose collage reads badly
     # is seen and killed before an hour of frames is spent on it — the reel's own ordering, and its reason.
-    for chart in wanted:
+    for chart in rendering:
         _produce(chart, week, kind="thumbnail")
 
-    for chart in wanted:
+    for chart in rendering:
         _produce(chart, week, kind="video")
 
     # ⚠️ **The package last, per chart** — `metadata-<chart>.json` is the file that says the folder is finished
     # (ticket 13), and it cannot honestly say so until the video and the thumbnail are both there.
-    for chart in wanted:
+    for chart in rendering:
         package.assemble(week, chart)
 
     return 0
@@ -460,11 +499,29 @@ def build(week: str) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     """`books-brief build --week 2026-W41` · `books-brief publish --week 2026-W41 [--dry-run]`."""
+    # ⚠️ **This is the product that needs it.** `NYT_API_KEY` is read straight from the environment by `fetch.nyt`,
+    # and the repository's `.env` is what lets a hand-run find it without an `export` in every new shell.
+    # ⚠️ Only variables the environment does not already set are filled, so an exported key still wins — and a
+    # checkout with no `.env` behaves exactly as it did before. See `market_overview.env`.
+    env.load()
+
     parser = argparse.ArgumentParser(prog="books-brief")
     commands = parser.add_subparsers(dest="command", required=True)
 
     builder = commands.add_parser("build", help="build one ISO week's charts")
     builder.add_argument("--week", required=True, help="the ISO week, e.g. 2026-W41")
+    # ⚠️ Repeatable, and **every chart the week could build by default** — the same shape `publish --chart` keeps, and
+    # for the same reason: the default is read off the *snapshot* rather than off the declaration table, because the
+    # week may hold two charts and not four (ticket 13's partial delivery).
+    #
+    # ⚠️ It narrows the **render**, never the gather. The bundle is the week's evidence and the replay path (ADR 0003),
+    # so a run asked for one chart still fetches and snapshots the whole week — which is what lets a later re-render of
+    # a different chart replay instead of re-fetching. See `build`.
+    builder.add_argument(
+        "--chart",
+        action="append",
+        help="one chart to build; repeatable (default: every chart the week could build)",
+    )
 
     publisher = commands.add_parser("publish", help="upload a built week's charts to YouTube")
     publisher.add_argument("--week", required=True, help="the ISO week, e.g. 2026-W41")
@@ -490,7 +547,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "build":
-        return build(args.week)
+        return build(args.week, tuple(args.chart or ()))
 
     if args.check:
         return publish.check()

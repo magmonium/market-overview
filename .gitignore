@@ -15,6 +15,16 @@ resource/*
 # clone can re-render a day without re-fetching it. `store/` never was gitignored, and that is the difference
 # between the tool's evidence and its data.
 
+# ⚠️ **The operator's `.env` — and this rule is the whole reason the file is safe to have at all.** It holds
+# credentials (`NYT_API_KEY`, and the optional `GOOGLE_BOOKS_API_KEY`), and `src/market_overview/env.py` reads it at
+# the start of a run, filling in only the variables the environment does not already set. ⚠️ `books_brief/fetch/nyt.py`
+# already says why a key cannot live in the tree: *"a key committed to the repository is a key that has been
+# published."* The committed half of the pair is `.env.example`, which names the variables and carries no values —
+# and the `!.` negation is what keeps a future `.env.*` rule from swallowing it.
+.env
+.env.*
+!.env.example
+
 # Python
 __pycache__/
 *.py[cod]
