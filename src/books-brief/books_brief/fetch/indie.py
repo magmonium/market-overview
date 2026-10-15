@@ -97,6 +97,11 @@ def fetch(chart: charts.Chart, *, week: str) -> Iterator[Page]:
             listing=entry,
             name=f"{VENDOR}-{name}-{date}.html",
             payload=response.content,
+            # ⚠️ ⚠️ **The date travels with the page, because it is nowhere else.** The list is dated in its own
+            # address and the page itself carries no date, so without this the rows arrive undated — which the guard
+            # refuses, correctly, leaving the English chart permanently absent. ⚠️ It was in the *filename* only, and a
+            # filename is not something a parser should read.
+            published=date,
         )
 
 

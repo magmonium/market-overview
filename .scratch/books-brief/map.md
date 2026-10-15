@@ -176,7 +176,11 @@ and reaching it is a hand-off.
   **refuses** for an already-published week, while git makes the overwrite safe. Retries are **bounded with backoff**,
   with a **per-source budget** and **polite scraping**; and two habits are inherited verbatim — **the raw response is
   snapshotted even when parsing fails**, and **warnings go to stderr, never swallowed**.
-- [The corroboration gate](issues/17-the-corroboration-gate.md) — ⚠️ **corroboration counts *vendors*, not lists**:
+- [The corroboration gate](issues/17-the-corroboration-gate.md) — ⚠️ ⚠️ **REVERSED 2026-10-15: the gate is *reported*,
+  not required** — every title any declared list carries is admitted, and corroboration rides on the row. ⚠️ The rule was
+  **unsatisfiable**: a two-vendor chart could rank only their *intersection* (**16 rows** for `english`) and a one-vendor
+  chart nothing at all. Replaying 2026-W41's own responses gives **134 titles** where the gate admitted 16. ⚠️ Full
+  amendment in **ADR 0004**. ⚠️ What still holds — **corroboration counts *vendors*, not lists**:
   Amazon.in's nine language categories are **one** source, so counting them as two would be "a lie told in
   arithmetic". **Admission needs two vendors**, raw responses committed; a single-vendor title is **parked on the
   watchlist**, not discarded — the real risk is Amazon's own gaming warning (a #1 in a deep subcategory is not a #1). ⚠️

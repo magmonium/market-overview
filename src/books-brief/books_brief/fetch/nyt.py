@@ -37,17 +37,34 @@ class MissingKeyError(RuntimeError):
     """The API key is absent, so the lists cannot be read — a **refusal**, not a crash."""
 
 
-def parse(payload: bytes, *, listing: charts.Listing) -> list[corroborate.Row]:
+def parse(
+    payload: bytes, *, listing: charts.Listing, published: str = ""
+) -> list[corroborate.Row]:
     """One list response, shaped into rows.
+
+    ⚠️ **`published` is accepted and deliberately ignored**, because for this vendor the date is *in the payload* —
+    `bestsellers_date` below — and taking it from the caller instead would be a second source for one fact. ⚠️ It is in
+    the signature because the conductor calls every client the same way; see `amazon.parse`.
 
     ⚠️ The `list_name_encoded` comes from the **response**, not from the caller, so the row is tagged with what the
     vendor actually said it was — a mismatch between the requested list and the answered one is visible rather than
     silently assumed away.
 
-    ⚠️ **The list's `published_date` rides onto every row**, because it is the *only* evidence ticket 10's freshness
+    ⚠️ **The list's `bestsellers_date` rides onto every row**, because it is the *only* evidence ticket 10's freshness
     guard has: a books chart has no session clock, so a stale response looks exactly like a fresh one. ⚠️ It is read
     without validation — a date that will not parse is `freshness`'s refusal to make, not this parser's crash, and one
     vendor's malformed field must not cost the other three charts.
+
+    ⚠️ ⚠️ **`bestsellers_date`, *not* `published_date` — and the difference is a whole run.** The response carries both,
+    and they are fifteen days apart:
+
+        bestsellers_date   2026-10-10    the sales week this list reflects
+        published_date     2026-10-25    the *print* date, which is what the Book Review will carry
+
+    ⚠️ `published_date` is documented as *"eleven days after it first appears online"*, so it lands **outside every
+    week's window** and NYT reads as stale whenever the run happens — which is not the guard working, it is a source the
+    product can never use. ⚠️ And the guard's own note (that the third day of `freshness.LAG_DAYS` was there for NYT)
+    was written from a single recording in which the two dates happened to be close together.
 
     ⚠️ **`listing` is required, and that is ticket 20's shape.** NYT's payload carries a list name and a date and no
     geography at all, so the country and the language can only come from the *declaration* — and making it an argument
@@ -57,7 +74,7 @@ def parse(payload: bytes, *, listing: charts.Listing) -> list[corroborate.Row]:
     body = json.loads(payload)
     results = body["results"]
     list_slug = f"{VENDOR}/{results['list_name_encoded']}"
-    published = results.get("published_date") or ""
+    published = results.get("bestsellers_date") or ""
 
     rows: list[corroborate.Row] = []
     for book in results["books"]:

@@ -73,21 +73,32 @@ class Cover:
     sha256: str
 
 
-def url_for(isbn: str, *, google: str | None = None) -> str:
+def url_for(isbn: str, *, listed: str = "", google: str | None = None) -> str:
     """The URL to fetch this cover from — **ticket 05 §1's source order**, and the normalisation that goes with it.
 
-    ⚠️ **Google Books first, and it is already in hand**: identity resolution had to read the volume to turn a title
-    into an ISBN (ticket 05 §3), so its `imageLinks` cost no extra request. Open Library is the fallback for a volume
-    Google knows but has not scanned.
+    ⚠️ **Three sources, and the order is the decision.** The **list's own image** first — the vendor chose the picture
+    that represents the title it ranked, and a cover is the one field where the list's answer beats Google's, whose
+    edition is not necessarily the edition that is selling. Then **Google Books `imageLinks`**, which costs no extra
+    request because identity resolution already read the volume (ticket 05 §3). Then **Open Library**, which is the
+    fallback for a volume Google knows but has not scanned.
+
+    ⚠️ ⚠️ **Open Library is *terminal*, and that is what makes a keyless run produce covers at all.** The two sources
+    above it can both go dark for reasons that have nothing to do with this book — Amazon ships no image on some rows,
+    and Google Books answers a whole chart with `429 Quota exceeded … Queries per day` once the project's daily quota is
+    spent. ⚠️ A fallback that is only reached when Google *answers without an image* is not a fallback: it is dead code
+    on exactly the run that needs it, and every row falls to ticket 07's branded tile while three sources sit unused.
 
     ⚠️ **The chosen URL is the normalised one.** Picking the source and *fixing* the source are one decision, and a
     caller that had to remember to also call `google_books_url` would eventually not — which is how `edge=curl` and a
-    `zoom=1` thumbnail reach a slide.
+    `zoom=1` thumbnail reach a slide. ⚠️ **The list's URL is passed through untouched**, because the normalisation is
+    Google's own (`edge=curl`, `zoom`) and a CDN URL carries neither.
 
-    ⚠️ **Falsy, not `is None`.** Google Books omits `imageLinks` on plenty of volumes, and a client that normalised the
-    omission to `""` would otherwise send this down the Google branch with an empty URL — a request to nowhere, which
-    surfaces as a fetch error rather than as *this title has no cover*.
+    ⚠️ **Falsy, not `is None`.** Google Books omits `imageLinks` on plenty of volumes and a scraped row with no image
+    carries `""`, and a client that normalised either omission to a truthy value would send this down the wrong branch
+    with an empty URL — a request to nowhere, which surfaces as a fetch error rather than as *this title has no cover*.
     """
+    if listed:
+        return listed
     if google:
         return google_books_url(google)
     return open_library_url(isbn)

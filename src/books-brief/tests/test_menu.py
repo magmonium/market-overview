@@ -5,6 +5,7 @@ to skip: a menu that asks what it can and *then* dies on stdin has spent the ope
 the reel's own `_screen` discipline, kept here.
 """
 import contextlib
+import datetime as _datetime
 import io
 import sys
 import unittest
@@ -81,6 +82,46 @@ class TheWeek(unittest.TestCase):
         self.assertRegex(week, r"^\d{4}-W\d{2}$")
         # ⚠️ And it is a real week, not merely a well-shaped string.
         self.assertEqual(menu._checked(week), week)
+
+    def test_the_default_is_the_last_week_whose_lists_can_exist(self):
+        """⚠️ ⚠️ **The bug this fixes, asserted.**
+
+        A Sun–Sat sales week is compiled *after* it closes, so **this** week can never be built yet — and a prompt
+        pre-filled with it sent every operator, every time, into `no chart could be built` and a message about a vendor
+        that had done nothing wrong.
+
+        ⚠️ Pinned as the two *properties* that make the answer right, rather than as a literal week: the week's own
+        Sunday has passed, and the next week's has not.
+        """
+        week = menu.last_buildable_week()
+        today = _datetime.date.today()
+
+        self.assertEqual(menu._checked(week), week, "the default has to be a week the store can key on")
+        self.assertNotEqual(week, menu.this_week(), "this week's lists cannot exist yet")
+        self.assertLess(menu._closed_on(week), today, "the week has to have closed")
+        # ⚠️ The **next** week's Sunday, which is this one plus seven days — no second helper needed, and no assumption
+        # about which week this is.
+        self.assertGreaterEqual(menu._closed_on(week) + _datetime.timedelta(days=7), today)
+
+    def test_the_prompt_offers_the_last_buildable_week_rather_than_this_one(self):
+        """⚠️ **What the operator actually sees.** The default is *shown*, so a wrong offer is one keystroke from being
+        corrected — which is why the value matters and why the question now says why it is not this week.
+        """
+        offered: list[str] = []
+
+        with (
+            mock.patch.object(cli, "main", return_value=0),
+            mock.patch.object(
+                menu, "_line", side_effect=lambda question, *, default="": offered.append(default) or default
+            ),
+            mock.patch.object(sys, "stdin", mock.Mock(isatty=lambda: True)),
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            menu.main([])
+
+        # ⚠️ The first prompt is the week and the second is the chart, whose own default is the empty answer.
+        self.assertEqual(offered, [menu.last_buildable_week(), ""])
 
     def test_a_named_subcommand_is_passed_straight_through_without_asking(self):
         """⚠️ **The front door has to reach `publish`, and it must not ask a question on the way.**

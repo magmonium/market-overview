@@ -35,6 +35,12 @@ class Page:
     ⚠️ **`name` is the client's, not a derivation from the slug** — the brief's `result.name`, for the same reason. A
     slug is `amazon-in/comics` and a filename cannot hold a slash; more to the point, only the client knows whether what
     it fetched is JSON or HTML, and the extension is a fact about the response rather than about the list.
+
+    ⚠️ ⚠️ **And `published` rides along for the same reason `listing` does: a response cannot always say when it is
+    from.** `indie`'s list is dated **in its own address**, so the page itself carries no date a parser could read —
+    ⚠️ and without this field the rows arrived *undated*, which `freshness` correctly refuses, so the English chart
+    could never be built. ⚠️ A client that cannot state the date leaves it empty, and an empty date is *stale* rather
+    than a guess.
     """
 
     listing: charts.Listing
@@ -42,4 +48,7 @@ class Page:
     #: ⚠️ **Bytes, never a decoded object** — `store.write_raw`'s own argument: a snapshot written from `json.loads` has
     #: been through a model, so it can no longer settle an argument about what the vendor actually said.
     payload: bytes
+    #: ⚠️ The date the client **asked for**, when its address carried one — ISO, or empty when the vendor states none.
+    #: ⚠️ `gather` hands this to `parse`, so it is the only route by which a URL-borne date reaches a row.
+    published: str = ""
 

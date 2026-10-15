@@ -17,6 +17,10 @@ not importable): questions go to **stderr** so stdout stays the ledger, and a nu
 ⚠️ **This is the one place in the product that reads a clock**, and it is allowed to: a *human* is being asked what to
 build, and the answer is passed as a flag. Everything downstream stays deterministic, because the week is an argument and
 never a second reading of the calendar (ADR 0003).
+
+⚠️ **And the clock is used to make the *offer*, never the decision.** The default is the last week whose lists can exist
+— see `last_buildable_week` — because *this* week's lists are compiled only after it closes, so a prompt offering this
+week sent every operator, every time, into a refusal. ⚠️ The operator's answer is still what runs, and it is still a flag.
 """
 from __future__ import annotations
 
@@ -24,7 +28,7 @@ import argparse
 import datetime as _datetime
 import sys
 
-from . import charts, cli
+from . import charts, cli, delta, freshness
 
 
 class Refused(RuntimeError):
@@ -80,13 +84,55 @@ def _checked_charts(typed: str) -> tuple[str, ...]:
 
 
 def this_week() -> str:
-    """The current ISO week, as the default the prompt **shows**.
+    """The current ISO week — **where the default's arithmetic starts, not the default itself.**
 
     ⚠️ Shown and not merely applied — the reel's rule: *"a pre-filled answer the operator cannot see is an answer they
-    were never asked for."*
+    were never asked for."* ⚠️ But see `last_buildable_week`: the value this returns can never be built, so it is not
+    what the prompt offers.
     """
     iso = _datetime.date.today().isocalendar()
     return f"{iso.year}-W{iso.week:02d}"
+
+
+def _closed_on(week: str) -> _datetime.date:
+    """The Sunday that closes `week` — the day its lists begin to be compiled from it.
+
+    ⚠️ Derived from the week **key** through `freshness.span`, which is itself derived from the key and never from a
+    clock: the only clock this module reads is the one in `last_buildable_week`.
+    """
+    monday = _datetime.date.fromisoformat(freshness.span(week)[0])
+    return monday + _datetime.timedelta(days=6)
+
+
+def last_buildable_week() -> str:
+    """The most recent ISO week whose lists can exist — **the default the prompt offers.**
+
+    ⚠️ ⚠️ **This week can never be built yet, and defaulting to it guaranteed the failure.** A Sun–Sat sales week is
+    compiled *after* it closes — ticket 10: the lists land Mon–Wed of the week that follows — so on any given day the
+    newest week with published lists is the **previous** one. A prompt pre-filled with this week therefore sent every
+    operator, every time, into `no chart could be built` and a message about a vendor that had done nothing wrong.
+
+    ⚠️ **The rule is the week's own Sunday, not a fixed offset of seven days.** A week qualifies once its Sunday has
+    passed, because that is the first day its lists *can* be compiled — so on the Monday, Tuesday and Wednesday after it
+    closed, the default is the week that just ended, which is exactly when the sources publish.
+
+    ⚠️ **Stepped back over week *keys*, never by subtracting seven days from a date**, so `2027-W01` — which begins in
+    2026 — cannot put the answer a year out. That is `delta.previous_week`'s own reason, reused rather than restated.
+
+    ⚠️ **It is a default, not a promise.** A week whose Sunday has passed may still have no usable lists — a vendor may
+    be missing entirely — and this says nothing about that. It is what the operator is *offered*, and the prompt shows
+    it, so a wrong offer is one keystroke from being corrected.
+    """
+    today = _datetime.date.today()
+    week = this_week()
+
+    # ⚠️ **At most one step back, and the loop says so rather than assuming it.** A second step is only reached if
+    # `this_week` were itself buildable, which the Sunday rule already excludes.
+    for _ in range(2):
+        if _closed_on(week) < today:
+            return week
+        week = delta.previous_week(week)
+    return week
 
 
 def _line(question: str, *, default: str = "") -> str:
@@ -155,7 +201,10 @@ def main(argv: list[str] | None = None) -> int:
         given = options.week
         asking = given is None
         if asking:
-            given = _line("ISO week (YYYY-Wnn, blank for this week)", default=this_week())
+            given = _line(
+                "ISO week (YYYY-Wnn, blank for the last week whose lists exist)",
+                default=last_buildable_week(),
+            )
 
         week = _checked(given)
 

@@ -103,3 +103,29 @@ what keeps the ticket-04 price label honest — the reader can see that only Ama
 not change, the silence does"* — and it transfers. A title parked on the watchlist, a field won by the second-choice
 source, a chart below the two-vendor floor: each is **written into the snapshot and surfaced in the run's warnings**,
 because a silent drop is indistinguishable from a title that never existed.
+
+### ⚠️ ⚠️ Reversed 2026-10-15 — the gate is *reported*, not required
+
+⚠️ **Every title any declared list carries is admitted**; corroboration rides on the row (`Title.sources`) and is
+expressed through ticket 03's score instead of filtering admission. ⚠️ **The rule was unsatisfiable rather than wrong**,
+and the arithmetic is short:
+
+    the `english` chart declares two vendors (NYT, Indie)
+    the gate admits a title only when two *different vendors* carry it
+    ⇒ the chart can rank only their *intersection* — 16 rows, against a "Top 100" title
+    ⇒ a one-vendor chart (`all-language`) can rank **nothing at all**, ever
+
+⚠️ **The evidence is 2026-W41's own recorded responses**, replayed through the two vendors the English chart already
+declared: **165 list-rows → 134 distinct titles** — 103 carried by one list, 31 by two — where the gate admitted **16**.
+⚠️ Nothing was added to the source set to achieve that; the rule *was* the whole constraint. ⚠️ And `all-language` and
+`comics`, with one usable vendor each, could admit **nothing at all** — which is why they shipped absent every week and
+read as a sourcing failure rather than as a rule that could not be met.
+
+⚠️ **What still holds from this ticket**, and it is most of it: **the vendor is the unit** (a vendor's several lists are
+one voice), **every row carries the lists that carried it**, **the vendors remain the spine**, and *"report, never
+silently drop"* is unchanged — ⚠️ **nothing is dropped any more**, which is strictly more visible than parking was.
+
+⚠️ **What this ticket can no longer claim, and it is recorded rather than glossed:** a chart no longer *certifies* that
+two independent sources agree — it **reports how many did**. ⚠️ And ticket 03's score sums each *list*, so a vendor with
+two lists a title could appear on twice would count twice; no declared chart can currently do that, so it is a guard to
+add rather than a defect to repair. ⚠️ The full amendment is in **ADR 0004**, which carries the same reversal.

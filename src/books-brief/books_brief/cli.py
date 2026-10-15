@@ -131,6 +131,11 @@ def _details(admitted: corroborate.Result) -> dict[str, enrich.Details]:
     not hold — ⚠️ the exact state that cancels a render, which a render is what taught us.
     """
     details: dict[str, enrich.Details] = {}
+    #: ⚠️ **Failures are collected by *message*, never printed per title.** A source-wide outage — Google Books
+    #: answering `429 Quota exceeded … Queries per day` to everything, Open Library rate-limiting a backfill — answers
+    #: every title identically, and a hundred and thirty copies of one line is not a report. ⚠️ It is worse than noise:
+    #: it buries the row that failed *differently*, which is the only one an operator can act on.
+    missed: dict[str, list[str]] = {}
 
     for title in admitted.admitted:
         # ⚠️ **Ticket 20's labels come off the gate's `Title`**, which is where they were decided — from the sorted-first
@@ -156,22 +161,40 @@ def _details(admitted: corroborate.Result) -> dict[str, enrich.Details]:
         try:
             volume = google_books.fetch(title.isbn)
         except Exception as error:  # noqa: BLE001 — a failed lookup is an absent field, not a lost book
-            print(f"{title.isbn}: google books did not answer: {error}", file=sys.stderr)
-            continue
+            missed.setdefault(f"google books did not answer: {error}", []).append(title.isbn)
+            volume = None
+
+        # ⚠️ **The list's image first — and it is resolved whether or not Google answered.** The vendor chose the
+        # picture that represents the title it ranked, and a cover is the one field where the list's own answer is the
+        # better one: Google's edition is not necessarily the edition that is selling.
+        #
+        # ⚠️ **The list's URL is not Google's to withhold, and this line used to let it be.** The two `continue`s that
+        # sat above it sent a title whose lookup failed or 429'd straight past its own cover — so a keyless run threw
+        # away every image the list had already handed it, and the row fell to ticket 07's branded tile for a reason
+        # that had nothing to do with the cover. ⚠️ That is why the fetch above now *assigns* `None` rather than
+        # leaving the loop.
+        #
+        # ⚠️ **And the source order lives in `covers.url_for`, not here.** Its terminal fallback is Open Library, which
+        # needs no key and no quota — the only source left once Google Books has spent the day's `Queries per day` and
+        # the list carried no image of its own, which is every NYT, indie and Rokomari row.
+        source = covers.url_for(
+            title.isbn, listed=title.cover_url, google=volume.cover_url if volume else None
+        )
+        cover = None
+        # ⚠️ No `if source:` guard, and its absence is the point: `url_for` is **total** — it always names a source, so
+        # a title that reaches here has a URL to try. A guard would silently restore the old behaviour for any caller
+        # that forgot one of the three.
+        try:
+            cover = covers.download(source, title.isbn)
+        except Exception as error:  # noqa: BLE001 — same rule: an absent cover, not an absent row
+            missed.setdefault(f"the cover did not download: {error}", []).append(title.isbn)
 
         if volume is None:
+            # ⚠️ **The row keeps its cover and gains nothing else.** There is no volume to merge, and ticket 07's rule
+            # is that a field with no value omits — never that the row is dropped, and never that a cover in hand is.
+            if cover is not None:
+                details[title.isbn] = dataclasses.replace(details[title.isbn], cover=cover)
             continue
-
-        # ⚠️ **The list's image first.** The vendor chose the picture that represents the title it ranked, and a cover
-        # is the one field where the list's own answer is the better one — Google's edition is not necessarily the
-        # edition that is selling.
-        source = title.cover_url or volume.cover_url
-        cover = None
-        if source:
-            try:
-                cover = covers.download(source, title.isbn)
-            except Exception as error:  # noqa: BLE001 — same rule: an absent cover, not an absent row
-                print(f"{title.isbn}: the cover did not download: {error}", file=sys.stderr)
 
         details[title.isbn] = dataclasses.replace(
             google_books.details(volume, cover=cover),
@@ -191,7 +214,28 @@ def _details(admitted: corroborate.Result) -> dict[str, enrich.Details]:
             ),
         )
 
+    _report(missed)
+
     return details
+
+
+def _report(missed: dict[str, list[str]]) -> None:
+    """Say each distinct failure **once, with its count** — and say nothing at all when there was none.
+
+    ⚠️ **One line per *kind* of failure is the report; a line per title is a log nobody reads.** The 503 wall this
+    replaces was a hundred and thirty copies of one sentence, and it hid the only thing worth seeing: a title that
+    failed for its *own* reason.
+
+    ⚠️ **The ISBNs stay, capped at three.** *Which* titles a failure hit is the evidence, but all of them on one line is
+    the wall again — and the rest are in the snapshot for anyone who wants to check one.
+
+    ⚠️ **The empty case prints nothing.** A run where every source answered has nothing to report, and an unconditional
+    summary would put a line of noise in every healthy log — which is how a real warning stops being read.
+    """
+    for message, isbns in sorted(missed.items()):
+        shown = ", ".join(isbns[:3])
+        rest = f" and {len(isbns) - 3} more" if len(isbns) > 3 else ""
+        print(f"{message} — {len(isbns)} of the week's titles: {shown}{rest}", file=sys.stderr)
 
 
 def _band(week: str) -> ticker.Ticker | None:
@@ -278,7 +322,13 @@ def gather(week: str) -> dict:
                 for page in CLIENTS[vendor].fetch(chart, week=week):  # type: ignore[attr-defined]
                     store.write_raw(week, page.name, page.payload)
                     rows.extend(
-                        CLIENTS[vendor].parse(page.payload, listing=page.listing)  # type: ignore[attr-defined]
+                        # ⚠️ **`published` is handed on, and it is not decoration.** `indie`'s list is dated *in its
+                        # own address*, so the response cannot state it — and a `parse` called without it returns rows
+                        # that `freshness` correctly refuses, which is a source that can never be used. ⚠️ A client
+                        # whose date is in the payload ignores it; see `Page.published`.
+                        CLIENTS[vendor].parse(  # type: ignore[attr-defined]
+                            page.payload, listing=page.listing, published=page.published
+                        )
                     )
             except Exception as error:  # noqa: BLE001 — a failed vendor is an absent chart, not a crashed run
                 print(f"{chart.slug}: {vendor} did not answer: {error}", file=sys.stderr)
@@ -351,11 +401,14 @@ def gather(week: str) -> dict:
             watchlist=board.watchlist,
         )
 
-    # ⚠️ **The band is fetched once, for all four charts** (ticket 13), and its absence is not a run's failure —
-    # `_band` returns `None` and the bundle simply has no `ticker` key (ticket 08).
-    return facts.build(
-        week, charts=built, window_weeks=_window_weeks(week), ticker=_band(week)
-    )
+    # ⚠️ ⚠️ **The market band is no longer fetched** (2026-10-15). Ticket 08 put a TradingView scoreboard behind the
+    # books — *"the world behind the book"* — and it is not this product's data: a viewer came for a book chart and got
+    # an index ticker they never asked for, from a source with nothing to do with the ranking.
+    #
+    # ⚠️ **Not passing a ticker is the whole change.** An absent `ticker` key is ticket 08's own *designed degrade*, so
+    # the composition already draws no band and the render layer needs nothing. ⚠️ `_band` and `ticker.py` stay: they are
+    # tested, and a chart is free to want the band back — this is a product decision, not a broken source.
+    return facts.build(week, charts=built, window_weeks=_window_weeks(week))
 
 
 def _covered(bundle: dict, only: tuple[str, ...] | None = None) -> list[str]:
@@ -387,13 +440,25 @@ def _produce(chart: charts.Chart, week: str, *, kind: str) -> pathlib.Path:
     therefore let a render that dies at 90% — or is killed — destroy last week's good delivery, while the folder still
     looked like a package. So every render writes a dot-prefixed sibling and is moved into place only once it exists.
     That is the reel's rule, and it is the reason a failed run leaves the previous week untouched.
+
+    ⚠️ ⚠️ **The dot prefix *is* the marker — and the extension has to stay last.** This used to name the scratch file
+    `.{name}.part`, and Remotion **refuses to render h264+aac to anything that does not end in `.mp4`, `.mkv` or
+    `.mov`**:
+
+        TypeError: When using the h264 codec with the aac audio codec, the output filename must end in one of the
+        following: mp4, mkv, mov.
+
+    ⚠️ It fails *after* the composition has bundled, so it looks like a render failure rather than a naming one. ⚠️ And a
+    **still has no codec to validate**, which is why every thumbnail rendered happily and only the videos died — the
+    worst shape a bug can have. ⚠️ The reel never had it: `.reel-vinyl.mp4` keeps its extension, and that is what this
+    matches.
     """
     directory = package.dir_for(week, chart.slug)
     directory.mkdir(parents=True, exist_ok=True)
 
     name = package.filenames(week, chart.slug)[kind]
     target = directory / name
-    scratch = directory / f".{name}.part"
+    scratch = directory / f".{name}"
 
     command = (
         render.still_command(chart=chart.slug, week=week, output=scratch)

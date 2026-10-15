@@ -1,14 +1,34 @@
-"""Ticket 17 — the corroboration gate.
+"""Ticket 17 — corroboration, **reported rather than required**.
 
-⚠️ **A title enters a chart when two *vendors* carry it.** Not two lists: a vendor is a *source*, and Amazon.in's nine
-language categories are one voice. Counting them separately would be *"a lie told in arithmetic"*.
+⚠️ ⚠️ **REVERSED 2026-10-15: every title any declared list carries is admitted, and corroboration is *carried* on the
+row instead of gating it.** Ticket 17's rule was that a title enters a chart only when **two vendors** carry it — and
+the arithmetic that killed it is worth recording, because the rule was not wrong so much as *unsatisfiable*:
 
-⚠️ **A single-vendor title is not discarded — it is parked.** It goes on the watchlist, with its status recorded, and
-does not appear in the chart. Ticket 11's ≤10 cap already needed a holding pen for its overflow, so **one list serves
-both** — and *"a silent drop is indistinguishable from a title that never existed."*
+    the `english` chart declares two vendors (NYT, Indie)
+    the gate admits a title only when two *different vendors* carry it
+    ⇒ the chart can only ever rank the *intersection* of those two lists — **16 rows**, against a "Top 100" title
 
-⚠️ **Every admitted title keeps the lists that carried it.** That is the half of auditability that is easy to forget:
-recording only the winner would let the chart *assert* a fact rather than *show* why it believes it.
+⚠️ **And it was worse than a short chart: it made a chart impossible.** `all-language` has one vendor and `comics` one
+usable one, so under an intersection gate **neither could admit a single title, ever** — which is why both shipped
+absent every week and looked like a sourcing failure rather than a rule that could not be met.
+
+⚠️ **What replaces it.** The chart ranks the **union**: every title any declared list carries, deduplicated by ISBN,
+ordered by ticket 03's score — which *already* sums each source's weighted position, so **a title on three lists still
+out-ranks a title on one**. Corroboration did not stop mattering; it stopped being a filter and became the ranking.
+
+⚠️ **The vendor is still the unit**, and that has not changed: Amazon.in's several lists are **one voice**, so
+`Title.sources` counts lists and ticket 03's score weights them by vendor. Counting a vendor's own lists as several
+corroborating voices would still be *"a lie told in arithmetic"*.
+
+⚠️ ⚠️ **And one consequence of this reversal is still open — latent, not active, and it belongs to ticket 03.** That
+score sums each *list*, so a vendor declaring **two lists a title could appear on twice** would count twice: exactly
+the lie above. ⚠️ **No declared chart can currently do that** — `english`'s two NYT lists are fiction and nonfiction, and
+one book cannot be on both — so it is a guard to add rather than a defect to repair. ⚠️ It is recorded here because a
+reader of this docstring would otherwise reasonably believe the weighting is already per vendor, and it is not.
+
+⚠️ **Every admitted title keeps the lists that carried it.** That half of auditability is unchanged, and it is now the
+*only* thing standing where the gate used to be: recording just the winner would let the chart *assert* a fact rather
+than *show* why it believes it.
 """
 from __future__ import annotations
 
@@ -16,9 +36,6 @@ import dataclasses
 from typing import Iterable
 
 from . import charts, prices
-
-#: ⚠️ **The floor, and it is two.** One vendor is a claim; two vendors is a corroboration. Ticket 17's rule 1.
-VENDORS_REQUIRED = 2
 
 
 @dataclasses.dataclass(frozen=True)
@@ -138,7 +155,6 @@ def admit(rows: Iterable[Row], *, chart: charts.Chart) -> Result:
         # print a different spelling of the same book, which is exactly what ticket 03's *"the same week, re-rendered,
         # must produce the same chart"* forbids — and a field is part of the chart.
         seen = sorted(by_isbn[isbn], key=lambda row: row.list)
-        voices = {vendor_of(row.list) for row in seen}
         title = Title(
             isbn=isbn,
             title=seen[0].title,
@@ -157,6 +173,12 @@ def admit(rows: Iterable[Row], *, chart: charts.Chart) -> Result:
             ratings_count=seen[0].ratings_count,
             sources=tuple(sorted(row.list for row in seen)),
         )
-        (admitted if len(voices) >= VENDORS_REQUIRED else parked).append(title)
+        # ⚠️ ⚠️ **Admitted, not gated** — see the module docstring. This line used to read
+        # `(admitted if len(voices) >= VENDORS_REQUIRED else parked)`, and the condition is what made a two-vendor chart
+        # rank 16 books and a one-vendor chart rank none.
+        admitted.append(title)
 
+    # ⚠️ **`parked` is empty by construction now.** The field stays because `Result` is a shape several callers and a
+    # dozen tests already speak — and ⚠️ **nothing became less visible**: a single-list title used to be *held back* with
+    # its status recorded, and today it is *admitted* with that same status, which is strictly more.
     return Result(admitted=tuple(admitted), parked=tuple(parked))

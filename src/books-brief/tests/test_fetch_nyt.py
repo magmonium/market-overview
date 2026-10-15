@@ -51,18 +51,45 @@ class ParsingAList(unittest.TestCase):
         ⚠️ **It is the list's date, not a book's.** Ticket 05 warns that NYT's book objects carry date fields of their
         own, and the two are different questions: the list's date says *which week this ranking describes*, which is what
         the guard needs.
+
+        ⚠️ **And it is `bestsellers_date`, not the print date** — see the test below, which is the one that would have
+        caught this.
         """
         rows = nyt.parse(FIXTURE.read_bytes(), listing=LISTING)
 
-        self.assertEqual([row.published for row in rows], ["2026-10-14", "2026-10-14"])
+        self.assertEqual([row.published for row in rows], ["2026-10-10", "2026-10-10"])
 
-    def test_a_response_with_no_published_date_leaves_the_rows_undated(self):
+    def test_the_date_on_the_rows_is_the_sales_week_and_not_the_print_date(self):
+        """⚠️ ⚠️ **The field, asserted — and it is worth a test of its own.**
+
+        The response carries **both** dates, fifteen days apart, and only one of them can be compared against the week
+        being built:
+
+            bestsellers_date   2026-10-10    the sales week this list reflects
+            published_date     2026-10-25    the *print* date the Book Review will carry
+
+        ⚠️ **`published_date` is documented as eleven days after the list appears online**, so reading it puts the row
+        *outside every week's window* — which made NYT permanently **stale** and `english` unbuildable no matter when
+        the run happened. ⚠️ That is not a guard working; it is a source the product can never use.
+
+        ⚠️ The fixture carries both fields, so this fails if the parser ever reads the wrong one again.
+        """
+        rows = nyt.parse(FIXTURE.read_bytes(), listing=LISTING)
+
+        # ⚠️ The sales week ending 2026-10-11 is **2026-W41**, whose window is 2026-10-05 … 2026-10-14 — so this is the
+        # list W41 should rank, and the guard says so.
+        self.assertTrue(freshness.is_fresh(rows[0].published, week="2026-W41"))
+        # ⚠️ The print date from the very same response is *not* fresh for that week — which is why it must not be the
+        # field the guard is given.
+        self.assertFalse(freshness.is_fresh("2026-10-25", week="2026-W41"))
+
+    def test_a_response_with_no_bestsellers_date_leaves_the_rows_undated(self):
         """⚠️ **Empty, not invented — and empty is *stale*.**
 
         A parser that substituted today's date for a missing field would turn the guard into a rubber stamp for exactly
         the source that broke. ⚠️ Nor does it raise: one vendor's malformed field must not cost the other three charts.
         """
-        payload = FIXTURE.read_bytes().replace(b'"published_date"', b'"published_dtae"')
+        payload = FIXTURE.read_bytes().replace(b'"bestsellers_date"', b'"bestsellers_dtae"')
 
         rows = nyt.parse(payload, listing=LISTING)
 

@@ -58,6 +58,19 @@ class WhenNothingCouldBeBuilt(unittest.TestCase):
 class TheEnrichmentLookup(unittest.TestCase):
     """Ticket 05 §3 — and the rule that matters is that **a failed lookup costs fields, never a row.**"""
 
+    def setUp(self) -> None:
+        """⚠️ **The network is closed by default here, because `covers.url_for` is total now.**
+
+        Every title reaches `covers.download` — `url_for` always names a source and its last resort is Open Library —
+        so a test that forgot to patch it would not fail. It would make a real request, get a 404, and pass. ⚠️ That is
+        the worst kind of green: a suite that is slow, order-dependent and secretly online, which is exactly what this
+        suite is built not to be. So the default is *no cover*, and the tests that care override it with their own
+        `mock.patch.object(covers, "download", return_value=record)` — the inner patch wins.
+        """
+        patcher = mock.patch.object(covers, "download", return_value=None)
+        self.addCleanup(patcher.stop)
+        patcher.start()
+
     def _admitted(self, *titles: tuple[str, str, str]) -> corroborate.Result:
         """Admitted titles as `(isbn, title, author)` triples — the three fields ticket 17's priority decides."""
         return corroborate.Result(
@@ -85,6 +98,24 @@ class TheEnrichmentLookup(unittest.TestCase):
         }
         return google_books.Volume(**{**base, **over})  # type: ignore[arg-type]
 
+    def _listing(self, *, cover_url: str) -> corroborate.Result:
+        """One admitted title whose **list carried an image** — which is every Amazon.in row.
+
+        ⚠️ `_admitted` above cannot express this: it builds a `Title` with no `cover_url`, and the whole point of the
+        case is that the list handed over a picture before enrichment ever ran.
+        """
+        return corroborate.Result(
+            admitted=(
+                corroborate.Title(
+                    isbn="9788172151234",
+                    title="Ekti Shonar Boi",
+                    sources=("amazon-in/indian-languages",),
+                    cover_url=cover_url,
+                ),
+            ),
+            parked=(),
+        )
+
     def test_a_title_the_enrichment_source_does_not_know_still_gets_a_row(self):
         """⚠️ **The rule that stops the chart being quietly short.**
 
@@ -108,6 +139,61 @@ class TheEnrichmentLookup(unittest.TestCase):
             details = cli._details(self._admitted(("9788172151234", "Ekti Shonar Boi", "")))
 
         self.assertEqual(details["9788172151234"].title, "Ekti Shonar Boi")
+
+    def test_the_lists_own_cover_survives_a_lookup_that_answered_nothing(self):
+        """⚠️ **The list's image is not Google's to withhold** — and this is a keyless run's whole cover story.
+
+        An Amazon.in row arrives with its picture already in hand, so a lookup that answers nothing costs the *volume's*
+        fields and nothing else. ⚠️ The loop used to `continue` **before** the cover was ever read, so the image the list
+        had already handed over was dropped on the way past — and the row fell to ticket 07's branded tile for a reason
+        that had nothing to do with the cover.
+        """
+        record = covers.Cover(url="https://m.media-amazon.com/x.jpg", sha256="abc123")
+
+        with (
+            mock.patch.object(google_books, "fetch", return_value=None),
+            mock.patch.object(covers, "download", return_value=record) as download,
+        ):
+            details = cli._details(self._listing(cover_url=record.url))
+
+        self.assertEqual(details["9788172151234"].cover, record)
+        download.assert_called_once_with(record.url, "9788172151234")
+
+    def test_the_lists_own_cover_survives_a_lookup_that_raised(self):
+        """⚠️ The same rule for a **429**, which is the live case rather than a hypothetical.
+
+        *The source being unreachable* is not *this book has no cover* — and the anonymous Google Books quota answers a
+        full chart with 429s, every one of them on a row that has a cover sitting in `title.cover_url`.
+        """
+        record = covers.Cover(url="https://m.media-amazon.com/x.jpg", sha256="abc123")
+
+        with (
+            mock.patch.object(google_books, "fetch", side_effect=TimeoutError("no answer")),
+            mock.patch.object(covers, "download", return_value=record),
+        ):
+            details = cli._details(self._listing(cover_url=record.url))
+
+        self.assertEqual(details["9788172151234"].cover, record)
+        # ⚠️ And the row is still the list's row — a cover is not a licence to invent the rest of the fields.
+        self.assertEqual(details["9788172151234"].title, "Ekti Shonar Boi")
+
+    def test_a_title_with_no_image_anywhere_falls_back_to_open_library(self):
+        """⚠️ **The terminal fallback — and it is the only source left on a spent quota.**
+
+        No list image and no volume means the two sources above Open Library have nothing to offer. ⚠️ That is the
+        ordinary state of an NYT, indie or Rokomari row on a day Google Books answers `429 Quota exceeded … Queries per
+        day` — and before this, `covers.url_for` was reached by **nobody**: the fallback existed, was tested, and could
+        not run. So every one of those rows fell to ticket 07's branded tile while a working source sat unused.
+        """
+        with mock.patch.object(google_books, "fetch", return_value=None):
+            details = cli._details(self._admitted(("9788172151234", "Ekti Shonar Boi", "")))
+
+        covers.download.assert_called_once_with(
+            covers.open_library_url("9788172151234"), "9788172151234"
+        )
+        # ⚠️ And the cover is still **null** unless the bytes arrived: a URL is not a cover (ticket 05), so the row
+        # takes ticket 07's branded tile rather than claiming an image the cache does not hold.
+        self.assertIsNone(details["9788172151234"].cover)
 
     def test_the_lists_title_wins_over_the_enrichments(self):
         """⚠️ **Ticket 17's per-field priority, and it is not a nicety.**
@@ -221,6 +307,67 @@ class TheEnrichmentLookup(unittest.TestCase):
                 self.assertEqual(details["9788172151234"].rating, 4.5)
                 self.assertEqual(details["9788172151234"].ratings_count, 3661)
                 self.assertEqual(details["9788172151234"].publisher, "Wonder House Books")
+
+
+class TheFailureReport(unittest.TestCase):
+    """⚠️ **One line per *kind* of failure, not one per title** — and the difference is whether a log gets read."""
+
+    def _stderr(self, missed: dict[str, list[str]]) -> str:
+        """Whatever `_report` said — captured, because the whole point is what does and does not get printed."""
+        stream = io.StringIO()
+        with contextlib.redirect_stderr(stream):
+            cli._report(missed)
+        return stream.getvalue()
+
+    def test_a_source_wide_outage_is_one_line_and_not_one_per_title(self):
+        """⚠️ **The 503 wall, stated as a test.**
+
+        Google Books answers a spent daily quota to *every* title, so a per-title line is a hundred and thirty copies
+        of one sentence. ⚠️ That is worse than noise: it buries the row that failed for its **own** reason, which is the
+        only one an operator can act on.
+        """
+        isbns = [f"97800000000{n:02d}" for n in range(130)]
+
+        printed = self._stderr({"google books did not answer: HTTP Error 503": isbns})
+
+        self.assertEqual(len(printed.splitlines()), 1)
+        self.assertIn("130 of the week's titles", printed)
+
+    def test_the_titles_behind_a_failure_are_named_but_capped(self):
+        """⚠️ *Which* titles a failure hit is the evidence — but all 130 on one line is the wall again, and the rest are
+        in the snapshot for anyone who wants to check one.
+        """
+        isbns = [f"97800000000{n:02d}" for n in range(130)]
+
+        printed = self._stderr({"the cover did not download: timed out": isbns})
+
+        self.assertIn("9780000000000", printed)
+        self.assertIn("and 127 more", printed)
+
+    def test_failures_that_differ_get_their_own_lines(self):
+        """⚠️ **The point of grouping by message rather than by title.**
+
+        Two different faults are two facts, and collapsing them into one count would lose exactly the distinction the
+        report exists to make.
+        """
+        printed = self._stderr(
+            {
+                "google books did not answer: HTTP Error 503": ["9780000000001"],
+                "the cover did not download: timed out": ["9780000000002"],
+            }
+        )
+
+        self.assertEqual(len(printed.splitlines()), 2)
+
+    def test_a_run_where_everything_answered_says_nothing(self):
+        """⚠️ **The empty case, and it is what keeps the report readable.**
+
+        A summary printed unconditionally would be one line of noise in every healthy log — which is how a real warning
+        stops being noticed. ⚠️ And a *short* list is not truncated: `and 127 more` on a failure that hit two titles
+        would be a lie about how much there was to see.
+        """
+        self.assertEqual(self._stderr({}), "")
+        self.assertNotIn("more", self._stderr({"a failure": ["9780000000001", "9780000000002"]}))
 
 
 class TheMarketBand(unittest.TestCase):
@@ -460,7 +607,7 @@ class ProducingOneArtefact(unittest.TestCase):
 
                 # ⚠️ **Asserted inside the store's lifetime**, and the first version of this test was not: the temp
                 # directory is deleted on exit, so `is_file()` after the block is false whatever the code did.
-                self.assertEqual(seen, [".bengali-2026-W41.mp4.part"], "the render must write to scratch")
+                self.assertEqual(seen, [".bengali-2026-W41.mp4"], "the render must write to scratch")
                 self.assertEqual(target.name, "bengali-2026-W41.mp4")
                 self.assertTrue(target.is_file())
                 self.assertEqual(
@@ -470,6 +617,37 @@ class ProducingOneArtefact(unittest.TestCase):
                         if entry.name.startswith(".")
                     ],
                     [],
+                )
+
+    def test_the_scratch_name_keeps_an_extension_remotion_will_render_to(self):
+        """⚠️ ⚠️ **The bug this test exists for, and it cost a whole gather to find.**
+
+        Remotion refuses h264+aac unless the output filename ends in `.mp4`, `.mkv` or `.mov` — so a scratch file named
+        `…mp4.part` fails **after** the composition has bundled, with a `TypeError` about the *filename*. ⚠️ And a still
+        has no codec to validate, so every thumbnail rendered and only the videos died — the worst shape a bug can have,
+        because the run looked like it was working.
+
+        ⚠️ Asserted on the name the renderer is actually handed, because that is the thing Remotion reads.
+        """
+        seen: list[str] = []
+
+        def fake_run(argv):
+            seen.append(pathlib.Path(argv[5]).name)
+            pathlib.Path(argv[5]).write_bytes(b"a video")
+
+        with temporary_store() as root:
+            with (
+                mock.patch.object(paths, "data_root", return_value=root),
+                mock.patch.object(render, "run", side_effect=fake_run),
+            ):
+                cli._produce(charts.get("bengali"), "2026-W41", kind="video")
+
+        for name in seen:
+            with self.subTest(scratch=name):
+                self.assertTrue(name.startswith("."), "the scratch file has to be hidden")
+                self.assertTrue(
+                    name.endswith((".mp4", ".mkv", ".mov")),
+                    "Remotion validates the extension, and `.part` is not one it accepts",
                 )
 
     def test_a_render_that_reports_success_and_writes_nothing_is_refused(self):
@@ -530,7 +708,7 @@ class GatheringTheSources(unittest.TestCase):
             ]
         )
         client.parse = mock.Mock(
-            side_effect=lambda payload, *, listing: [
+            side_effect=lambda payload, *, listing, published="": [
                 row for row in rows if row.list == listing.slug
             ]
         )
@@ -663,6 +841,42 @@ class GatheringTheSources(unittest.TestCase):
 
         self.assertNotIn("comics", bundle["charts"])
         self.assertIn("did not answer", complaints)
+
+    def test_the_date_a_client_cannot_put_in_its_payload_is_handed_to_its_parser(self):
+        """⚠️ ⚠️ **The other half of the same defect — the one that kept `english` unbuildable.**
+
+        `indie`'s list is dated **in its own address**, so the response carries no date a parser could read. ⚠️ Called
+        without it, `indie.parse` returns rows whose `published` is empty — which `freshness` correctly refuses, so the
+        chart was absent every week and the vendor looked like it had failed. ⚠️ `Page.published` is the only route by
+        which a URL-borne date reaches a row, so this asserts the conductor actually hands it on.
+        """
+        seen: list[str] = []
+
+        client = mock.Mock()
+        client.fetch = mock.Mock(
+            side_effect=lambda chart, *, week: [
+                fetch.Page(
+                    listing=entry,
+                    name=f"indie-{entry.slug.partition('/')[2]}.html",
+                    payload=b"<html></html>",
+                    published="2026-10-14",
+                )
+                for entry in chart.lists
+                if entry.slug.startswith("indie/")
+            ]
+        )
+        client.parse = mock.Mock(
+            side_effect=lambda payload, *, listing, published="": seen.append(published) or []
+        )
+
+        self._gather(
+            {
+                "indie": client,
+                "nyt": self._client("nyt", [row("nyt/hardcover-fiction", "2026-10-14")]),
+            }
+        )
+
+        self.assertEqual(seen, ["2026-10-14"], "the page's date has to reach the parser")
 
     def test_a_fresh_vendor_keeps_its_rows(self):
         """The other half of the guard: freshness must not be so strict that a normal week refuses.

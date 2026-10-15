@@ -131,8 +131,15 @@ def fetch(chart: charts.Chart, *, week: str) -> Iterator[Page]:
         )
 
 
-def parse(payload: bytes, *, listing: charts.Listing) -> list[corroborate.Row]:
+def parse(
+    payload: bytes, *, listing: charts.Listing, published: str = ""
+) -> list[corroborate.Row]:
     """One bestseller page, shaped into rows.
+
+    ⚠️ **`published` is accepted and deliberately ignored** — Amazon's page carries no list date at all, so there is
+    nothing for this client to pass on. ⚠️ It is in the signature because the conductor calls every client the same
+    way (`fetch → snapshot → parse`, with the page's own date handed on), and a client that had to be called
+    differently would be a special case in the one function that must not have any.
 
     ⚠️ **The list slug comes from the declaration, and this is the opposite of the NYT rule.** NYT's response carries
     `list_name_encoded`, so its rows are tagged with what the vendor *said* and a mismatch is visible. ⚠️ An Amazon

@@ -9,27 +9,59 @@ import unittest
 from books_brief import charts, corroborate
 
 
-class TheGate(unittest.TestCase):
-    def test_two_lists_from_one_vendor_do_not_corroborate_each_other(self):
-        """⚠️ Ticket 17's sharpest rule.
+class TheUnion(unittest.TestCase):
+    """⚠️ ⚠️ **Ticket 17's gate is gone** (reversed 2026-10-15) — `corroborate`'s own docstring holds the arithmetic.
 
-        A title at #1 in NYT's hardcover-fiction list *and* #1 in its hardcover-nonfiction list has been seen by **one**
-        source. ⚠️ Two lists, one voice — and a gate that counted *lists* would admit it, which is *"a lie told in
-        arithmetic"*.
+    The chart ranks the **union** of its declared lists, and corroboration is carried on the row rather than used to
+    filter. ⚠️ What these tests pin is that **nothing is dropped**: a title only one list carried is on the chart, and
+    says so.
+    """
 
-        ⚠️ **The example moved in ticket 29.** It used to be Amazon.in's Hindi and Tamil categories — nine lists, one
-        vendor — but Amazon publishes **no per-language bestseller list at all**, so the all-language chart now declares
-        one list and the pair that demonstrates the rule is NYT's two.
+    def test_a_title_only_one_list_carried_is_admitted_anyway(self):
+        """⚠️ ⚠️ **The reversal, in one assertion.**
+
+        This title used to be *parked* — held off the chart for want of a second vendor. ⚠️ The arithmetic that made
+        that unworkable is the whole reason the rule fell: a chart with two vendors can only ever rank their
+        *intersection*, and a chart with one can rank nothing at all — which is why `all-language` and `comics` shipped
+        absent every week and looked like a sourcing failure.
+        """
+        rows = [corroborate.Row(list="nyt/hardcover-fiction", rank=3, isbn="9788129100001", title="A")]
+
+        result = corroborate.admit(rows, chart=charts.get("english"))
+
+        self.assertEqual([title.isbn for title in result.admitted], ["9788129100001"])
+        self.assertEqual(result.parked, (), "nothing is held back any more")
+
+    def test_the_row_says_which_lists_carried_it(self):
+        """⚠️ **The half that replaces the gate.** Recording only the winner would let the chart *assert* a fact rather
+        than *show* why it believes it — so a title on three lists carries all three, sorted, whatever order the vendors
+        happened to answer in.
         """
         rows = [
-            corroborate.Row(list="nyt/hardcover-fiction", rank=1, isbn="9788129100001", title="A"),
-            corroborate.Row(list="nyt/hardcover-nonfiction", rank=1, isbn="9788129100001", title="A"),
+            corroborate.Row(list="nyt/hardcover-nonfiction", rank=7, isbn="9788172151234", title="B"),
+            corroborate.Row(list="indie/national", rank=3, isbn="9788172151234", title="B"),
+            corroborate.Row(list="nyt/hardcover-fiction", rank=1, isbn="9788172151234", title="B"),
         ]
 
         result = corroborate.admit(rows, chart=charts.get("english"))
 
-        self.assertEqual(result.admitted, ())
-        self.assertEqual([title.isbn for title in result.parked], ["9788129100001"])
+        self.assertEqual(
+            result.admitted[0].sources,
+            ("indie/national", "nyt/hardcover-fiction", "nyt/hardcover-nonfiction"),
+        )
+
+    def test_a_row_from_an_undeclared_vendor_is_still_not_evidence(self):
+        """⚠️ **The spine survives the reversal.** Evidence from a source the chart does not declare is not evidence
+        *for that chart* — otherwise a stray row could put a title on a chart with no business ranking it.
+        """
+        rows = [
+            corroborate.Row(list="nyt/hardcover-fiction", rank=1, isbn="9788129100001", title="A"),
+            corroborate.Row(list="rokomari/best-sellers", rank=1, isbn="9788129100002", title="B"),
+        ]
+
+        result = corroborate.admit(rows, chart=charts.get("english"))
+
+        self.assertEqual([title.isbn for title in result.admitted], ["9788129100001"])
 
     def test_a_title_carried_by_two_vendors_is_admitted(self):
         """The comics chart's pair: NYT's graphic-books list plus Amazon.in's Comics & Mangas.

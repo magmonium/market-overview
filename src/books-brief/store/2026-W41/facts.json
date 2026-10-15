@@ -1,0 +1,3836 @@
+{
+  "charts": {
+    "english": {
+      "cover_coverage": 53,
+      "label_key": "english",
+      "language": "en",
+      "market": "us",
+      "ranked": [
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798347100217",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 21.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 1,
+          "rating": null,
+          "ratings_count": null,
+          "score": 2.0,
+          "title": "Trust Fall",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063462540",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 25.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 2,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9851851851851852,
+          "title": "The Sixth Faction Deluxe Limited Edition (A New Divergent Series #1)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217445981",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 3,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9851851851851852,
+          "title": "Camp Half-Blood: From the World of Percy Jackson: The Wild Zone",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "2d0fa4f5fdc54d339cdbe7f9488571d0310be8611e9dd3943e6ca62a68ad8264",
+            "url": "https://covers.openlibrary.org/b/isbn/9780063515109-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063515109",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 4,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9703703703703703,
+          "title": "Building 903",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781665921275",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 13.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 5,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9555555555555555,
+          "title": "Fake Skating",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781338762488",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 14.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 6,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9333333333333333,
+          "title": "The New Girl: First Crush: A Graphic Novel",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217032846",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 7,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9333333333333333,
+          "title": "Marionetta, Volume 1",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781665982412",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 15.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 8,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9333333333333331,
+          "title": "The Perks of Being a Wallflower (Special Edition)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063424319",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 9,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9185185185185185,
+          "title": "A Raven of the Rainforest (A Voice of the Wilderness Novel #5)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "0d3b2ebb526bc7adb5d71c3895ec6af7e98078470fab479db25b1bd36858fb19",
+            "url": "https://covers.openlibrary.org/b/isbn/9781536223361-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781536223361",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 10,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.9037037037037037,
+          "title": "The Skull: A Tyrolean Folktale",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063462595",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 21.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 11,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.8814814814814815,
+          "title": "The Sixth Faction (A New Divergent Series #1)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "9a4a941633e813170f9747c8a193f6ccbd12673db32a39032d1a35e35129f82a",
+            "url": "https://covers.openlibrary.org/b/isbn/9781534467637-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781534467637",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 12.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 12,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.8814814814814813,
+          "title": "Better Than the Movies",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "529391917760df87f7bd51546c00cec2a6649c45e84571b6990cdb696cbef85d",
+            "url": "https://covers.openlibrary.org/b/isbn/9781338762457-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781338762457",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 12.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 13,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.874074074074074,
+          "title": "The New Girl: A Graphic Novel",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063519633",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 24.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 14,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.837037037037037,
+          "title": "The Giver Deluxe Collector’s Edition",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "fafa33f8e5c67a0d2463705994135b5b7c158678481738f21e0787871da6316e",
+            "url": "https://covers.openlibrary.org/b/isbn/9780142407332-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780142407332",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 14.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 15,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.837037037037037,
+          "title": "The Outsiders",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "7086916ab5b6a24c8fc562bec9adfcc12e5bb1d8d52168e23cbc53b528b9ee3e",
+            "url": "https://covers.openlibrary.org/b/isbn/9781464249648-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781464249648",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 29.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 16,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.1425925925925926,
+          "title": "The Witch (Deluxe Edition)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781324131656",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 29.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 17,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.14,
+          "title": "Blockers: Rebels in the Deep State",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "db28f2da3adea04ca99f2151bb5360fcdc438498eaebec02d3453b179e9b4f32",
+            "url": "https://covers.openlibrary.org/b/isbn/9781682818084-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781682818084",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 24.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 18,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.14,
+          "title": "Threshing Day (Wing and Claw Collection) (The Empyrean)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780316603782",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 34.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 19,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0925925925925926,
+          "title": "The American Way of Killing: The Invention of an Epidemic",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780525562238",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 38.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 20,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0751851851851852,
+          "title": "The Rush: California Gold, the Civil War, and the Making of the Modern World",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "6c2f6e23b53d3874a1b56cd6e965654a4f1fb7e32bb119df8b85e478a07c0371",
+            "url": "https://covers.openlibrary.org/b/isbn/9781668233092-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781668233092",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 21,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0707407407407408,
+          "title": "Other Worlds Than These: A Talisman Novel (The Talisman Trilogy #3)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780525426073",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 32.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 22,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0677777777777777,
+          "title": "Hollywood, Ending",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "2b580ce6e988fcccab20f65813e698effb85d25340acd4df962cd5b00dcd6996",
+            "url": "https://covers.openlibrary.org/b/isbn/9781954118812-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781954118812",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 23,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0629629629629629,
+          "title": "The Calamity Club",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781538782224",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 24,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0537037037037036,
+          "title": "One Helluva Ride",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063577541",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 32.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 25,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.045925925925926,
+          "title": "Partita",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "830f4a1cc90f28e0d41c0e0f5f05f8f366aadf909c5a7506a682153057f6738b",
+            "url": "https://covers.openlibrary.org/b/isbn/9798217379743-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217379743",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 26,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.035925925925926,
+          "title": "Swan Song: Diana, my sister",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "933ff1a77d31acd2043626ce80ec34e925f992a0e731f236a5475c716188bfef",
+            "url": "https://covers.openlibrary.org/b/isbn/9781538752036-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781538752036",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 36.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 27,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0303703703703704,
+          "title": "American Hagwon",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593655276",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 36.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 28,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0229629629629629,
+          "title": "Sleeping Beauties: Why Good Ideas Go Dormant and How They Wake Up",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "7f1ce81224fff6a827e6046c1ef2cca8cfd1c578054aafdf17cc7fde3241b78f",
+            "url": "https://covers.openlibrary.org/b/isbn/9780385550543-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780385550543",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 29,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.021111111111111,
+          "title": "The French Illusion (The French Illusion Series)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "9670c5a20e22bc7a50789cd92e054d7d770145b3ce5599659e740066a052ae96",
+            "url": "https://covers.openlibrary.org/b/isbn/9780451524935-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780451524935",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 12.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 30,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0,
+          "title": "1984",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593110409",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 31,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0,
+          "title": "Room on the Broom",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "0bba575211df3f634933f96cc21f83fb5751bcda026968e83ebb1d1d9fc4e231",
+            "url": "https://covers.openlibrary.org/b/isbn/9781324099406-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781324099406",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 32,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0,
+          "title": "Crossing the Wine-Dark Sea: Journeys Through Ancient Literature",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "37bd053616ef519dddda72345abcb409af304ccb98a80b0cea43f87f22878e55",
+            "url": "https://covers.openlibrary.org/b/isbn/9781668236512-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781668236512",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 33,
+          "rating": null,
+          "ratings_count": null,
+          "score": 1.0,
+          "title": "Theo of Golden",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063455887",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 34,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9925925925925926,
+          "title": "The Skeleton and the Cat",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "ae2dd81211cb46effe0c6555c21811a32d9807a50d756d095e4f211e4102c1a0",
+            "url": "https://covers.openlibrary.org/b/isbn/9780451526342-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780451526342",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 12.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 35,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9925925925925926,
+          "title": "Animal Farm",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "dd8fae20293501dfe818e7bd6c5bd7056164ed88cae431d429d4ad48513fac8b",
+            "url": "https://covers.openlibrary.org/b/isbn/9780593820254-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593820254",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 36,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9925925925925926,
+          "title": "Dungeon Crawler Carl",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "d5a166ff5f57fdf55624231473ed667effde3ef79a170865dce14bb7caf825bc",
+            "url": "https://covers.openlibrary.org/b/isbn/9781571313560-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781571313560",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 22.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 37,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9925925925925926,
+          "title": "Braiding Sweetgrass: Indigenous Wisdom, Scientific Knowledge, and the Teachings of Plants",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "b3ef8da643745b9018c28abd87453c4ae23275c5005ae15edeb3fc368637cdde",
+            "url": "https://covers.openlibrary.org/b/isbn/9780060959470-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780060959470",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 17.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 38,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9851851851851852,
+          "title": "All About Love: New Visions",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "65fd056f100b5e8e4a1a102e382b34efb0c3e0785bd4c4236d52948b52629172",
+            "url": "https://covers.openlibrary.org/b/isbn/9780142004234-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780142004234",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 25.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 39,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9851851851851852,
+          "title": "East of Eden",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "54ea2f5ab59a2c8eadcf38dcc4b9ac5cb1396142f195dc4fda96c989c238ae20",
+            "url": "https://covers.openlibrary.org/b/isbn/9780345514400-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780345514400",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 40,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9851851851851852,
+          "title": "I Know Why the Caged Bird Sings",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "0499bba1323575605cf65ce0e5eab8cb5ffad3fbdf1fd1e899cf56b5de7ea780",
+            "url": "https://covers.openlibrary.org/b/isbn/9780385550345-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780385550345",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 32.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 41,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9851851851851852,
+          "title": "The Pirate Queen",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217238736",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 42,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9851851851851852,
+          "title": "Gruffalo Granny",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593726259",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 34.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 43,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9837037037037036,
+          "title": "Hollow Bones",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "14f2ab03ef3e26b69bb2ed42773d4ef9b44140916c01adb58aa5c20c85b3b060",
+            "url": "https://covers.openlibrary.org/b/isbn/9780593804216-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593804216",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 30.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 44,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9833333333333334,
+          "title": "Yesteryear (Indies Introduce)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "1040fdd16f4883a1f267d529ab6841b19ce380296ad2570ecbaa48b6f4f5763a",
+            "url": "https://covers.openlibrary.org/b/isbn/9780374621384-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780374621384",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 32.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 45,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9777777777777777,
+          "title": "End Times Fascism: And the Fight for the Living World",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "bf23d1b1092a19a7194cc56f1185c94a1f6610b379ef52e77e4fab9e34db1b6c",
+            "url": "https://covers.openlibrary.org/b/isbn/9780440180296-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780440180296",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 46,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9777777777777777,
+          "title": "Slaughterhouse-Five",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781668094723",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 47,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9777777777777777,
+          "title": "Mother Mary Comes to Me",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781834021195",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 48,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9777777777777777,
+          "title": "Midnight Manor: A Backwards Bedtime Book",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217192359",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 49,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9777777777777777,
+          "title": "Bound and Unbound: A paranormal novella duology",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "97b7df6551d56c25919fc5e83420a9476e1fc2e13bcf9bd3d01ded058ecae9ab",
+            "url": "https://covers.openlibrary.org/b/isbn/9780694003617-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780694003617",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 50,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9703703703703703,
+          "title": "Goodnight Moon",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "ef98ef592699b51b04d0445a3ca8f2e040c19f38b9a6b278ae17d90d303eb0dc",
+            "url": "https://covers.openlibrary.org/b/isbn/9781250318541-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250318541",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 51,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9703703703703703,
+          "title": "Mistborn: The Final Empire",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250448194",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 52,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9703703703703703,
+          "title": "Enshittification: Why Everything Suddenly Got Worse and What to Do About It",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "3703dd6aa7473db54775fa251364750e5885e13d00e8b7de8c64b9670a1317e9",
+            "url": "https://covers.openlibrary.org/b/isbn/9781668002544-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781668002544",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 53,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9703703703703703,
+          "title": "Happy Snacking, Don't Die!: Foraging and Vegan Recipes with Black Forager (A Cookbook)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "b4663884cb1c6dc500786c7485f97b0d4e9248898e13535ae74a77d059727c67",
+            "url": "https://covers.openlibrary.org/b/isbn/9798892426374-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798892426374",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 54,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9703703703703703,
+          "title": "Fruit Fly",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "5140006d691ffb98b21e3b423eb93138dcd7ae58f1a84ee6cb8976b601e29832",
+            "url": "https://covers.openlibrary.org/b/isbn/9780399501487-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780399501487",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 13.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 55,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9629629629629629,
+          "title": "Lord of the Flies",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593854297",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 56,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9629629629629629,
+          "title": "A Marriage at Sea (Indies Introduce)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250828019",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 57,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9629629629629629,
+          "title": "Wild Dark Shore",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781464268076",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 58,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9629629629629629,
+          "title": "The Pumpkin Thief (The Leaf Thief)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "b4112db50132657e8e5509d04e1d0c4d26c083fd07421927a87705ed2947b4f5",
+            "url": "https://covers.openlibrary.org/b/isbn/9780316769488-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780316769488",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 59,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "The Catcher in the Rye",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593321461",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 32.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 60,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "Exit Party",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250344489",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 61,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "Family of Spies: A World War II Story of Nazi Espionage, Betrayal, and the Secret History Behind Pearl Harbor",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "302b7659d4137396e5d7d54462620c74da7b89b8e87706591d7b5b84090f14af",
+            "url": "https://covers.openlibrary.org/b/isbn/9781481486293-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781481486293",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 62,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "Hatchet",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "2b9e9941b54ded8c038f1f58cc4a3cb6f65101931877f2be1261f8cfaf5094fb",
+            "url": "https://covers.openlibrary.org/b/isbn/9781945492600-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781945492600",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 16.95,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 63,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "I Who Have Never Known Men",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781984860088",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 45.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 64,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "Ottolenghi Simple Too: A Cookbook",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798225041335",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 14.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 65,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9555555555555556,
+          "title": "Millie Fleur's Pumpkin Problem",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "b15b268a1188e694279ca19bc603dedb2b90cdf934ae4cc60c8a326ffa2da639",
+            "url": "https://covers.openlibrary.org/b/isbn/9780064400558-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780064400558",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 66,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "Charlotte's Web",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "1cc5b3ce3c1a4cc85ec5a846d61cecf7ddd2379597c21cc4fdb66939b59f2314",
+            "url": "https://covers.openlibrary.org/b/isbn/9780553283686-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780553283686",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 11.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 67,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "Hyperion",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "99d1bc5b89817af0bcd94cb5bd03f0b4a877c905462796f0da84be6eeb878f60",
+            "url": "https://covers.openlibrary.org/b/isbn/9780593717202-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593717202",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 32.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 68,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "The Disappearers",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593904121",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 69,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "The Pools",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781101910177",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 20.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 70,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "Bread of Angels: A Memoir",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781643266510",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 28.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 71,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "The Forest Year: Finding Hope in a World Worth Saving",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217233175",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 72,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "Wonderful Halloween",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217299461",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 22.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 73,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9481481481481482,
+          "title": "Project Hail Mary",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "2ca4de519c5f8d10f8a1c0a4ea2d482a5e600d3c968dcc9ef04aab7f6480d91c",
+            "url": "https://covers.openlibrary.org/b/isbn/9780544772533-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780544772533",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 13.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 74,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9407407407407408,
+          "title": "Little Blue Truck's Halloween",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "17ef0b29657f1902a4ba6faa3dfe7a42bf8e06d751e27aa1ba0da09e0a7c17b4",
+            "url": "https://covers.openlibrary.org/b/isbn/9780553577129-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780553577129",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 75,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9407407407407408,
+          "title": "The Diary of a Young Girl",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593978177",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 30.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 76,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9407407407407408,
+          "title": "An Unexpected Life: A Memoir",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250178640",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 21.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 77,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9407407407407408,
+          "title": "The Women",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "c029bf190bdfc5b02dbe0c92c16716b775dffe4249270425a43a452d605f4bda",
+            "url": "https://covers.openlibrary.org/b/isbn/9781339028019-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781339028019",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 16.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 78,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9407407407407408,
+          "title": "Super Duper Extra Deluxe Essential Handbook (Pokemon)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217009077",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 21.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 79,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9407407407407408,
+          "title": "You Don't Need a Smartphone: A Practical Guide to Downgrading Your Phone and Upgrading Your Life",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "c372c96923e4ff5b975c660512b27560c5176955fad6722d7670a6321bc973a7",
+            "url": "https://covers.openlibrary.org/b/isbn/9780316264839-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780316264839",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 30.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 80,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9333333333333333,
+          "title": "The Land and Its People: Essays",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "85c3e02c1709fa75f569d9921f7a39865a078205f1d670a72880dba3d1c8a703",
+            "url": "https://covers.openlibrary.org/b/isbn/9780345391803-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780345391803",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 9.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 81,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9333333333333333,
+          "title": "The Hitchhiker's Guide to the Galaxy",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "ca0db367fb024d287273530f3baf32c8a515b07b792daa58adbabcc5fbf4cb6e",
+            "url": "https://covers.openlibrary.org/b/isbn/9780399226908-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780399226908",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 82,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9333333333333333,
+          "title": "The Very Hungry Caterpillar",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "fb63fae8132542b86d2ff6eea1bd1afaebe28075a2d631949d107c276f25dfb3",
+            "url": "https://covers.openlibrary.org/b/isbn/9780593820278-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593820278",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 21.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 83,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9333333333333333,
+          "title": "Carl's Doomsday Scenario (Dungeon Crawler Carl #2)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781665961110",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 13.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 84,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9333333333333333,
+          "title": "Unsettling Salad! (Jasper Rabbit's Creepy Tales!)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "a631b97cdf95630d49725234c0605d59ce35aab5a1fd94ef9b9e5eb858ab0c38",
+            "url": "https://covers.openlibrary.org/b/isbn/9781984898456-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781984898456",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 85,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9333333333333333,
+          "title": "The Art Thief: A True Story of Love, Crime, and a Dangerous Obsession",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "2439c0fdba609d38276ae778506012e09aa52bb2170adcb71ad6dd9ccb6e2d63",
+            "url": "https://covers.openlibrary.org/b/isbn/9780441478125-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780441478125",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 86,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9259259259259259,
+          "title": "The Left Hand of Darkness",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780500653951",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 19.95,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 87,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9259259259259259,
+          "title": "Mouse Goes to the Mountains: A Hike Through Nature (Mouse’s Adventures)",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "e8ff81e60230d0d2b1d32e47579f074fff7734914f0a6ee3c82965fec520655b",
+            "url": "https://covers.openlibrary.org/b/isbn/9780544336261-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780544336261",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 11.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 88,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9259259259259259,
+          "title": "The Giver",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780593689004",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 21.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 89,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9259259259259259,
+          "title": "Raising Hare: A Memoir",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "d9f865fad66423589a4df1a67d13a00a6e50284e56b22f0ba4f6ac843ff4cf8f",
+            "url": "https://covers.openlibrary.org/b/isbn/9781250899552-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250899552",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 90,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9259259259259259,
+          "title": "The Wedding People",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9798217002498",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 14.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 91,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9259259259259259,
+          "title": "Mexikid Dreams: A Graphic Memoir",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "b7bab5c982e1dd3432a876f0cae4ed7bbe0845db1a54101a71b6ffde87f40cdb",
+            "url": "https://covers.openlibrary.org/b/isbn/9780060899226-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780060899226",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 92,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "Kitchen Confidential: Adventures in the Culinary Underbelly",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "12f4e0cb12984832c24b936fb76faf115b31f4ab660a2356f45649d411d6e8c7",
+            "url": "https://covers.openlibrary.org/b/isbn/9780063511637-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780063511637",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 30.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 93,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "Whistler",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "bd727ff74cae2f8e44cc390c92774fdd312c6dc6eea461f2054c5446b50358b9",
+            "url": "https://covers.openlibrary.org/b/isbn/9780345337665-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780345337665",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 12.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 94,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "Interview with the Vampire",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "5c7992a33e487138380afa758af542293446e3e00b83eb1bf95a9742744b2c33",
+            "url": "https://covers.openlibrary.org/b/isbn/9780345539809-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780345539809",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 18.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 95,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "Red Rising",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "9491413a7de0d852b813b491bbae814a47c8372d8336769f6ee565dc28bb801a",
+            "url": "https://covers.openlibrary.org/b/isbn/9780385548533-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780385548533",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 35.0,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 96,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "London Falling: A Mysterious Death in a Gilded City and a Family's Search for Truth",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250404756",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 24.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 97,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "The Siren: Deluxe Edition",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781250445506",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 98,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "Brown Bear, Brown Bear, What Do You See?: Stamped Edges Special Edition",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": null,
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9781665984126",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 99,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9185185185185185,
+          "title": "Winnie-the-Pooh: 100th Anniversary Edition",
+          "weeks_on_chart": 0
+        },
+        {
+          "author": "",
+          "country": "us",
+          "cover": {
+            "sha256": "681f7f4a7e0bbd202505e132730848767a3940ea31c45d3d39b636e947ae9901",
+            "url": "https://covers.openlibrary.org/b/isbn/9780062991324-L.jpg?default=false"
+          },
+          "genre": "other",
+          "identity": "resolved",
+          "is_new": true,
+          "isbn": "9780062991324",
+          "language": "en",
+          "move": null,
+          "price": {
+            "amount": 10.99,
+            "currency": "USD",
+            "edition": null,
+            "retailer": "indie",
+            "retailers": [
+              "indie"
+            ]
+          },
+          "published": null,
+          "publisher": "",
+          "rank": 100,
+          "rating": null,
+          "ratings_count": null,
+          "score": 0.9111111111111111,
+          "title": "The One and Only Bob",
+          "weeks_on_chart": 0
+        }
+      ],
+      "timeline": {
+        "blocks": [
+          {
+            "duration": 180,
+            "enter_frames": 12,
+            "id": "intro",
+            "key": "intro",
+            "rank": null,
+            "start": 0
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "001-book",
+            "key": "book",
+            "rank": 1,
+            "start": 180
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "002-book",
+            "key": "book",
+            "rank": 2,
+            "start": 285
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "003-book",
+            "key": "book",
+            "rank": 3,
+            "start": 390
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "004-book",
+            "key": "book",
+            "rank": 4,
+            "start": 495
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "005-book",
+            "key": "book",
+            "rank": 5,
+            "start": 600
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "006-book",
+            "key": "book",
+            "rank": 6,
+            "start": 705
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "007-book",
+            "key": "book",
+            "rank": 7,
+            "start": 810
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "008-book",
+            "key": "book",
+            "rank": 8,
+            "start": 915
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "009-book",
+            "key": "book",
+            "rank": 9,
+            "start": 1020
+          },
+          {
+            "duration": 105,
+            "enter_frames": 12,
+            "id": "010-book",
+            "key": "book",
+            "rank": 10,
+            "start": 1125
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "011-book",
+            "key": "book",
+            "rank": 11,
+            "start": 1230
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "012-book",
+            "key": "book",
+            "rank": 12,
+            "start": 1290
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "013-book",
+            "key": "book",
+            "rank": 13,
+            "start": 1350
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "014-book",
+            "key": "book",
+            "rank": 14,
+            "start": 1410
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "015-book",
+            "key": "book",
+            "rank": 15,
+            "start": 1470
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "016-book",
+            "key": "book",
+            "rank": 16,
+            "start": 1530
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "017-book",
+            "key": "book",
+            "rank": 17,
+            "start": 1590
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "018-book",
+            "key": "book",
+            "rank": 18,
+            "start": 1650
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "019-book",
+            "key": "book",
+            "rank": 19,
+            "start": 1710
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "020-book",
+            "key": "book",
+            "rank": 20,
+            "start": 1770
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "021-book",
+            "key": "book",
+            "rank": 21,
+            "start": 1830
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "022-book",
+            "key": "book",
+            "rank": 22,
+            "start": 1890
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "023-book",
+            "key": "book",
+            "rank": 23,
+            "start": 1950
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "024-book",
+            "key": "book",
+            "rank": 24,
+            "start": 2010
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "025-book",
+            "key": "book",
+            "rank": 25,
+            "start": 2070
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "026-book",
+            "key": "book",
+            "rank": 26,
+            "start": 2130
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "027-book",
+            "key": "book",
+            "rank": 27,
+            "start": 2190
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "028-book",
+            "key": "book",
+            "rank": 28,
+            "start": 2250
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "029-book",
+            "key": "book",
+            "rank": 29,
+            "start": 2310
+          },
+          {
+            "duration": 60,
+            "enter_frames": 9,
+            "id": "030-book",
+            "key": "book",
+            "rank": 30,
+            "start": 2370
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "031-book",
+            "key": "book",
+            "rank": 31,
+            "start": 2430
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "032-book",
+            "key": "book",
+            "rank": 32,
+            "start": 2472
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "033-book",
+            "key": "book",
+            "rank": 33,
+            "start": 2514
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "034-book",
+            "key": "book",
+            "rank": 34,
+            "start": 2556
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "035-book",
+            "key": "book",
+            "rank": 35,
+            "start": 2598
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "036-book",
+            "key": "book",
+            "rank": 36,
+            "start": 2640
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "037-book",
+            "key": "book",
+            "rank": 37,
+            "start": 2682
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "038-book",
+            "key": "book",
+            "rank": 38,
+            "start": 2724
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "039-book",
+            "key": "book",
+            "rank": 39,
+            "start": 2766
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "040-book",
+            "key": "book",
+            "rank": 40,
+            "start": 2808
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "041-book",
+            "key": "book",
+            "rank": 41,
+            "start": 2850
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "042-book",
+            "key": "book",
+            "rank": 42,
+            "start": 2892
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "043-book",
+            "key": "book",
+            "rank": 43,
+            "start": 2934
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "044-book",
+            "key": "book",
+            "rank": 44,
+            "start": 2976
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "045-book",
+            "key": "book",
+            "rank": 45,
+            "start": 3018
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "046-book",
+            "key": "book",
+            "rank": 46,
+            "start": 3060
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "047-book",
+            "key": "book",
+            "rank": 47,
+            "start": 3102
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "048-book",
+            "key": "book",
+            "rank": 48,
+            "start": 3144
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "049-book",
+            "key": "book",
+            "rank": 49,
+            "start": 3186
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "050-book",
+            "key": "book",
+            "rank": 50,
+            "start": 3228
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "051-book",
+            "key": "book",
+            "rank": 51,
+            "start": 3270
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "052-book",
+            "key": "book",
+            "rank": 52,
+            "start": 3312
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "053-book",
+            "key": "book",
+            "rank": 53,
+            "start": 3354
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "054-book",
+            "key": "book",
+            "rank": 54,
+            "start": 3396
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "055-book",
+            "key": "book",
+            "rank": 55,
+            "start": 3438
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "056-book",
+            "key": "book",
+            "rank": 56,
+            "start": 3480
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "057-book",
+            "key": "book",
+            "rank": 57,
+            "start": 3522
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "058-book",
+            "key": "book",
+            "rank": 58,
+            "start": 3564
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "059-book",
+            "key": "book",
+            "rank": 59,
+            "start": 3606
+          },
+          {
+            "duration": 42,
+            "enter_frames": 6,
+            "id": "060-book",
+            "key": "book",
+            "rank": 60,
+            "start": 3648
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "061-book",
+            "key": "book",
+            "rank": 61,
+            "start": 3690
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "062-book",
+            "key": "book",
+            "rank": 62,
+            "start": 3720
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "063-book",
+            "key": "book",
+            "rank": 63,
+            "start": 3750
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "064-book",
+            "key": "book",
+            "rank": 64,
+            "start": 3780
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "065-book",
+            "key": "book",
+            "rank": 65,
+            "start": 3810
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "066-book",
+            "key": "book",
+            "rank": 66,
+            "start": 3840
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "067-book",
+            "key": "book",
+            "rank": 67,
+            "start": 3870
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "068-book",
+            "key": "book",
+            "rank": 68,
+            "start": 3900
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "069-book",
+            "key": "book",
+            "rank": 69,
+            "start": 3930
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "070-book",
+            "key": "book",
+            "rank": 70,
+            "start": 3960
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "071-book",
+            "key": "book",
+            "rank": 71,
+            "start": 3990
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "072-book",
+            "key": "book",
+            "rank": 72,
+            "start": 4020
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "073-book",
+            "key": "book",
+            "rank": 73,
+            "start": 4050
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "074-book",
+            "key": "book",
+            "rank": 74,
+            "start": 4080
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "075-book",
+            "key": "book",
+            "rank": 75,
+            "start": 4110
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "076-book",
+            "key": "book",
+            "rank": 76,
+            "start": 4140
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "077-book",
+            "key": "book",
+            "rank": 77,
+            "start": 4170
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "078-book",
+            "key": "book",
+            "rank": 78,
+            "start": 4200
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "079-book",
+            "key": "book",
+            "rank": 79,
+            "start": 4230
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "080-book",
+            "key": "book",
+            "rank": 80,
+            "start": 4260
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "081-book",
+            "key": "book",
+            "rank": 81,
+            "start": 4290
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "082-book",
+            "key": "book",
+            "rank": 82,
+            "start": 4320
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "083-book",
+            "key": "book",
+            "rank": 83,
+            "start": 4350
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "084-book",
+            "key": "book",
+            "rank": 84,
+            "start": 4380
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "085-book",
+            "key": "book",
+            "rank": 85,
+            "start": 4410
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "086-book",
+            "key": "book",
+            "rank": 86,
+            "start": 4440
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "087-book",
+            "key": "book",
+            "rank": 87,
+            "start": 4470
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "088-book",
+            "key": "book",
+            "rank": 88,
+            "start": 4500
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "089-book",
+            "key": "book",
+            "rank": 89,
+            "start": 4530
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "090-book",
+            "key": "book",
+            "rank": 90,
+            "start": 4560
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "091-book",
+            "key": "book",
+            "rank": 91,
+            "start": 4590
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "092-book",
+            "key": "book",
+            "rank": 92,
+            "start": 4620
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "093-book",
+            "key": "book",
+            "rank": 93,
+            "start": 4650
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "094-book",
+            "key": "book",
+            "rank": 94,
+            "start": 4680
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "095-book",
+            "key": "book",
+            "rank": 95,
+            "start": 4710
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "096-book",
+            "key": "book",
+            "rank": 96,
+            "start": 4740
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "097-book",
+            "key": "book",
+            "rank": 97,
+            "start": 4770
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "098-book",
+            "key": "book",
+            "rank": 98,
+            "start": 4800
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "099-book",
+            "key": "book",
+            "rank": 99,
+            "start": 4830
+          },
+          {
+            "duration": 30,
+            "enter_frames": 4,
+            "id": "100-book",
+            "key": "book",
+            "rank": 100,
+            "start": 4860
+          },
+          {
+            "duration": 180,
+            "enter_frames": 12,
+            "id": "outro",
+            "key": "outro",
+            "rank": null,
+            "start": 4890
+          }
+        ],
+        "cap_seconds": 180,
+        "fps": 30,
+        "total_frames": 5070
+      },
+      "watchlist": [
+        "9780307279286",
+        "9780593873465",
+        "9780765365279",
+        "9781546160182",
+        "9781668221402",
+        "9798217124183",
+        "9780374621568",
+        "9780393356250",
+        "9780593098233",
+        "9798217024308",
+        "9798217118748",
+        "9798225049621",
+        "9780063415140",
+        "9780143127741",
+        "9780593640340",
+        "9780786851720",
+        "9781668032145",
+        "9781668074640",
+        "9798217116911",
+        "9798893380620",
+        "9780063443914",
+        "9780306838026",
+        "9781541608252",
+        "9781335003430",
+        "9781546008873",
+        "9798217046034",
+        "9780374618759",
+        "9780593956014",
+        "9780593731772",
+        "9781250284549",
+        "9781250192233",
+        "9798217154852",
+        "9781982177331",
+        "9798217190041"
+      ]
+    }
+  },
+  "meta": {
+    "chart_logic": 1,
+    "schema": 1,
+    "week": "2026-W41",
+    "window_weeks": 1
+  }
+}

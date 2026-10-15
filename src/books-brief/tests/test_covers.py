@@ -101,6 +101,46 @@ class TheSourceOrder(unittest.TestCase):
         )
 
 
+    def test_the_lists_own_image_wins_over_googles(self):
+        """⚠️ **The list's image first**, and ticket 05 gives the reason: the vendor chose the picture that represents
+        the title it ranked, and a cover is the one field where Google's edition is not necessarily the edition that is
+        selling. ⚠️ The real URLs, taken from a scraped Amazon.in list.
+        """
+        raw = (
+            "http://books.google.com/books/content?id=abc&printsec=frontcover"
+            "&img=1&zoom=1&edge=curl&source=gbs_api"
+        )
+        listed = "https://images-eu.ssl-images-amazon.com/images/I/819THkNxhZL._AC_UL300_.jpg"
+
+        self.assertEqual(covers.url_for("9788172151234", listed=listed, google=raw), listed)
+
+    def test_the_lists_url_is_not_put_through_googles_normalisation(self):
+        """⚠️ **The normalisation is Google's own, and a CDN URL carries neither half of it.**
+
+        `edge=curl` and `zoom` are Google Books' query parameters. Running an Amazon URL through `google_books_url`
+        would append a `zoom=2` that the CDN ignores at best — so the list's URL passes through exactly as given.
+        """
+        listed = "https://m.media-amazon.com/images/I/71My1M0AgZL.jpg"
+
+        chosen = covers.url_for("9788172151234", listed=listed)
+
+        self.assertEqual(chosen, listed)
+        self.assertNotIn("zoom=", chosen)
+
+    def test_an_empty_list_url_falls_through_to_google(self):
+        """⚠️ **A row with no image carries `""`, not `None`** — and it must not be mistaken for a source.
+
+        Amazon ships no image on some rows, and `corroborate.Title.cover_url` defaults to `""`. Read as truthy, that
+        would hand an empty URL to the network instead of falling through to Google and then to Open Library.
+        """
+        raw = "http://books.google.com/books/content?id=abc&img=1&zoom=1&edge=curl"
+
+        chosen = covers.url_for("9788172151234", listed="", google=raw)
+
+        self.assertTrue(chosen.startswith("https://"), "http would be mixed content")
+        self.assertIn("zoom=2", chosen, "the default thumbnail is too small for a slide")
+
+
 class TheCoverRecord(unittest.TestCase):
     def test_a_cover_records_where_it_came_from_and_what_it_was(self):
         """⚠️ Ticket 05 — *"the snapshot records where the cover came from — the source URL and a content hash."*

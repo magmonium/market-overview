@@ -44,3 +44,37 @@ lie told in arithmetic"*, and it is the single distinction this ADR exists to fi
   publisher and one that can *show* why it believes it.
 - ⚠️ **A chart that cannot be corroborated must not *look* corroborated**, which is why the footer names the sources
   (ADR 0001).
+
+## ⚠️ ⚠️ Amended 2026-10-15 — the gate is *reported*, not required
+
+⚠️ **The decision above is reversed.** A title enters a chart when **any** declared list carries it; corroboration is
+carried on the row and expressed through ticket 03's score instead of gating admission. ⚠️ The rule was not wrong so much
+as **unsatisfiable**, and the arithmetic is short:
+
+    the `english` chart declares two vendors (NYT, Indie)
+    the gate admits a title only when two *different vendors* carry it
+    ⇒ the chart can rank only their *intersection* — 16 rows, against a "Top 100" title
+    ⇒ a one-vendor chart (`all-language`) can rank **nothing at all**, ever
+
+⚠️ **The evidence is the recorded week.** Replaying 2026-W41's own raw responses through the two vendors the chart
+already declared gives **165 list-rows → 134 distinct titles** — 103 carried by one list, 31 by two — where the gate
+admitted **16**. ⚠️ Nothing was added to the source set to achieve that; the rule *was* the whole constraint.
+
+⚠️ **What survives, and it is most of it:**
+
+- ⚠️ **A source is still a vendor, not a list.** Amazon.in's several lists are still **one voice** — the distinction this
+  ADR exists to fix in place is untouched.
+- ⚠️ **Every row still carries the lists that carried it** (`Title.sources`), so the chart can still *show* why it
+  believes a thing rather than asserting it. That was the auditability half, and it is now the only thing standing where
+  the gate was.
+- ⚠️ **The vendors are still the spine**: losing one still makes the chart **absent**, not smaller.
+- ⚠️ **Per-field priority and identity corroboration are unchanged.**
+
+⚠️ **And one thing this ADR can no longer claim — recorded rather than glossed.** Ticket 03's score sums each *list*, so a
+vendor declaring two lists a title could appear on twice would count twice: the *"lie told in arithmetic"* above. ⚠️ No
+declared chart can currently do that — `english`'s two NYT lists are fiction and nonfiction, and one book cannot be on
+both — so it is a **guard to add, not a defect to repair**, and it belongs to ticket 03.
+
+⚠️ **What is lost, stated plainly:** a chart no longer *certifies* that two independent sources agree. It **reports how
+many did**. ⚠️ That is a weaker claim, and the footer that names the sources (ADR 0001) is now load-bearing for it
+rather than decorative.
