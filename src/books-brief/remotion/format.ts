@@ -38,7 +38,7 @@ export const digits = (value: string | number, lang: string): string => {
 /**
  * ⚠️ **Money is currency-specific in three ways, and the first version of this file knew about none of them.**
  *
- * 1. ⚠️ **The symbol** — `₹`, `$`, `৳`.
+ * 1. ⚠️ **The symbol** — `₹`, `$`, `£`, `৳`, `CA$`, `A$`.
  * 2. ⚠️ **The grouping** — ₹1,29,900 is a lakh-grouped Indian number and `$129,900` is not, and a dollar figure grouped
  *    the Indian way reads as a typo to the reader it is for.
  * 3. ⚠️ **The minor unit** — an Indian book price is a whole number of rupees, and a US one is **`$24.99`**. The old
@@ -49,12 +49,24 @@ export const digits = (value: string | number, lang: string): string => {
  * English chart **US**, ticket 20 made the Bengali chart span **India and Bangladesh**, and ticket 22 made comics
  * **worldwide** — so "India-anchored" stopped being true three tickets before anyone changed a line of code.
  *
+ * ⚠️ **And 2026-10-15 added the English chart's four international marketplaces**, which is what brought `GBP`, `CAD` and
+ * `AUD` into this table. ⚠️ The English chart is no longer US — see its own note in `books_brief/charts.py`.
+ *
  * ⚠️ **An unknown currency draws no symbol rather than a wrong one.** A price whose denomination the evidence does not
  * state is a price the slide may print as a bare number; it is never one it may label with the wrong sign.
  */
 const MONEY: Readonly<Record<string, {symbol: string; locale: string; places: number}>> = {
   INR: {symbol: '₹', locale: 'en-IN', places: 0},
   USD: {symbol: '$', locale: 'en-US', places: 2},
+  // ⚠️ **The pound** — the English chart's UK rows (`amazon.co.uk`). Grouped and priced the Western way, but with the
+  // pound's own sign, because `$24.99` and `£24.99` are not close (2026-10-15).
+  GBP: {symbol: '£', locale: 'en-GB', places: 2},
+  // ⚠️ **The two dollars that are not the US dollar** (2026-10-15), and this is exactly why the *currency* is a value on
+  // the price rather than a symbol read off the page: `amazon.ca` and `amazon.com.au` both print a bare `$`, so the glyph
+  // cannot tell them from USD — only the marketplace can (`amazon.MARKETPLACES`). ⚠️ They are labelled `CA$` / `A$` so a
+  // reader is never shown a plain `$` for a price that is not American.
+  CAD: {symbol: 'CA$', locale: 'en-CA', places: 2},
+  AUD: {symbol: 'A$', locale: 'en-AU', places: 2},
   // ⚠️ Bangladeshi Taka: the ৳ sign and whole-number pricing, like the rupee — but grouped the Western way, because a
   // Taka price is not a rupee price and grouping it as one would be a second wrongness on top of the first.
   BDT: {symbol: '৳', locale: 'en-US', places: 0},

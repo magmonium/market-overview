@@ -284,6 +284,10 @@ still carries it and ADR 0003 promises that a past week re-renders with today's 
 - **The Bengali chart needs a second vendor.** ⚠️ Rokomari alone cannot corroborate anything, so finding Anandabazar's
   weekly list — or any second weekly Bengali ranking — is what would bring the chart back. ⚠️ That is a **search**, not a
   correction, and it belongs to a fresh ticket.
+  ⚠️ **That search has now been done — ticket 31.** The list was **located**, and it is everything this ticket hoped for:
+  sales-ranked, dated, with an author and a publisher per row. ⚠️ And every instalment the site serves is **2014–2015**,
+  so it is an archive rather than a source, and the Bengali chart's Indian half is still `boichitro` rather than
+  Anandabazar.
 - **Rokomari needs a date.** The list parses and the address is settled; only its vintage is unknown, and ⚠️ that is the
   whole of what stands between this chart and the freshness guard.
 - **`amazon-in` is a scrape** contrary to Amazon's terms and ticket 25's single point of failure — now load-bearing for

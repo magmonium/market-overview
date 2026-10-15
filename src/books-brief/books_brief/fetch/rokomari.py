@@ -16,9 +16,17 @@ own, **not an ISBN**, so a row's key is prefixed (`rokomari:890`) and `enrich.is
 marks the identity **unresolved** (ticket 05).
 
 ⚠️ ⚠️ **And the list carries no date.** The flight has no publication date anywhere, so a Rokomari row is **undated** —
-and `freshness.is_fresh("")` is **False**, because an undated list is one the guard cannot verify. ⚠️ That means this
-vendor is refused as **stale** until a date is found, which is the correct outcome rather than a bug: ticket 10's rule is
-that a source must be *verified* to have published for the week, and this one cannot be.
+and `freshness.is_fresh("")` is **False**, because an undated list is one the guard cannot verify. ⚠️ **That is no longer
+a refusal, and the correction is ticket 30's** (2026-10-15): a retailer's own bestseller category is **regenerated per
+order**, so there is no dated artefact for a date to be missing *from* — which is exactly the case `charts.LIVE` exists
+for, and `ROKOMARI` is in it. ⚠️ The half that still protects the product is untouched: a Rokomari that answers *nothing*
+is still a **missing** vendor and still makes the chart absent.
+
+⚠️ ⚠️ **CORRECTED AGAIN 2026-10-15 — the record shape changed, and the parser now walks braces.** The regex that used to
+find records required `,"productType"` immediately after the product object; the store inserted an **`adClickUrl` field
+between them**, so the pattern matched **nothing** and the vendor was reported *missing* rather than *broken*. See
+`RECORD` and `records` for the walk that replaced it, and `tests/fixtures/rokomari-flight-2026-10-15.html` for the second
+recording.
 """
 from __future__ import annotations
 
@@ -49,11 +57,97 @@ CURRENCY = "BDT"
 #: ⚠️ The flight chunks, **raw** — quotes and escapes included, because unescaping them is half the parser's job.
 CHUNK = re.compile(r'self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)')
 
-#: ⚠️ One book. The inner object is matched without nesting because a product record has no nested braces — which is what
-#: makes a regex honest here rather than fragile.
-PRODUCT = re.compile(r'\{"product":\{([^{}]*)\},"productType":"book"\}')
+#: ⚠️ ⚠️ **A record is found by balancing braces, not by a regex** (corrected 2026-10-15).
+#:
+#: The pattern that used to live here was `\{"product":\{([^{}]*)\},"productType":"book"\}`, and its own note said the
+#: flatness was what made it *"honest here rather than fragile"* — because *"a product record has no nested braces"*.
+#: ⚠️ **Both halves of that assumption broke, and the second one broke within a day of being written.** Rokomari inserted
+#: a field **between** the product object and the marker:
+#:
+#:     2026-10-14   {"product":{…},"productType":"book"}
+#:     2026-10-15   {"product":{…},"adClickUrl":"$undefined","productType":"book"}
+#:
+#: ⚠️ **The pattern then matched nothing at all** — and *nothing* is exactly how it failed: the recorded page holds 60
+#: records, the fetched page held 60, `parse` returned **0 rows**, and `freshness.guard` reported the vendor as
+#: **missing** rather than the parser as broken. ⚠️ That is the shape of failure this product refuses everywhere else, so
+#: the scan is structural now: find the record's opening, walk to its matching brace, and let `json.loads` be the judge.
+#: ⚠️ A field added *inside* the product object is handled by the same walk, because the walk counts braces rather than
+#: describing a shape.
+RECORD = '{"product":{'
+
+#: ⚠️ The marker a record must carry, checked **after** the braces balance — so a record that parses but is not a book is
+#: skipped rather than ranked.
+BOOK = "book"
 
 TIMEOUT = 25
+
+
+def records(flight_text: str) -> Iterator[str]:
+    """Every brace-balanced `{"product":…}` record in a decoded flight, **as text**.
+
+    ⚠️ **String-aware, and that is not a refinement.** A brace inside a quoted title would unbalance a naive counter and
+    silently swallow the records after it — ⚠️ the same class of silent nothing the regex produced. So a `"` opens a span
+    that is skipped (with `\\` escapes honoured), and only structural braces are counted.
+
+    ⚠️ **A record whose braces never close ends the scan rather than raising** — a truncated response is a vendor that
+    produced nothing, which the guard already treats as **missing**.
+    """
+    cursor = 0
+    while True:
+        start = flight_text.find(RECORD, cursor)
+        if start < 0:
+            return
+
+        depth = 0
+        in_string = False
+        escaped = False
+        for position in range(start, len(flight_text)):
+            character = flight_text[position]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif character == "\\":
+                    escaped = True
+                elif character == '"':
+                    in_string = False
+                continue
+            if character == '"':
+                in_string = True
+            elif character == "{":
+                depth += 1
+            elif character == "}":
+                depth -= 1
+                if depth == 0:
+                    yield flight_text[start : position + 1]
+                    cursor = position + 1
+                    break
+        else:
+            return
+
+#: ⚠️ ⚠️ **The card's own cover: the `data-src` on the vendor's image host.** Rokomari lazy-loads its cards — `src` is
+#: `/nstatic/images/placeholder-image.gif` and the real file is the `data-src` beside it — ⚠️ so a parser that read `src`
+#: would put **the same grey placeholder on every row**, which looks exactly like a chart whose covers are all missing.
+#:
+#: ⚠️ ⚠️ **Matched by the *host* rather than by the component's class, and the recording is what says so.** The obvious
+#: selector is `productContainer_coverImage__…`, and ⚠️ **it appears on only 15 of the 60 cards** — the other
+#: forty-five render the same picture through a different component, so a class-based pattern finds a cover for one row in
+#: sixty. ⚠️ A CSS-module hash is a **build artefact** and which component draws the picture is the store's business; the
+#: image *host* is the source's, and it is the same on every card.
+COVER = re.compile(r'"data-src":"(https://rokbucket\.rokomari\.io/[^"]+)"')
+
+
+def _cover(card: str) -> str:
+    """The card's cover image — **the last one in the card, and `""` when the card has none**.
+
+    ⚠️ ⚠️ **`card` is the text between the previous record and this one, and that bound is the whole rule.** A card's
+    picture sits a little *before* the record it belongs to, inside the same card, so the last image in the window is
+    this row's. ⚠️ A card that carries none leaves the window without one and the row keeps **no** cover — which is the
+    right degradation, because a wrong cover on a slide is worse than a missing one: nobody looking at it can tell.
+    """
+    found = COVER.findall(card)
+    return found[-1] if found else ""
+
+
 
 
 def flight(payload: bytes) -> str:
@@ -81,13 +175,33 @@ def parse(payload: bytes, *, listing: charts.Listing, published: str = "") -> li
     badge, so the position is a second, worse source. ⚠️ Rokomari's records state **no rank at all**: the payload *is* the
     ranking, the list is ordered, and the position is the only thing that carries it. ⚠️ The two rules look contradictory
     and are not: **prefer a stated rank, and use the order only where the source has none.**
+
+    ⚠️ ⚠️ **The position is counted over the *records*, and the marker is checked before it counts** (2026-10-15). A
+    record that parses but does not carry `productType: "book"` is a card the store renders for something else, so it is
+    skipped — and ⚠️ the skipped record still holds its place, because the store's ordering is a fact about the list
+    rather than a count of what we managed to read (the rule `woocommerce.parse` keeps).
     """
     rows: list[corroborate.Row] = []
+    text = flight(payload)
+    #: ⚠️ Where the previous record ended. Everything after it and before the next record **is that record's card**, and
+    #: that window is how a cover is attributed to a row — see `_cover`.
+    previous = 0
 
-    for position, match in enumerate(PRODUCT.finditer(flight(payload)), start=1):
+    for position, record in enumerate(records(text), start=1):
+        at = text.find(record, previous)
+        card = text[previous:at] if at >= 0 else ""
+        if at >= 0:
+            previous = at + len(record)
+
         try:
-            product = json.loads(f"{{{match.group(1)}}}")
+            entry = json.loads(record)
         except ValueError:
+            continue
+
+        product = entry.get("product") if isinstance(entry, dict) else None
+        # ⚠️ **Both halves are required**: a record that is not a book is not this list's evidence, and a record whose
+        # `product` is not an object is a shape we do not understand — neither is a row.
+        if not isinstance(product, dict) or entry.get("productType") != BOOK:
             continue
 
         title = (product.get("title") or "").strip()
@@ -108,6 +222,9 @@ def parse(payload: bytes, *, listing: charts.Listing, published: str = "") -> li
                 title=title,
                 # ⚠️ **`subTitle` is the author on this source**, which the recording is what established.
                 author=(product.get("subTitle") or "").strip(),
+                # ⚠️ **The card's own image, which this parser used to leave behind** (2026-10-15) — so every Rokomari row
+                # fell to ticket 07's branded tile while the picture sat in the same card. See `_cover`.
+                cover_url=_cover(card),
                 published=published,
                 price=prices.Price(
                     amount=float(amount) if amount is not None else None,

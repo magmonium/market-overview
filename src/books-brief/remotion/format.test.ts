@@ -11,6 +11,9 @@ import {countryLabel, digits, isoMondayLabel, languageLabel, money, moveLabel, n
  */
 
 const book = (over: Partial<Book> = {}): Book => ({
+  // ⚠️ The work key (ticket 32) — written the way `identity.work` would produce it, so a test that reads it is reading
+  // the shape the conductor actually emits rather than a stand-in.
+  key: 'ektishonarboi|sunilgangopadhyay',
   isbn: '9788172151234',
   rank: 7,
   weeks_on_chart: 3,
@@ -96,6 +99,13 @@ test('money is currency-specific in its symbol, its grouping and its minor unit'
   assert.equal(money(24.99, 'USD', 'en'), '$24.99', 'a dollar price has cents — the old code rounded to $25');
   assert.equal(money(180, 'BDT', 'en'), '৳180', 'Taka: the ৳ sign, whole, grouped the Western way');
   assert.equal(money(1234567, 'BDT', 'en'), '৳1,234,567', 'and not ₹12,34,567');
+  // ⚠️ **And 2026-10-15 added the English chart's international stores**, which is what brought GBP, CAD and AUD into
+  // the table. ⚠️ The two dollars are **not** USD — `amazon.ca` and `amazon.com.au` print a bare `$`, and the store is
+  // the only thing that can tell them apart (`amazon.MARKETPLACES`), so a plain `$` here would be the wrong sign on a
+  // real price.
+  assert.equal(money(24.99, 'GBP', 'en'), '£24.99', 'the pound');
+  assert.equal(money(24.99, 'CAD', 'en'), 'CA$24.99', 'Canadian dollars, never a bare $');
+  assert.equal(money(24.99, 'AUD', 'en'), 'A$24.99', 'Australian dollars, never a bare $');
 });
 
 test('an unknown currency draws the number and no symbol', () => {
@@ -142,8 +152,16 @@ test('a label draws only where the chart disagrees with itself', () => {
   // says the same thing on all 100 rows is not information — the header already says BENGALI BOOKS — so the question that
   // matters is not *does India render* but *does a chart of identical rows render anything at all*.
   assert.equal(varies(['in', 'in', 'in']), false, 'a constant label is decoration');
-  assert.equal(varies(['in', 'bd']), true, 'the Bengali chart, and the only one where the country differs');
+  assert.equal(varies(['in', 'bd']), true, 'two countries on one chart is information');
   assert.equal(varies([]), false, 'no rows, no label');
+});
+
+test('the English chart now varies in country too', () => {
+  // ⚠️ ⚠️ **Ticket 19 asserted the opposite for this chart and ticket 20's rule still holds** (2026-10-15): the chart
+  // reads `us`, `gb`, `ca` and `au` lists, so the country label draws on it for the first time. ⚠️ The *language* still
+  // does not vary — every one of those lists is `en` — so that label stays off.
+  assert.equal(varies(['us', 'gb', 'ca', 'au']), true, 'four countries, so the label is information');
+  assert.equal(varies(['en', 'en', 'en']), false, 'one language, so the label is decoration');
 });
 
 test('an empty label is not a variation', () => {
@@ -162,6 +180,20 @@ test('a code the table does not know prints as itself', () => {
   assert.equal(countryLabel('nz', EN), 'nz');
   assert.equal(languageLabel('bn', EN), 'Bengali');
   assert.equal(languageLabel('xx', EN), 'xx');
+});
+
+test('the English chart names the countries its international lists are in', () => {
+  // ⚠️ **2026-10-15** — the chart reads `us`, `gb`, `ca` and `au` lists, so ticket 20's country label now draws on it and
+  // these are the words it prints. ⚠️ `nz` is deliberately **not** in the table, which is what the test above asserts.
+  assert.equal(countryLabel('us', EN), 'US');
+  assert.equal(countryLabel('gb', EN), 'UK');
+  assert.equal(countryLabel('ca', EN), 'Canada');
+  assert.equal(countryLabel('au', EN), 'Australia');
+  // ⚠️ **And the market sentence follows the sources**: `worldwide`, not `us`.
+  assert.equal(EN.markets.worldwide, 'Worldwide');
+  // ⚠️ **`us` is kept** even though no chart declares it any more — a week committed before the change still carries it,
+  // and ADR 0003 promises a past week re-renders with **today's** words.
+  assert.equal(EN.markets.us, 'US lists');
 });
 
 test('the Bengali table names the countries and languages in Bengali', () => {

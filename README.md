@@ -8,7 +8,7 @@ the repository's README and it documents all three. [Install](#install), [Config
 |---|---|---|---|
 | the **Market Brief** | `market-overview` — `mo` | `src/market_overview/` | one day's silent, music-backed, ≤3 min, 16:9 video about the Indian market, in Bengali and English |
 | the **Song Reel** | `song-video` — `sv` | `src/song-video/` | one supplied song as a full-length 16:9 music video and its thumbnail, in one or more themes |
-| the **Books Brief** | `books-brief` — `bb` | `src/books-brief/` | four weekly Top-100 book charts — Bengali, English, Indian all-language and Comics — each a ~2 min 49 s 16:9 video with its SEO metadata and its cover-collage thumbnail |
+| the **Books Brief** | `books-brief` — `bb` | `src/books-brief/` | four weekly Top-100 book charts — Bengali, English, Indian all-language and Comics — each a ~2 min 49 s music-backed 16:9 video with its SEO metadata and its cover-collage thumbnail |
 
 ⚠️ **`./build` is the front door** — one command over all three. It asks which product, then what that product needs,
 and hands the answers to `mo`, `sv` or `bb` as flags, so no product's own CLI changes: see [Running](#running).
@@ -347,6 +347,10 @@ uv run bb publish --week 2026-W41             # one video per chart, private
 
 Or through the front door, from the repository root: `./build books --week 2026-W41`.
 
+⚠️ **Every chart is music-backed, from the brief's own bed.** `resource/brief/music.*` is normalised **once per chart**
+to −14 LUFS and cut to that chart's own length, then muxed onto the finished video — so the picture is bit-for-bit what
+the renderer produced. With no `music.*` supplied the run still builds, **silent**, exactly as the brief does.
+
 ⚠️ **A recorded week replays rather than re-fetches.** With `store/2026-W41/facts.json` present the run reads it and
 touches no vendor — which is what makes a past week rebuildable and a re-render identical.
 
@@ -366,15 +370,19 @@ built, not to assume that a response which arrived is a response about this week
 check, so let it through"* would switch the guard off for exactly the source that broke, silently, on the day it broke.
 
 ⚠️ **Two labels ride on every row, and they are declared per *list* rather than per chart.** Each row carries its
-**country** and its **language** as ISO codes — `in`, `bd`, `bn`, `hi` — taken from the list the title ranked on. ⚠️ They
-cannot be chart-level fields: the Bengali chart spans **India and Bangladesh**, and the all-language chart is nine
-Amazon.in lists in **one country and nine languages**. The words are the renderer's, so *India* becomes *ভারত* without
-re-running a week.
+**country** and its **language** as ISO codes — `in`, `bd`, `us`, `gb`, `bn`, `en` — taken from the list the title ranked
+on. ⚠️ They cannot be chart-level fields: the **English** chart reads four countries' lists, and the **comics** chart reads
+a US one and an Indian one. The words are the renderer's, so *India* becomes *ভারত* without re-running a week.
 
 ⚠️ **A label draws only where it varies.** A label that says the same thing on all 100 rows is not information — the
 header already names the chart — so a constant (or absent) label's slot simply does not render. ⚠️ That is why the
-**English chart shows neither label** (all three of its vendors are US lists) and why the **Bengali chart shows only the
-country**: ticket 20's rule, not a gap.
+**English chart shows the country and not the language** — since **2026-10-15** it ranks `us`, `gb`, `ca` and `au` lists,
+where it used to be US-only and drew neither label.
+
+⚠️ **And the Bengali chart draws both again** (2026-10-15). It drew neither while its only vendor was Bangladeshi, so both
+labels were constant; ⚠️ with an Indian list beside it the **country varies** (`in`, `bd`) and draws — and the **language
+varies too** (`bn` on the Bangladeshi rows, nothing on the Indian ones, because a bookshop's bestseller list is mixed and
+states no single language). ⚠️ Ticket 20's rule, working in both directions: the labels follow the sources.
 
 ⚠️ **Publishing is `bb publish`, one video per chart, `private` by default** (ticket 24). It reads each chart's
 `metadata-<chart>.json` — so the upload cannot disagree with the video — and it is **idempotent**: a re-run of the same
@@ -387,17 +395,39 @@ without uploading anything.
 
 ⚠️ **Where the sources actually stand — and it is not *"five parsers pending"*.**
 
-The *code* for every source is written: **four clients** — `nyt`, `amazon`, `indie`, `rokomari` — each with a parser, a
-fetch and a committed **verbatim** fixture, on the contract **fetch → snapshot → parse** (the brief's own `_degrade`
-shape, so every response lands in `store/<week>/raw/` before anything reads it). ⚠️ **What is missing is addresses,
-dates and declarations** — and for one chart, a source that exists at all.
+The *code* for every source is written: **six clients** — `nyt`, `amazon`, `indie`, `rokomari`, `woocommerce` (two
+bookshops under one module) and `google_books` — each with a parser, a fetch and a committed **verbatim** fixture, on the
+contract **fetch → snapshot → parse** (the brief's own `_degrade` shape, so every response lands in
+`store/<week>/raw/` before anything reads it). ⚠️ **What is missing is addresses, dates and declarations** — and for one
+chart, a source that exists at all.
 
 | Chart | Declared vendors | What is actually reachable |
 |---|---|---|
-| **English** | NYT · PW · Indie | ✅ **NYT** and **Indie** are both implemented and tested. ⚠️ **PW is paywalled** — its free pages are a 2012 archive |
-| **Bengali** | Anandabazar · Amazon.in · Rokomari | ✅ **Rokomari** is implemented — ⚠️ but **undated**, so the guard refuses it as stale. ⚠️ Amazon.in **publishes no Bengali list**. ⚠️ Anandabazar unlocated |
+| **English** | NYT · Indie · **four Amazon stores** | ✅ **NYT**, **Indie** and all four Amazon *Books* bestsellers (`amazon.com`, `.co.uk`, `.ca`, `.com.au`) are implemented and tested — **added 2026-10-15**, which is what made the chart *worldwide*. ⚠️ **PW is paywalled** — its free pages are a 2012 archive |
+| **Bengali** | Rokomari · BoiChitro · **Bangabani** | ✅ **All three implemented and registered** (2026-10-15). ⚠️ None of the lists states a date, so all three are **`LIVE`** — a ranking regenerated per order has no stale copy for a date to catch. ⚠️ **Bangabani** (`…/wc/store/v1/products?category=143&orderby=popularity&per_page=100`) is the third, added 2026-10-15 by ticket 32: **100 deep, 54 rows with a real ISBN-13 in `sku`, and titles in Bengali script** — the only Bengali vendor that states neither a romanised title nor an absent ISBN. ⚠️ Amazon.in **publishes no Bengali list**; ⚠️ **Anandabazar's weekly list *was* located** (ticket 31) — a genuine sales-ranked Bengali list, with its own date, an author and a publisher — but every instalment the site serves is **2014–2015** and the live one is a **scan** of the Saturday print page, so there is no current text address to declare |
 | **All-language** | Amazon.in × 9 | ⚠️ **The nine lists do not exist.** Amazon publishes **one** mixed-language ranking at `…/books/86946561031/` |
-| **Comics** | NYT · Amazon.in | ✅ **Both halves located** — NYT complete, and `…/books/1318104031/` parses |
+| **Comics** | NYT · **eight Amazon storefronts** | ✅ **Nine lists, eight countries, and the chart builds every week** (tickets 33, 34). ⚠️ **NYT's `graphic-books-and-manga` is `MONTHLY`**, not weekly as ticket 22 recorded — the payload says `"updated": "MONTHLY"` and dates the list `2026-10-03` — so it is declared `cadence="monthly"` and stays in the chart for its whole month. ✅ One **live** storefront per country: `amazon-us` (`4366`), `.co.uk` (`274081`), `.ca` (`13932641`), `.de` (`287621`), `.fr` (`301133`), `.it` (`508784031`), `.es` (`902516031`), `.in` (`1318104031`) — 30 ranked cards each, **20–29 of them real ISBN-13s**. ⚠️ **Not declared**: the Kindle node `…/zgbs/digital-text/156104011` (0 of 30 ISBNs), the StoryGraph *League of Comic Geeks Top 100* challenge (no ranks, no date, no ISBNs), and `amazon.com.au` (`4893847051`) — which resolves and is one line away, but Australia is not one of the four regions asked for |
+
+⚠️ ⚠️ **And two things this table was hiding, both found on 2026-10-15 by asking the sources to answer** (ticket 33).
+**`comics` was absent for a reason nobody had written down**: NYT's graphic-books list is **monthly**, and the guard
+measured it against a ten-day week — so it read as *stale* on the very week it describes, and ticket 18's
+absent-not-smaller rule took the whole chart down with it, **three weeks in four**. ⚠️ That is why `./build books`
+answered *"comics: not in this week's bundle — it could not be built"* for a week in which **Amazon.in had answered it
+thirty rows**. A list now declares its **cadence**, and a monthly one is fresh for the month it was published in — a
+*previous* month is still stale, so the guard keeps its meaning. ⚠️ And **`amazon.com` and `amazon.co.uk` price the
+*viewer*, not the store**: the recorded `2026-W41` pages for both quote **HUF** (`HUF 7,249.11`), so the constant pairing
+each marketplace with its currency labelled **34 rows of the English chart** with a currency the page never stated —
+ticket 19's own named failure, live in the committed week. ⚠️ The parser now **checks the currency the page states** and
+drops a price it cannot reconcile: a missing caption, never a wrong number.
+
+⚠️ ⚠️ **And the covers were being fetched at the wrong size** (ticket 37). Every Amazon cover came from the card's
+`<img src>` — `…/images/I/71eJk7GtUOL._AC_UL300_SR300,200_.jpg` — which is **300×200**: the *grid's* box, not a book's
+shape. ⚠️ Measured on the same asset, the URL **without its size token** answers **1600×2155**, so the collage was built
+from **twenty-five times fewer pixels in the wrong aspect ratio**. ⚠️ The token is now stripped, and the **cached bytes
+were refreshed with the recorded URL and hash** — the cover cache is keyed by ISBN and answers before the network, so a
+fixed parser alone would have left the old images in place. ⚠️ Where no larger rendition exists the vendor's own upload
+stands: BoiChitro's ~300 px images, Open Library's small `-L` fallbacks, and one Amazon original that is genuinely
+530 px.
 
 ⚠️ **Every one of these fails safe rather than wrong.** A vendor that produces no usable rows is a **missing source**, and
 a chart missing a source is **absent** (ticket 18) — so a week built today ships the charts it can prove and refuses the
@@ -405,10 +435,40 @@ rest, rather than ranking an unordered search page, a paywalled archive or a lis
 needed no new code: the freshness guard, written for a *stale* list, catches *"this vendor has no list"*, *"this vendor's
 list is behind a paywall"* and *"this vendor's list has no date"* for the same reason — none of them can be **verified**.
 
-⚠️ **The Bengali chart is the one to decide about.** Ticket 17 requires **two vendors** before any title is admitted, and
-its three declared vendors are one undated list, one that does not exist, and one unlocated. That is the same shape as
-ticket 19's finding about India-market English — which was answered by **changing the chart** — and it deserves the same
-treatment rather than a workaround.
+⚠️ **And the Bengali chart's decision has been made — by changing the *sources*, not the rule** (ticket 30, 2026-10-15).
+Ticket 17 needs two vendors that exist, so seven candidate addresses were **fetched**, and **four are not sources at
+all**: an Amazon *search* page (no rank badge anywhere), an empty Daraz tag page, a Goodreads **all-time shelving count**
+(not sales, not weekly) and a Flipkart category browse of 20,109 products. ⚠️ **What is a source is the booksellers.**
+**BoiChitro** publishes a hundred-deep popularity ranking as **JSON** —
+`boichitro.in/wp-json/wc/store/v1/products?orderby=popularity&per_page=100` — with a real ISBN on some rows and its own
+`pa_authorname` on most. ⚠️ **And Rokomari needed no new code**: it was written and left unregistered because its list is
+undated, and *"undated"* was the right reading of the **guard** and the wrong reading of the **vendor** — a retailer's
+bestseller category is regenerated per order, so there is no stale copy to date, which is exactly what `charts.LIVE` is
+for. ⚠️ **So `bengali` builds again, and its market is `india+bangladesh` once more.**
+
+⚠️ ⚠️ **But a week that is already recorded still replays, and `2026-W41` is recorded.** Its snapshot holds `english`
+alone, so asking *that* week for a Bengali chart is answered — correctly — with *"not in this week's bundle — it could not
+be built"*, and **nothing is fetched**: the snapshot's existence is the switch (ADR 0003), and re-fetching a recorded week
+would produce a *different* chart from the same week. ⚠️ The chart therefore arrives with the **next week that is
+built**, and the honest way to see it sooner is to build the next buildable week rather than to re-gather the recorded
+one.
+
+⚠️ **Unless the operator decides otherwise, and that is what happened here** (2026-10-15): `2026-W41` was **re-gathered**
+so the Bengali chart could exist for it, at the cost of replacing that week's committed snapshot and re-deriving its
+English chart. ⚠️ The previous snapshot is kept at `/tmp/w41-facts-before-regather.json`, and
+`git checkout -- src/books-brief/store/2026-W41/` restores the committed one. ⚠️ **It is a one-off, not a workflow** — the
+next week is gathered once, with every vendor already declared.
+
+⚠️ **And ticket 33's two repairs land the same way.** `2026-W41`'s snapshot was written *before* either of them, so it
+still replays **without `comics`** and **with the English chart's 34 HUF-as-dollar prices** — ⚠️ **fixing the code does
+not fix a recorded week**, because the snapshot is what a replay reads (ADR 0003). ⚠️ So the week needs either a
+deliberate re-gather, exactly as above, or nothing at all: the next week gathered carries both fixes, and `comics`
+declares its third vendor from the very first fetch.
+
+⚠️ And **building *ahead* of the calendar is its own trap**: `2026-W42`'s Sunday is 2026-10-18, so its *compiled* lists
+(NYT, Indie) do not exist yet and only the live rankings can answer. ⚠️ A week gathered while one source is missing is a
+week that then **replays** without it — which is why `menu.last_buildable_week()` offers the week that has *closed* rather
+than this one.
 
 ### On a schedule
 
@@ -786,7 +846,8 @@ and a books run may all render at the same time, because each writes only its ow
 
 ```
 $MARKET_OVERVIEW_DATA/resource/brief/logo.*         the mark — read, never written
-$MARKET_OVERVIEW_DATA/resource/brief/music.*        the bed — read, normalised into the run, never written
+$MARKET_OVERVIEW_DATA/resource/brief/music.*        the bed — read by the brief **and** the Books Brief, normalised
+                                                    into each run, never written
 $MARKET_OVERVIEW_DATA/resource/reel/song/*          the reel's masters, beside the brief's assets
 $MARKET_OVERVIEW_DATA/resource/books/covers/*.jpg   the Books Brief's cover cache — **keyed by ISBN**, so one
                                                     fetch serves every chart and every week it appears in
@@ -928,7 +989,7 @@ not outputs. Nothing in it is committed, because committing a music bed publishe
 | File | Purpose | Used by |
 |---|---|---|
 | `logo.svg` | the product mark | **both** the video and the thumbnail |
-| `music.*` | the background bed | the video |
+| `music.*` | the background bed | the brief's video, **and every Books Brief chart's video** |
 
 **`logo.svg` is preferred over PNG** — deliberate, not a preference. The mark is rendered at two very
 different scales: a corner bug inside a 1920×1080 frame, and a thumbnail seen at roughly **210 px** in a
@@ -967,6 +1028,10 @@ it. So "both editions carry the same bed" is a fact about one file rather than a
 It is removed when the run ends — it is scratch, and it lives in the folder a human opens to find the day's
 deliverable.
 
+⚠️ **The Books Brief normalises the same master once per chart instead**, because its four charts are four different
+lengths and each chart's fade-out is anchored to the end of *its own* run — a single file cut to the longest would run
+past the shorter charts' close cards. Each derived bed lands in that chart's package folder, and is removed the same way.
+
 To raise or lower the bed, change `TARGET_LUFS` in `src/market_overview/audio.py`.
 
 ### No variant is needed
@@ -993,13 +1058,15 @@ Adding either later changes nothing else about the output.
 The day the music lands, the run starts printing what it did — `music: music.wav → .bed.wav (-14 LUFS, 175s,
 fade 1.5/4s)` — because a bed at the wrong level is the one defect that is invisible in a still and in a diff.
 
-### Three products, three asset folders — and one mark between them
+### Three products, three asset folders — and two shared assets
 
 ⚠️ **The other two products' assets are not these.** The nested `src/song-video/` product keeps its masters in
 `resource/reel/song/`, and the nested `src/books-brief/` product caches its covers in `resource/books/covers/` — both
 **beside this folder** under the same shared data root. Three folders, three products, three licence decisions — and
-**one mark**: the reel and the charts both draw the `logo.*` from *this* folder, through the brief's own loader, so
-there is one licensed file to replace rather than three that can disagree.
+**two assets shared rather than copied**: the reel and the charts both draw the `logo.*` from *this* folder, through
+the brief's own loader, and the Books Brief's videos carry *this* folder's `music.*` as their bed (normalised once per
+chart, since each chart is a different length). So there is **one file of each to replace** rather than three that can
+disagree.
 
 ### Rules
 

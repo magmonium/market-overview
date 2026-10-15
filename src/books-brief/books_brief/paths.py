@@ -19,6 +19,7 @@ from __future__ import annotations
 import pathlib
 
 from market_overview import paths as brief_paths
+from market_overview import store as brief_store
 
 #: The product's own half of the shared data root. ⚠️ Spelled here rather than in the brief: the brief names its own
 #: namespace and nothing else, and this is the other half of the same rule.
@@ -76,6 +77,31 @@ def mark_dir() -> pathlib.Path:
     own loader, and there is exactly one file to replace when the licence changes.
     """
     return brief_paths.brief_resource()
+
+
+def repo_root() -> pathlib.Path:
+    """The repository holding the toolchain — **where `node_modules` is, and so where Remotion's `ffmpeg` lives.**
+
+    ⚠️ **Not `project_root()`.** This product's own tree holds `remotion/` and `store/`, but the bundled `ffmpeg`
+    that `market_overview.audio` finds — the one the music mux runs — is installed **once**, at the repository root,
+    beside the brief. The reel reached the same conclusion (`song_video.paths.repo_root`): the repository is **asked
+    for rather than assumed**, and the brief's own `store.root()` is the one definition of it.
+    """
+    return brief_store.root()
+
+
+def music_dir() -> pathlib.Path:
+    """The brief's `resource/brief/` — **one bed serves every product**, exactly as the mark does (0085_11).
+
+    ⚠️ **Deliberately the brief's folder, not a copy under `resource/books/`.** The bed is a licensed asset like the
+    mark: two folders holding one means two files that can disagree, and the run would normalise whichever it happened
+    to find. There is one file to replace when the licence changes.
+
+    ⚠️ Reached through **this module's own `data_root()`**, so a test that relocates the root moves the bed with
+    everything else — the seam this module's docstring is about. (`mark_dir()` above is the exception rather than the
+    rule, and only because the mark is read through the brief's own loader.)
+    """
+    return data_root() / "resource" / brief_paths.BRIEF
 
 
 def output_dir() -> pathlib.Path:

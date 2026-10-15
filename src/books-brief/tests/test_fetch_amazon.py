@@ -1,4 +1,10 @@
-"""The Amazon.in parser — the workhorse, and the only source three of the four charts depend on.
+"""The Amazon bestseller parser — the workhorse, and the only free per-country English source there is.
+
+⚠️ ⚠️ **One parser, five marketplaces** (2026-10-15). The fixture below is `amazon.in`'s, and it is parsed for **every**
+store: `amazon.com`, `amazon.co.uk`, `amazon.ca` and `amazon.com.au` serve the **same card markup** — verified by fetching
+all five (30 ranked cards each) — so the selectors are one module's knowledge of one page shape rather than five copies of
+it. ⚠️ What differs per store is the **currency**, which the declaration supplies (`amazon.MARKETPLACES`) and the page is
+now **checked against** — see `CURRENCIES`, and `TheCurrencyIsCheckedAndNotAssumed` below for the bug that rule fixes.
 
 ⚠️ **Fetch and parse are separated, and only the parse is tested** — the brief's own discipline (`_degrade(day, name,
 fetch, parse, default)`), because a parser is a pure function of bytes and the suite stays hermetic.
@@ -14,6 +20,7 @@ is not deprecated in 1.0.
 """
 import pathlib
 import unittest
+from unittest import mock
 
 from books_brief import charts, prices
 from books_brief.fetch import amazon
@@ -28,6 +35,50 @@ LISTING = charts.Listing(
     country="in",
     language="en",
     address="https://www.amazon.in/gp/bestsellers/books/1318104031/",
+)
+
+#: ⚠️ ⚠️ **Two more verbatim recordings, and they are why the currency rule changed** (2026-10-15).
+#:
+#: `amazon-us-english.html` is `amazon.com`'s own page for the week, and every price on it reads **`HUF 7,249.11`**:
+#: Amazon prices the *viewer* rather than the store, so the constant labelled a forint amount as dollars.
+#: ⚠️ `amazon-ca-english.html` is the other shape — a **bare `$`** — which is the ambiguity `MARKETPLACES` exists for.
+#: The two together are the whole rule: a stated currency is checked, and an ambiguous one is decided by the declaration.
+HUF_PAGE = pathlib.Path(__file__).resolve().parent / "fixtures" / "amazon-us-english.html"
+DOLLAR_PAGE = pathlib.Path(__file__).resolve().parent / "fixtures" / "amazon-ca-english.html"
+
+#: ⚠️ **The same fixture parsed as other marketplaces** (2026-10-15). The markup is identical — that is the finding — so
+#: the only thing under test is what the **declaration** changes: the vendor on the row and the currency on its price.
+UK = charts.Listing(
+    slug="amazon-uk/english",
+    country="gb",
+    language="en",
+    address="https://www.amazon.co.uk/gp/bestsellers/books/",
+)
+CA = charts.Listing(
+    slug="amazon-ca/english",
+    country="ca",
+    language="en",
+    address="https://www.amazon.ca/gp/bestsellers/books/",
+)
+AU = charts.Listing(
+    slug="amazon-au/english",
+    country="au",
+    language="en",
+    address="https://www.amazon.com.au/gp/bestsellers/books/",
+)
+#: ⚠️ The US store — the declaration the **HUF** page contradicts.
+US = charts.Listing(
+    slug="amazon-us/english",
+    country="us",
+    language="en",
+    address="https://www.amazon.com/gp/bestsellers/books/",
+)
+#: ⚠️ A marketplace `MARKETPLACES` does not name, so its rows must carry **no** currency rather than a guessed one.
+UNKNOWN = charts.Listing(
+    slug="amazon-nz/english",
+    country="nz",
+    language="en",
+    address="https://www.amazon.co.nz/gp/bestsellers/books/",
 )
 
 
@@ -178,6 +229,35 @@ class WhatTheCardCarries(unittest.TestCase):
         self.assertEqual(self.rows[2].publisher, "Jeff Kinney")
         self.assertTrue(self.rows[0].cover_url.startswith("https://images-eu.ssl-images-amazon.com/images/I/"))
 
+    def test_the_cover_is_asked_for_at_full_size_rather_than_the_card_s_thumbnail(self):
+        """⚠️ ⚠️ **A card's `<img src>` is a 300×200 thumbnail of a portrait cover** (2026-10-15).
+
+        ⚠️ It is the *grid's* box and not the cover's shape, and the same asset **without its size token** is the
+        original: measured, `…UL300_SR300,200_.jpg` answers **300×200 / 6 KB** while `….jpg` answers **1600×2155 /
+        201 KB**. ⚠️ So a collage built from the card's own `src` was **twenty-five times fewer pixels in the wrong
+        aspect ratio** — *"the covers look bad"*, and the cause was one URL suffix.
+        """
+        rows = amazon.parse(FIXTURE.read_bytes(), listing=LISTING)
+
+        self.assertEqual(
+            rows[0].cover_url,
+            "https://images-eu.ssl-images-amazon.com/images/I/71My1M0AgZL.jpg",
+        )
+        self.assertNotIn("._AC_", rows[0].cover_url)
+
+    def test_a_cover_url_with_no_size_token_is_left_alone(self):
+        """⚠️ **The rule is Amazon's own path shape, not a dot-underscore anywhere.** A bookshop's `My._Book.jpg` is a
+        real URL and stripping it would 404 the vendor the Bengali chart depends on — so the match is anchored on
+        `/images/I/<id>._<token>.<ext>` and nothing else.
+        """
+        for url in (
+            "https://boichitro.in/wp-content/uploads/My._Book.jpg",
+            "https://images-eu.ssl-images-amazon.com/images/I/71My1M0AgZL.jpg",
+            "https://cdn.shopify.com/s/files/1/2/3/products/cover.jpg?v=17",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(amazon._cover_url(url), url)
+
 
 class WhatThePageCannotGive(unittest.TestCase):
     def test_a_page_with_no_cards_yields_no_rows_rather_than_raising(self):
@@ -203,6 +283,83 @@ class WhatThePageCannotGive(unittest.TestCase):
         self.assertEqual([row.rank for row in rows], [2, 3])
 
 
+class TheCurrencyIsCheckedAndNotAssumed(unittest.TestCase):
+    """⚠️ ⚠️ **`MARKETPLACES` is a claim about the store, and the page can contradict it** (2026-10-15).
+
+    ⚠️ It was written as *"each marketplace quotes its own currency"*, and that is false for two of the five:
+    `amazon.com` and `amazon.co.uk` **price the viewer**, and the recorded 2026-W41 pages for both quote **HUF**. The
+    constant labelled `HUF 7,249.11` as `$7,249.11` on 13 rows of the shipped English chart — ticket 19's own named
+    failure, live — so the rule is now: **the page is asked, and a contradiction drops the price rather than relabelling
+    it.**
+
+    ⚠️ **And the half that did not change.** A bare `$` is not evidence — `amazon.com`, `amazon.ca` and `amazon.com.au`
+    all print one — so the declaration still decides *which* dollars, and the tests below keep that property with a
+    recording that really does print a bare `$`.
+    """
+
+    def test_a_bare_dollar_is_resolved_by_the_declaration(self):
+        """⚠️ **The ambiguity, kept** — the Canadian page prints `$33.60`, and only the *slug* can say CAD."""
+        rows = amazon.parse(DOLLAR_PAGE.read_bytes(), listing=CA)
+
+        self.assertEqual(rows[0].price.currency, "CAD")
+        self.assertEqual(rows[0].price.amount, 33.60)
+        self.assertEqual(rows[0].price.retailer, "amazon-ca")
+        self.assertEqual(rows[0].price.retailers, ("amazon-ca",))
+
+    def test_one_page_read_as_two_dollar_stores_carries_two_currencies(self):
+        """⚠️ **The property `MARKETPLACES` exists for**, and the reason a bare `$` must not be read as *no evidence of a
+        currency*: the same bytes, the same digits, and the declaration decides what money they are.
+        """
+        rows = amazon.parse(DOLLAR_PAGE.read_bytes(), listing=AU)
+
+        self.assertEqual(rows[0].price.currency, "AUD")
+        self.assertEqual(rows[0].price.amount, 33.60)
+        self.assertEqual(rows[0].price.retailer, "amazon-au")
+
+    def test_a_page_stating_a_currency_the_store_does_not_quote_loses_its_price(self):
+        """⚠️ ⚠️ **The bug this rule was written for, asserted against the recording that found it.**
+
+        `amazon.com` served `HUF 7,249.11` — a forint price, because Amazon prices the *viewer* — and the constant
+        turned it into `$7,249.11`. ⚠️ The row survives with everything else; only the caption goes, because a wrong
+        number is worse than a missing field (ticket 07) and the price is a caption, never a ranking input (ticket 04).
+        """
+        rows = amazon.parse(HUF_PAGE.read_bytes(), listing=US)
+
+        self.assertEqual(len(rows), 2, "the rows themselves are not the price's business")
+        self.assertEqual(rows[0].rank, 1)
+        self.assertTrue(rows[0].title)
+        self.assertIsNone(rows[0].price.amount)
+        self.assertIsNone(rows[0].price.retailer)
+        self.assertEqual(rows[0].price.retailers, ())
+        # ⚠️ The currency stays the *store's*, because that is what the field means — what the amount would be in.
+        self.assertEqual(rows[0].price.currency, "USD")
+
+    def test_the_indian_page_parsed_as_another_store_loses_its_price_too(self):
+        """⚠️ **The same rule one store over — and it reverses the assertion that used to live here.**
+
+        This was `test_a_uk_row_is_priced_in_pounds_and_names_the_uk_store`, which parsed the **Indian** fixture as
+        `amazon-uk` and asserted `GBP`: the declaration overriding a page that plainly says `₹329.00`. ⚠️ That test was
+        the bug's own alibi — it encoded *"the declaration wins"* as a virtue, so nothing ever asked what the page said.
+        ⚠️ It is kept in substance and reversed: the ₹ contradicts the pound, so the price goes.
+        """
+        rows = amazon.parse(FIXTURE.read_bytes(), listing=UK)
+
+        self.assertIsNone(rows[0].price.amount)
+        self.assertIsNone(rows[0].price.retailer)
+        self.assertEqual(rows[0].price.currency, "GBP")
+        self.assertEqual(rows[0].country, "gb")
+
+    def test_an_unknown_marketplace_gets_no_currency_rather_than_a_wrong_one(self):
+        """⚠️ Unchanged, and deliberately: a slug `MARKETPLACES` does not name leaves the currency **empty**, which draws
+        no symbol (ADR 0003) — the same degrade an unknown genre or country keeps, because visibly wrong beats silently
+        wrong. ⚠️ The check above needs a *claim* to contradict, and an unlisted marketplace makes none.
+        """
+        rows = amazon.parse(FIXTURE.read_bytes(), listing=UNKNOWN)
+
+        self.assertEqual(rows[0].price.currency, "")
+        self.assertEqual(rows[0].price.retailer, "amazon-nz")
+
+
 class FetchingAList(unittest.TestCase):
     """⚠️ The network half — and the only part of it the suite touches is the **refusal**, because nothing here reaches
     a vendor. `parse` is the seam and it is fully tested above; `fetch` is the boundary and it is tested for the one
@@ -223,35 +380,115 @@ class FetchingAList(unittest.TestCase):
         self.assertIn("amazon-in/bengali", str(raised.exception))
         self.assertIn("address", str(raised.exception))
 
+    def test_the_stores_are_asked_one_at_a_time(self):
+        """⚠️ ⚠️ **A pause between requests — and it was measured, not imagined** (ticket 34).
+
+        ⚠️ The comics chart reads **eight** storefronts, and a burst of eight back-to-back requests returned an **empty
+        page for one of them** — `200`, a valid title, and no cards at all — while the same address answered 30 ranked
+        cards a few seconds later. ⚠️ An empty store is a *missing source*, and ticket 18 makes a chart with a missing
+        source **absent**, so this pause protects the *chart* rather than the server. ⚠️ It is a delay and not a retry:
+        a retry would hide a genuine outage behind a second attempt, and the failure must stay visible.
+
+        ⚠️ **Between requests, never before the first** — eight stores is seven pauses, and a chart declaring one store
+        must not pay for another chart's eight.
+        """
+        chart = charts.get("comics")
+
+        with (
+            mock.patch.object(amazon, "requests") as requests_mock,
+            mock.patch.object(amazon, "time") as time_mock,
+        ):
+            requests_mock.get.return_value.content = FIXTURE.read_bytes()
+
+            pages = list(amazon.fetch(chart, week="2026-W41"))
+
+        self.assertEqual(len(pages), 8, "the comics chart reads eight Amazon storefronts")
+        self.assertEqual(time_mock.sleep.call_count, 7)
+        self.assertEqual(time_mock.sleep.call_args.args, (amazon.PAUSE_SECONDS,))
+        # ⚠️ And every page carries the address it was read from — the list's identity, for a vendor whose pages name
+        # no list at all.
+        self.assertEqual(
+            [page.listing.slug for page in pages],
+            [entry.slug for entry in chart.lists if entry.slug.startswith("amazon-")],
+        )
+
     def test_a_list_the_vendor_does_not_own_is_skipped_without_a_complaint(self):
         """⚠️ A vendor reads **its own** lists, the same guard `nyt.fetch` keeps — so a chart that declares two vendors
         does not make each of them complain about the other's lists.
-        """
-        chart = charts.get("english")
 
-        # ⚠️ Every list here belongs to NYT, PW or Indie, so there is nothing for Amazon to read — and no refusal,
-        # because a missing *list* is not the same as a list that has no address.
+        ⚠️ **This used to be asserted against the `english` chart, and it cannot be any more** (2026-10-15): the English
+        chart now declares four Amazon stores, so `amazon.fetch` on it would spend a fetch — and a test that reaches the
+        network is the one thing this suite must never do. ⚠️ The `bengali` chart is the right subject now: it declares
+        `rokomari` and `boichitro` and no Amazon store, so there is genuinely nothing here for Amazon to read.
+        """
+        chart = charts.get("bengali")
+
+        # ⚠️ The one list belongs to Rokomari, so there is nothing for Amazon to read — and no refusal, because a missing
+        # *list* is not the same as a list that has no address.
         self.assertEqual(list(amazon.fetch(chart, week="2026-W41")), [])
 
-    def test_every_amazon_in_list_a_chart_declares_states_an_address(self):
+    def test_fetch_reads_every_marketplace_the_chart_declares(self):
+        """⚠️ ⚠️ **The boundary, exercised hermetically** — `requests.get` is mocked, so this reaches nothing.
+
+        ⚠️ **This test exists because the refactor that generalised the client shipped a `NameError`**: the check moved
+        from `vendor != VENDOR` to `owns(slug)` and the `vendor` binding the *filename* needs was left behind. ⚠️ Nothing
+        caught it, because no other test runs `fetch` against a chart that declares an Amazon list — the parse tests never
+        touch `fetch`, and the skip test uses `bengali`. ⚠️ A boundary that is never exercised is a boundary that is
+        assumed, so it is exercised here with the network faked.
+        """
+        chart = charts.get("english")
+        expected = {
+            entry.slug.split("/", 1)[0] for entry in chart.lists if amazon.owns(entry.slug)
+        }
+
+        with mock.patch.object(amazon.requests, "get") as get, mock.patch.object(amazon, "time") as time_mock:
+            get.return_value.raise_for_status = mock.Mock()
+            get.return_value.content = FIXTURE.read_bytes()
+
+            pages = list(amazon.fetch(chart, week="2026-W41"))
+
+        # ⚠️ **And the pause is faked here too** (ticket 34): four stores would otherwise put three real `sleep`s in a
+        # suite whose whole point is that it is instant and reaches nothing.
+        self.assertEqual(time_mock.sleep.call_count, len(pages) - 1)
+
+        # ⚠️ One page per Amazon list the chart declares, and the filename carries the marketplace — which is what the
+        # `NameError` above broke.
+        self.assertEqual({page.listing.slug.split("/", 1)[0] for page in pages}, expected)
+        for page in pages:
+            with self.subTest(list=page.listing.slug):
+                self.assertTrue(page.name.startswith(page.listing.slug.split("/", 1)[0]))
+                self.assertTrue(page.name.endswith(".html"))
+        # ⚠️ And NYT's and Indie's lists were **not** fetched: a vendor reads its own lists.
+        self.assertEqual(get.call_count, len(pages))
+
+    def test_every_amazon_list_a_chart_declares_states_an_address(self):
         """⚠️ **A table that can drift from the charts is a table that will** — which is why there is no longer a table.
 
         This test used to compare `charts.py`'s declarations against an `amazon.NODES` map, and ⚠️ **the two had already
         drifted**: the chart declared nine per-language lists Amazon does not publish while the map named the one it
         does, and neither could tell the other it was wrong. ⚠️ The address now lives in the declaration and nowhere
-        else, so what is left to check is that every `amazon-in` list a chart reads says where it is.
+        else, so what is left to check is that every Amazon list a chart reads says where it is.
+
+        ⚠️ **And every one of them names a marketplace `MARKETPLACES` knows** (2026-10-15), because that table is what
+        supplies the row's currency — a store missing from it would leave its prices unsigned rather than wrong, but it
+        would still be a declaration nobody can price.
+
+        ⚠️ ⚠️ **And every one of them is `LIVE`** (ticket 34). A store's ranking states no date because there is nothing
+        to date, so without the exemption the freshness guard discards every row and the chart goes **absent** — which is
+        how `comics` and `all-language` spent their first weeks. ⚠️ The two halves belong in one test because they are
+        one contract: *"an Amazon list is a live ranking the declaration can price"*.
         """
         declared = [
-            entry
-            for chart in charts.ALL
-            for entry in chart.lists
-            if entry.slug.startswith(f"{amazon.VENDOR}/")
+            entry for chart in charts.ALL for entry in chart.lists if amazon.owns(entry.slug)
         ]
 
-        self.assertTrue(declared, "no chart declares an Amazon.in list — this test would pass vacuously")
+        self.assertTrue(declared, "no chart declares an Amazon list — this test would pass vacuously")
         for entry in declared:
             with self.subTest(list=entry.slug):
+                vendor = entry.slug.split("/", 1)[0]
                 self.assertTrue(entry.address, f"{entry.slug} declares no address")
+                self.assertIn(vendor, amazon.MARKETPLACES, f"{entry.slug} names a marketplace with no currency")
+                self.assertIn(vendor, charts.LIVE, f"{entry.slug} is a store ranking and must be exempt from the date")
 
     def test_the_all_language_chart_reads_the_one_mixed_ranking(self):
         """⚠️ **The nine lists became one, and the chart now reads the one that exists.**
@@ -277,7 +514,7 @@ class FetchingAList(unittest.TestCase):
         """
         for chart in charts.ALL:
             for entry in chart.lists:
-                if not entry.slug.startswith(f"{amazon.VENDOR}/"):
+                if not amazon.owns(entry.slug):
                     continue
                 with self.subTest(list=entry.slug):
                     self.assertIn("/gp/bestsellers/books/", entry.address)
@@ -300,7 +537,7 @@ class FetchingAList(unittest.TestCase):
             entry.slug
             for chart in charts.ALL
             for entry in chart.lists
-            if entry.slug.startswith(f"{amazon.VENDOR}/")
+            if amazon.owns(entry.slug)
         }
 
         for slug in ("amazon-in/hindi", "amazon-in/bengali", "amazon-in/tamil", "amazon-in/telugu"):

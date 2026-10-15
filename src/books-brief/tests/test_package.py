@@ -23,7 +23,7 @@ WEEK = "2026-W41"
 def snapshot(week: str = WEEK) -> dict:
     """A week's snapshot with one row, so a package can be assembled without a network."""
     books = enrich.build(
-        (rank.Ranked(isbn="9788172151234", rank=1, weeks_on_chart=2, is_new=False, score=1.4),),
+        (rank.Ranked(key="9788172151234", isbn="9788172151234", rank=1, weeks_on_chart=2, is_new=False, score=1.4),),
         details={
             "9788172151234": enrich.Details(
                 title="Ekti Shonar Boi",
@@ -184,6 +184,40 @@ class WhenItIsNotComplete(Repo):
             with self.subTest(file=name):
                 mode = (self.directory / name).stat().st_mode & 0o777
                 self.assertEqual(mode, 0o644)
+
+
+class ThePriceInTheUploadText(unittest.TestCase):
+    """⚠️ ⚠️ **A price under another currency's sign — the failure this product keeps finding** (2026-10-15).
+
+    ⚠️ `_rows` built every price with `_rupees(amount)`: a hard-coded `₹`, which was true while every chart was
+    **India-anchored** (ticket 12) and has been false since ticket 19. ⚠️ Measured on the re-gathered week, the
+    description printed **`₹31` for a `CAD 30.60`** row — the `₹24.99`-for-`$24.99` failure, in the **upload text**
+    rather than on the slide, where nothing had looked.
+    """
+
+    def test_each_row_is_priced_in_its_own_currency(self):
+        self.assertEqual(package._price({"amount": 399.0, "currency": "INR"}), "₹399")
+        self.assertEqual(package._price({"amount": 30.6, "currency": "CAD"}), "CA$31")
+        self.assertEqual(package._price({"amount": 12.0, "currency": "AUD"}), "A$12")
+        self.assertEqual(package._price({"amount": 8.99, "currency": "GBP"}), "£9")
+        self.assertEqual(package._price({"amount": 21.5, "currency": "USD"}), "$22")
+
+    def test_a_currency_with_no_symbol_is_written_as_its_code(self):
+        """⚠️ **Not as a bare number**, which is the ambiguity this product keeps refusing: `SEK 240` cannot be misread,
+        and a naked `240` can be taken for anything — the same reason `Price.currency` is a value and not a glyph.
+        """
+        self.assertEqual(package._price({"amount": 240.0, "currency": "SEK"}), "SEK 240")
+
+    def test_an_unknown_currency_writes_the_number_with_no_sign(self):
+        """⚠️ The documented degrade (ADR 0003): *unknown draws no symbol* — and it is still never a **wrong** one."""
+        self.assertEqual(package._price({"amount": 240.0, "currency": ""}), "240")
+
+    def test_a_missing_price_is_empty_rather_than_zero(self):
+        """⚠️ Ticket 04: *\"a missing price and a real zero are different facts\"* — so an absent amount writes nothing
+        rather than `₹0`, which would state something the vendor never said.
+        """
+        self.assertEqual(package._price({"amount": None, "currency": "INR"}), "")
+        self.assertEqual(package._price({}), "")
 
 
 if __name__ == "__main__":

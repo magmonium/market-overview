@@ -67,18 +67,32 @@ export const EN: Copy = {
   },
   markets: {
     'india+bangladesh': 'India & Bangladesh',
+    // ⚠️ **`us` is kept even though no chart declares it any more** (2026-10-15): the English chart's market is now
+    // `worldwide`, but a week committed before the change still carries `us`, and ADR 0003's promise is that a past week
+    // re-renders with **today's words** (ticket 18). Removing the key would blank the footer of every old week.
     us: 'US lists',
     india: 'India',
     // ⚠️ The Bengali chart's market as of ticket 29: Anandabazar could not be declared, so the chart ranks one
-    // Bangladeshi list. ⚠️ `india+bangladesh` is **kept** above because a week committed before the correction still
-    // carries it, and ADR 0003's promise is that a past week re-renders with today's words (ticket 18).
+    // Bangladeshi list.
     bangladesh: 'Bangladesh',
+    // ⚠️ **The English chart's market as of 2026-10-15** — it reads US, UK, Canadian and Australian lists, so the
+    // sentence names no single country. ⚠️ It is shared with the comics chart, which was already `worldwide`.
     worldwide: 'Worldwide',
   },
   week: 'WEEK',
   new: 'NEW',
   best: 'Best',
-  retailers: {'amazon-in': 'Amazon', flipkart: 'Flipkart'},
+  // ⚠️ **Every Amazon marketplace is the same shop to a reader** — `amazon.co.uk` is still *Amazon* — so the four
+  // international stores added for the English chart (2026-10-15) share the one label. ⚠️ The snapshot keeps the vendor
+  // *slug* (`amazon-uk`), which is what makes naming it a copy change rather than a data migration (ADR 0003).
+  retailers: {
+    'amazon-us': 'Amazon',
+    'amazon-uk': 'Amazon',
+    'amazon-ca': 'Amazon',
+    'amazon-au': 'Amazon',
+    'amazon-in': 'Amazon',
+    flipkart: 'Flipkart',
+  },
   genres: {
     poetry: 'Poetry',
     novel: 'Novel',
@@ -95,7 +109,10 @@ export const EN: Copy = {
     reference: 'Reference',
     other: 'Other',
   },
-  countries: {in: 'India', bd: 'Bangladesh', us: 'US'},
+  // ⚠️ **The three the English chart added** (2026-10-15): the chart now ranks `us`, `gb`, `ca` and `au` lists, so the
+  // country label varies on it for the first time and these are the words it prints. ⚠️ Proper nouns, spelled in Latin
+  // here because the table is the English chart's.
+  countries: {in: 'India', bd: 'Bangladesh', us: 'US', gb: 'UK', ca: 'Canada', au: 'Australia'},
   languages: {
     hi: 'Hindi',
     bn: 'Bengali',

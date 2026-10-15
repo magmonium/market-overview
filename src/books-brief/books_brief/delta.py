@@ -18,6 +18,8 @@ from __future__ import annotations
 import datetime as _datetime
 from typing import Any, Mapping
 
+from . import identity
+
 
 def previous_week(week: str) -> str:
     """The ISO week before `week`, e.g. `2026-W41` → `2026-W40`.
@@ -33,11 +35,15 @@ def previous_week(week: str) -> str:
 
 
 def ranks(bundle: Mapping[str, Any], slug: str) -> dict[str, int] | None:
-    """One chart's `isbn → rank` from a snapshot, or `None` when that week never built it.
+    """One chart's `key → rank` from a snapshot, or `None` when that week never built it.
 
     ⚠️ **Keyed by rank, not read off the list's order.** The previous chart is a list of rows, and zipping it against
     positions would be correct only while the chart is dense and ordered — precisely the assumption a short or
     watchlisted chart breaks.
+
+    ⚠️ **`key`, not `isbn`** (ticket 32) — see `identity.from_row`, which also reads the ISBN for a week recorded before
+    the key existed. ⚠️ This is the half of the change that makes the Δ *survive* it: had this gone on reading `isbn`,
+    the first week after the change would have found no incumbent at all and reported a whole chart as NEW.
 
     ⚠️ An **absent chart key** is `None` (ticket 13 — a chart whose sources failed is not an empty chart), which is the
     same value week one produces. Both mean *nothing to diff against*, and both must bypass the cap rather than admit
@@ -46,10 +52,10 @@ def ranks(bundle: Mapping[str, Any], slug: str) -> dict[str, int] | None:
     chart = bundle.get("charts", {}).get(slug)
     if not isinstance(chart, dict):
         return None
-    return {row["isbn"]: row["rank"] for row in chart.get("ranked", [])}
+    return {identity.from_row(row): row["rank"] for row in chart.get("ranked", [])}
 
 
-def move(*, rank: int, isbn: str, previous: Mapping[str, int] | None) -> int | None:
+def move(*, rank: int, key: str, previous: Mapping[str, int] | None) -> int | None:
     """The Δ for one row — **positive means moved up** (ticket 01) — or `None` when there is none to report.
 
     ⚠️ **Three different `None`s, and the renderer needs all three to be the same value:**
@@ -65,7 +71,7 @@ def move(*, rank: int, isbn: str, previous: Mapping[str, int] | None) -> int | N
     """
     if previous is None:
         return None
-    was = previous.get(isbn)
+    was = previous.get(key)
     if was is None:
         return None
     return was - rank

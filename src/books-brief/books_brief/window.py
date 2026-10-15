@@ -18,7 +18,7 @@ import datetime as _datetime
 import pathlib
 from typing import Iterable, Mapping
 
-from . import delta, rank, store
+from . import delta, identity, rank, store
 
 #: ⚠️ Six months, in ISO weeks. The window's *maximum* — the store is what decides how much of it exists.
 WEEKS = 26
@@ -123,18 +123,18 @@ def observe(
     seen: dict[str, Observation] = {}
     for rows in batches:
         for row in rows:
-            isbn = row.get("isbn")
-            # ⚠️ **`isbn` is the only thing required**, and `rank` deliberately is not: the week being built carries
+            key = identity.from_row(row)
+            # ⚠️ **The key is the only thing required**, and `rank` deliberately is not: the week being built carries
             # its `score` but no chart rank yet (that is what the window is for), so a guard on `rank` would drop the
             # run's own rows.
-            if not isbn:
+            if not key:
                 continue
 
-            earlier = seen.get(str(isbn))
+            earlier = seen.get(key)
             # ⚠️ **The newest week wins for the review fields**, and that is not "latest is best": a rating is
             # cumulative over the book's whole life, so last week's reading is not *older* evidence, it is *less*
             # evidence. ⚠️ Taking the newest also keeps a rebuild deterministic — the same weeks give the same answer.
-            seen[str(isbn)] = Observation(
+            seen[key] = Observation(
                 weeks=(earlier.weeks if earlier else 0) + 1,
                 sales=(earlier.sales if earlier else 0.0) + _week_score(row),
                 rating=_newest(row.get("rating"), earlier.rating if earlier else None),

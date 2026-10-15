@@ -91,14 +91,48 @@ def _grouped(value: int) -> str:
     return ",".join([*groups, tail])
 
 
-def _rupees(amount: object) -> str:
-    """`₹399`, or `""` — ⚠️ **never `₹0`.** A missing price and a real zero are different facts (ticket 04).
+#: ⚠️ ⚠️ **The symbols the *description* writes — and why the amount alone will not do** (2026-10-15).
+#:
+#: ⚠️ This was `_rupees(amount)`: a hard-coded `₹` on every price, which was true while every chart was **India-anchored**
+#: (ticket 12). ⚠️ **It has not been true since ticket 19** — the English chart's rows are priced in `USD`, `CAD` and
+#: `AUD`, and the comics chart's in `CAD` and `INR`. ⚠️ Measured on the re-gathered week, the description printed
+#: **`₹31` for a `CAD 30.60`** row: ticket 19's own named failure (`₹24.99`-for-`$24.99`), arriving in the **upload
+#: text** rather than on the slide, where nothing had looked.
+#:
+#: ⚠️ **A currency with no symbol here is written as its code**, because a bare number is the ambiguity this product keeps
+#: refusing: `CAD 30.60` cannot be misread, and `₹31` can.
+SYMBOLS: dict[str, str] = {
+    "INR": "₹",
+    "USD": "$",
+    "CAD": "CA$",
+    "AUD": "A$",
+    "GBP": "£",
+    "EUR": "€",
+    "BDT": "৳",
+}
 
-    ⚠️ A **string**, and this is the one place in the product where a display string is right: ticket 15's description
-    is never *drawn*, it is written beside the video to be pasted into an uploader — `metadata.py`'s own docstring draws
-    that line.
+
+def _price(price: dict) -> str:
+    """`₹399`, `CA$31`, `SEK 240`, or `""` — ⚠️ **never `₹0`, and never another currency's sign.**
+
+    ⚠️ A **string**, and this is one of the few places a display string is right: ticket 15's description is never
+    *drawn*, it is written beside the video to be pasted into an uploader — `metadata.py`'s own docstring draws that line.
+
+    ⚠️ The amount and the currency ride **together** in the snapshot (`Price.currency`, ticket 04), so the text is built
+    from both or from neither: a missing price and a real zero are different facts, and so are two currencies. ⚠️ An
+    **empty** currency is the documented *unknown* degrade — the number is written with no sign, exactly as the slide
+    draws it (ADR 0003).
     """
-    return f"₹{_grouped(round(amount))}" if isinstance(amount, (int, float)) else ""
+    amount = price.get("amount")
+    if not isinstance(amount, (int, float)):
+        return ""
+
+    number = _grouped(round(amount))
+    currency = price.get("currency") or ""
+    if not currency:
+        return number
+    symbol = SYMBOLS.get(currency)
+    return f"{symbol}{number}" if symbol else f"{currency} {number}"
 
 
 def _rows(bundle: dict, chart: str) -> list[metadata.Row]:
@@ -114,7 +148,7 @@ def _rows(bundle: dict, chart: str) -> list[metadata.Row]:
             title=row["title"],
             author=row["author"],
             publisher=row["publisher"],
-            price=_rupees(row["price"]["amount"]),
+            price=_price(row["price"]),
         )
         for row in bundle.get("charts", {}).get(chart, {}).get("ranked", [])
     ]

@@ -33,6 +33,10 @@ import {BG, FONT, INK, MUTED, RULE} from './palette.ts';
  * ⚠️ **The mosaic ends above YouTube's chrome.** The platform owns the **bottom-right** (duration badge) and the
  * **bottom strip** (progress bar), so the band stops short of both — and the mark stays top-right at issue 21's *still*
  * size rather than the video's.
+ *
+ * ⚠️ **Only books with a cover are drawn.** A placeholder initial is a tile that says nothing about the chart, so a row
+ * with `cover: null` is skipped and the next covered book takes its place — the hero row is the top five *covers*, and
+ * the title still counts the whole chart.
  */
 const HERO = 5;
 /** ⚠️ Dimmed to a **texture**, and the number is the whole idea: at full strength the mosaic competes with the hero row
@@ -52,8 +56,9 @@ export const Collage = ({
   week: string;
   published: string;
 }) => {
-  const hero = facts.ranked.slice(0, HERO);
-  const rest = facts.ranked.slice(HERO);
+  const covered = facts.ranked.filter((book) => book.cover !== null);
+  const hero = covered.slice(0, HERO);
+  const rest = covered.slice(HERO);
 
   return (
     <AbsoluteFill style={{background: BG, color: INK, fontFamily: FONT, padding: 40}}>
@@ -76,7 +81,7 @@ export const Collage = ({
         ))}
       </div>
 
-      {/* ── the mosaic: the other ninety-five, as a colour field ───────────────────────────────────────────── */}
+      {/* ── the mosaic: every other covered book, as a colour field ────────────────────────────────────────── */}
       <div
         style={{
           position: 'absolute',
@@ -85,9 +90,8 @@ export const Collage = ({
           top: 470,
           bottom: CHROME,
           display: 'grid',
-          // ⚠️ **Nineteen columns, so ninety-five tiles fill five exact rows.** A ragged last row would read as missing
-          // covers rather than as a grid — and the count is *known* here (`ranked.length`), so there is nothing to
-          // guess: a chart with fewer rows simply fills fewer.
+          // ⚠️ **Nineteen columns, so a full chart's ninety-five tiles fill five exact rows.** A chart missing covers
+          // fills fewer, and its last row runs short — every tile in it is still a real cover.
           gridTemplateColumns: 'repeat(19, 1fr)',
           gap: 2,
           opacity: MOSAIC,
@@ -103,30 +107,11 @@ export const Collage = ({
 };
 
 /**
- * ⚠️ **The same branded tile the slide uses** (ticket 07) — the book's initial on `BG` with a `RULE` border — so the two
- * surfaces agree instead of each inventing a placeholder. ⚠️ Never a blank box, never a stock *"no image"* glyph.
- *
- * ⚠️ The `Img` is only reached when the row says a cover exists, because `stage.covers` writes a file only for a row that
- * has one — so a broken tile is structurally impossible rather than merely unlikely.
+ * ⚠️ **Only ever handed a covered row** — `Collage` filters on `book.cover` first, and `stage.covers` writes a file only
+ * for a row that has one — so a broken tile is structurally impossible rather than merely unlikely.
  */
 const Tile = ({book}: {book: Book}) => (
-  <div
-    style={{
-      width: '100%',
-      height: '100%',
-      background: BG,
-      border: `1px solid ${RULE}`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-  >
-    {book.cover ? (
-      <Img src={coverUrl(book.isbn)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
-    ) : (
-      <span style={{fontSize: 28, fontWeight: 700, color: MUTED}}>
-        {(book.title.trim()[0] ?? '?').toUpperCase()}
-      </span>
-    )}
+  <div style={{width: '100%', height: '100%', background: BG, border: `1px solid ${RULE}`}}>
+    <Img src={coverUrl(book.isbn)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
   </div>
 );

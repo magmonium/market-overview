@@ -58,6 +58,127 @@ and reaching it is a hand-off.
 
 ## Decisions so far
 
+- [The covers were the card's thumbnail](issues/37-the-covers-were-the-cards-thumbnail.md) — ✅ **resolved: the images were
+  right and the *rendition* was wrong.** ⚠️ All **99** comics covers measured **300×200** — the *grid's* box, not a book's
+  shape — because `amazon.parse` took the card's `<img src>`, which is Amazon's own `…UL300_SR300,200_` transform. ⚠️
+  Measured on the same asset: the token stripped answers **1600×2155 / 201 KB** against the card's **300×200 / 6 KB** —
+  ⚠️ **twenty-five times fewer pixels in the wrong aspect ratio**, which is what *"the covers look bad"* turned out to be.
+  ✅ The parser now strips the token (matched on Amazon's `/images/I/<id>._<token>.<ext>` path shape, so a bookshop's
+  `My._Book.jpg` is untouched), ⚠️ and **the cached bytes were refreshed with the record** — the cache is keyed by ISBN and
+  answers before the network, so a fixed parser alone would have left the old bytes behind: **195 covers replaced, 0
+  failed**. ✅ Re-rendered: same 99 covers at **min 645, median 1524, max 2400**, video **31.3 → 39.1 MB**. ⚠️ **And the
+  two answers are different facts**: where a larger rendition existed we were asking for the wrong one (comics, fixed);
+  where it does not, the vendor's own upload is the best there is (BoiChitro's ~300px images, Open Library's small `-L`
+  fallbacks). ⚠️ Exposed a latent defect: the ISBN-keyed cache can serve a thumbnail's bytes under an original's URL.
+
+- [The description that would not fit — and the rupees in it](issues/36-the-description-that-would-not-fit.md) — ✅
+  **resolved: the titles give, the list does not — and the assembled text was pricing Canadian books in rupees.** ⚠️ The
+  comics chart built, rendered, and then refused to be packaged at **9,295** characters against YouTube's **5,000** —
+  ticket 15's refusal, correct and useless, because *"a list to shorten"* does not say **what** to shorten. ⚠️ Measured:
+  dropping the tail's authors bought **273** characters while cutting tail titles to 45 bought **4,100** — ⚠️ **the titles
+  are the problem, not the fields** — so the shapes are now tried **cheapest loss first** (whole, then no author, then a
+  narrowing width) and the first that fits ships. ⚠️ **What is not given up**: the list stays whole at 100 rows, the top
+  ten keep every field, and the refusal stays as the **last rung** — a list whose top ten will not fit even as fragments
+  is still refused, because YouTube cuts the tail. ✅ **4,982 characters**, package assembled. ⚠️ ⚠️ **And assembling it
+  printed `₹31` for a `CAD 30.60` row**: `package._rows` built every price with `_rupees(amount)`, true while every chart
+  was India-anchored (ticket 12) and false since ticket 19 — ⚠️ **the `₹24.99`-for-`$24.99` failure again, in the upload
+  text**, where nothing had looked. ✅ Fixed from the row's own currency, with an unsymbolised currency written as its
+  **code** (`SEK 240`) rather than a bare number. ⚠️ **355 tests pass**, and the **English chart is publishable for the
+  first time** — its 7,677 characters now shorten the same way.
+
+- [One call per client — the registry is keyed by vendor, and the fetch is not](issues/35-one-call-per-client.md) — ✅
+  **resolved: the conductor called each *client* once per *vendor*, and the repetition changed the chart.** ⚠️ `CLIENTS`
+  maps eight Amazon storefronts to **one module**, and `amazon.fetch(chart, …)` reads **every list the chart declares for
+  it** — so an eight-store chart issued **64 requests instead of 8**, with every row arriving eight times; the week as a
+  whole issued **81 instead of 13**. ⚠️ ⚠️ **The duplicates were not merely slow.** `_weekly` collapses a work's rows per
+  list, so the sum survived — but it sizes a list by **counting its rows**, and `rank.weight` scales by depth
+  (`min(1, size / N_REF)`): a thirty-card storefront was sized **240**, lifting it from a **0.3** weight to a full
+  **1.0**. ⚠️ The chart ranked that vendor far above ticket 03's weight, and **the error grew with every store added** —
+  4× on `english`, 8× on `comics`. ⚠️ It arrived with the English chart's four stores and was invisible until two
+  vendors shared a client; its one symptom was the suite's own comic stub scoring **0.02 where one row should score
+  0.01**. ✅ Fixed by deduping to clients, ✅ with the test that would have caught it — the stubs build a fresh `Mock` per
+  vendor, so the new test hands **one client to two vendors on purpose**. ⚠️ **This is the week's third instance of the
+  same shape**: not a wrong rule, but a second place the same fact lived.
+
+- [The comics list, from every country](issues/34-the-comics-list-from-every-country.md) — ✅ **resolved: eight storefronts,
+  one list.** ⚠️ The operator's *"from different counrty europe amerika uk india and create list"* is answered with
+  **one list per country**: `amazon-us`, `.co.uk`, `.ca`, `.de`, `.fr`, `.it`, `.es`, `.in` beside NYT's monthly
+  graphic-books list. ⚠️ **Every node id was read off the store's own category tree and then fetched**, because they are
+  locale-specific and the guess is what broke this chart in the first place — and the content was checked, not the status
+  code (*Gregs Tagebuch*, *Lou ! Sonata*, *One Piece*, *Policán*, *Bunny vs Monkey*). ⚠️ ⚠️ **Two defects surfaced only
+  because the list was widened.** **A store missing from `MARKETPLACES` prints an unsigned number**: the four European
+  stores were absent from it, so `amazon.de` would have shipped **`5711.66`** with no symbol — ticket 19's failure one
+  step further from being visible — now fixed *and* pinned by the invariant test that reads both tables. ⚠️ And **eight
+  requests in a burst get one throttled**: `amazon.de` answered `200`, a valid title and **no cards**, while the same
+  address gave 30 cards seconds later — which is not "one country missing" but **no comics chart at all** (ticket 18), so
+  `amazon.fetch` now pauses between storefronts. ✅ Measured end to end: **255 rows → 225 distinct titles, no missing
+  vendors**, **8 countries**, **22 titles carried by more than one list** (`Absolute Batman Vol. 1` by Canada, India and
+  the US), and the language label draws on this chart for the first time. ⚠️ `amazon.com.au` is verified and
+  **not declared** — Australia is not one of the four regions named, and declaring it would be a choice presented as an
+  instruction.
+
+- [The comics chart's monthly half — and the operator's answer to it](issues/33-the-comics-charts-monthly-half.md) — ✅
+  **resolved: the chart's NYT half is *monthly*, and three vendors now cover it.** ⚠️ `./build books` answered *"comics:
+  not in this week's bundle"* for `2026-W41` **while Amazon.in had answered it thirty rows**, and the reason is one wrong
+  cell in ticket 22's source table: it calls NYT's `graphic-books-and-manga` **weekly**, and the recorded payload says
+  `"updated": "MONTHLY"` with `bestsellers_date: 2026-10-03` — four days *before* week 41 opened. ⚠️ So the guard called
+  the list stale on the very week it describes, and ticket 18 made the chart absent **three weeks in four**. ⚠️ **And the
+  same replay found a wrong number already shipped**: the recorded `amazon.com` and `amazon.co.uk` pages quote **HUF**, so
+  `MARKETPLACES` labelled **34 rows of the English chart** with a currency the page never stated — ticket 19's own named
+  failure, live in the committed week. ✅ **`amazon.parse` now verifies the currency the page states** (a contradiction
+  drops the *price* and keeps the *row*; a bare `$` is still decided by the declaration), ✅ **`charts.Listing.cadence`**
+  declares a list monthly and **`freshness.guard(monthly=…)`** measures it against the month — a previous month is still
+  stale, so the guard keeps its meaning — and ✅ **`comics` declares three vendors**: `nyt` (monthly), `amazon-us` (live,
+  the **print** node `4366`, 22 of 30 real ISBN-13s — the operator's Kindle node `156104011` has **0 of 30**), and
+  `amazon-in` (live, 26 of 30). ⚠️ Replayed: **75 rows → 67 titles, no missing vendors**, with `Absolute Batman Vol. 3`
+  carried by both Amazon.com and NYT. ⚠️ The StoryGraph link is the *League of Comic Geeks Top 100* as a reading
+  challenge — **no ranks, no date, no ISBNs** — and is recorded rather than declared.
+
+- [Dey's best-seller collection, and what "a title" means](issues/32-deybooks-and-the-identity-of-a-title.md) — ✅ **resolved: the
+  chart is keyed by the *work*, and Bangabani is declared.** ⚠️ The rule shipped is the **union of two relations** — the
+  work key (`title + author`, normalised, with a measured author-spelling table) **and** a shared real ISBN — because one
+  was not enough: measured on W41's own recorded responses, the work key alone gave the English chart **246 groups where
+  the ISBN alone gave 223** (it split 30 to merge 11), and their union gives **214**. ⚠️ **59 English rows are now carried
+  by more than one list** — ticket 17's corroboration visible for the first time. ✅ **`bengali` declares three vendors
+  across two countries**: `rokomari`, `boichitro` and **`bangabani`** (WooCommerce, so *no new client* — 100 deep, **54
+  real ISBNs in `sku`**, Bengali-script titles, INR, permissive robots), and `woocommerce.fetch` now **refuses an address
+  that lost `orderby=popularity`**, because that parameter is the whole of what makes a shop's page a ranking. ⚠️ **W41's
+  230 rows were migrated** to the new key from their own recorded title+author — no re-fetch, one field, and the
+  watchlists deliberately left as they were. ✅ **And the duplicates were then removed from the committed week**: `english`
+  100 → **92**, `bengali` 100 → **98**, `all-language` 30 → 30, verified (no repeated titles, dense ranks, unique keys),
+  `chart_logic` 1 → 2, and the week **re-rendered by replaying the merged snapshot**. ⚠️ That merge caught a real defect —
+  a work's score must count its **best position per list**, not every listing, or one shop listing a book three times
+  (BoiChitro's `Chandmama`) is counted as three corroborating voices. ⚠️ **`english` is built but not publishable**: its
+  description is 7,677 characters against YouTube's 5,000, and the same description was 8,321 *before* the merge, so the
+  limit is a pre-existing consequence of the English chart's content. ⚠️ **Dey's and Sahojpath are evaluated and not declared**: Dey's states no
+  ISBN, and Sahojpath has no API at all *and* an unverifiable ordering. ✅ **333 tests, 64 subtests, 18 JS, `tsc` clean.**
+
+- [The Anandabazar list, located — and it is an archive](issues/31-the-anandabazar-list-located-and-archived.md) — ✅
+  **resolved: the list is real, and the address is an archive.** ⚠️ The operator supplied
+  `…/best-seller-bengali-books-of-this-week-1.138440` and asked for it to be prioritised, and the fetch says what it is: a
+  genuine **sales-ranked** Bengali list (`বিক্রির নিরিখে`), two sections of ten, every row carrying title, author,
+  publisher and a trailing count — **and its own date**, which is the one thing neither declared Bengali vendor can
+  state. ⚠️ **But it is dated 2015-04-25**, and every instalment the site serves is 2014–2015. ⚠️ The list itself still
+  runs — **Saturdays**, in print, as the e-paper page `পুস্তক পরিচয়` — and it is a **scan** (23 page images, no text
+  layer, no OCR), while the print archive host answers **521**. ⚠️ **So it stays undeclared**: a stale list makes its
+  vendor *missing* and a missing vendor makes its chart **absent** (ticket 18), which would undo ticket 30's repair.
+  ⚠️ A *current* text address is the only missing piece, and the client would be small — the parse is
+  `rank. title, author। publisher (n)`, and the section is the genre.
+
+- [The Bengali chart's second vendor](issues/30-the-bengali-charts-second-vendor.md) — ✅ **resolved: the chart's
+  *sources* were changed, not the rule.** ⚠️ Seven candidate addresses were **fetched**, and **four are not sources at
+  all** — an Amazon *search* page (no rank badge), an empty Daraz tag, a Goodreads **all-time shelving count**, and a
+  Flipkart category browse of 20,109 products — while the **booksellers** are: **BoiChitro** publishes a hundred-deep
+  popularity ranking as **JSON** (a WooCommerce Store API, no key, no scrape) with a real ISBN on 18 of its first 100
+  records and its own `pa_authorname` on most. ⚠️ **And Rokomari needed no new code**: ticket 29's *"needs a date"* was
+  the right reading of the **guard** and the wrong reading of the **vendor** — a retailer's bestseller category is
+  regenerated per order, so there is no dated artefact for a date to be missing from, which is exactly what `charts.LIVE`
+  is for. ⚠️ So `bengali` is **`(rokomari, boichitro)`**, its market is **`india+bangladesh`** again, and **it builds**.
+  ⚠️ ⚠️ **Two things a build found that no test could** — the record shape had changed under the parser (`rokomari` gained
+  an `adClickUrl` field, so the regex that found records matched **nothing** and the vendor was reported *missing* rather
+  than *broken*), and a week gathered while a source is broken **records itself** and then replays without it. ⚠️ Both are
+  in the ticket, and both are the same lesson: a source that answers is not the same as a source that **parses**.
+
 - [The declarations the sources do not support](issues/29-the-declarations-the-sources-do-not-support.md) — ✅ **resolved:
   correct the declarations to what exists, and make the *address* the thing a scraped list must state.** ⚠️ `english`
   drops PW (`indie/national` in its place), `all-language` reads **one** mixed Amazon list instead of nine, `bengali`
@@ -319,18 +440,34 @@ and reaching it is a hand-off.
 
 <!-- in-scope fog: real, but not yet sharp enough to be a ticket -->
 
-- **A second weekly Bengali ranking.** ⚠️ `bengali` has **one** vendor (Rokomari), and one vendor cannot corroborate
-  anything — so the chart ships **absent**. ⚠️ Anandabazar's weekly list was never located, and ticket 29 left that as a
-  **search** rather than a correction: it is the one thing that would bring the chart back.
-- **A date for Rokomari.** The list parses (60 rows) and its address is settled (ticket 29); only its **vintage** is
-  unknown, which is what makes `freshness.guard` refuse it. ⚠️ Finding a date is not a parser change.
-- Retention — how many weeks of `store/<week>/` snapshots are kept, and whether old weeks are pruned
+- **A parser for Flipkart's popularity ordering.** ⚠️ Its Bengali category is **20,109** products, default-sorted by
+  *Popularity* — far deeper than any shop's hundred — but it states **no ISBN**, dates nothing, and paginates 500 pages.
+  ⚠️ Ticket 30 recorded it rather than declaring it.
+- **An ISBN attribute for Boighar.** The Store API client already reads it (ticket 30) and `boighar` is one line in
+  `charts.py`; ⚠️ what is missing is an **identifier**, without which a vendor can neither corroborate nor be
+  corroborated.
+- **Boierhaat's popularity index, and it is not a sales signal.** ⚠️ `boierhaat.com` is a Kolkata bookshop on a custom
+  Laravel storefront (not WooCommerce) whose **"most sold books"** list is **six items deep** with no dedicated page —
+  and whose big per-book **জনপ্রিয়তা সূচক** number is, by the site's own `/know-popularity-index`, an **AI-driven media
+  and review-coverage score**, *not* sales. ⚠️ Recorded rather than declared (ticket 30), and it needs an **ISBN** before
+  it could join anyway — without one, its rows would duplicate BoiChitro's under a second vendor key.
+- **A `sort_by=best-selling` claim for Oxford Bookstore.** Its Shopify `/products.json` answers with ISBNs inside
+  `body_html`, ⚠️ but a *collection* is merchandising rather than a ranking — so *"the store serves a best-selling order"*
+  is a claim nobody has checked.
+- Retention — how many weeks of `store/<week>/` snapshots are kept, and whether old weeks are pruned. ⚠️ **Ticket 30
+  made this heavier**: a hundred-record Store API response is about a megabyte, because every record carries its whole
+  `description`.
 - Genre sub-charts (fiction / non-fiction / children's) *within* each of the four charts — a *possible* feature, not a
   decision implementation needs
 
 ⚠️ **Graduated out of the fog:** the **publish targets** are **ticket 24**, the **operator prerequisites** are **ticket
 25**, and **snapshot retention** is **ticket 28** — retention because ticket 23 made it **load-bearing rather than
 tidy**.
+
+⚠️ **And two items left the fog by being answered** (2026-10-15). ⚠️ *"A second weekly Bengali ranking"* and *"a date for
+Rokomari"* were both **searches**, and ticket 30 ran them: the ranking is **BoiChitro's Store API**, and Rokomari's
+"missing date" was a **misreading of the source** — a retailer's bestseller category is regenerated per order, so there is
+no dated artefact for a date to be missing from, which is what `charts.LIVE` exists for. ⚠️ **`bengali` builds again.**
 
 ⚠️ **And one item left the fog by being answered:** the price layer's refresh cadence — ticket 04 established that the
 price **arrives with the chart source**, so it refreshes **per run**, and there is nothing to decide.

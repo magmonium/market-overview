@@ -6,7 +6,7 @@ arithmetic"*. These are the tests that keep that honest.
 """
 import unittest
 
-from books_brief import charts, corroborate
+from books_brief import charts, corroborate, identity
 
 
 class TheUnion(unittest.TestCase):
@@ -50,6 +50,64 @@ class TheUnion(unittest.TestCase):
             ("indie/national", "nyt/hardcover-fiction", "nyt/hardcover-nonfiction"),
         )
 
+    def test_two_editions_of_one_work_are_one_row(self):
+        """⚠️ ⚠️ **Ticket 32, and the defect it repairs — measured, not argued.**
+
+        The English chart shipped **100 rows holding 92 distinct titles**: eight books ranked twice, each pair being two
+        *editions* of one work with two real ISBNs. ⚠️ Ticket 14's `chart + ISBN` was exact and stable and said nothing
+        about editions, so a reader was told one book was two books and nothing on the chart said otherwise.
+
+        ⚠️ **And the row it merges into is carried by two lists**, which is ticket 17's corroboration becoming *visible*
+        for the first time — the same title on two stores' lists is one row with two sources rather than two rows with
+        one each.
+        """
+        rows = [
+            corroborate.Row(
+                list="nyt/hardcover-fiction",
+                rank=2,
+                isbn="9781668032145",
+                title="Protocols: An Operating Manual for the Human",
+                author="Andrew Huberman",
+            ),
+            corroborate.Row(
+                list="amazon-us/english",
+                rank=33,
+                isbn="9781529921298",
+                title="PROTOCOLS: An Operating Manual for the Human",
+                author="Andrew Huberman",
+            ),
+        ]
+
+        result = corroborate.admit(rows, chart=charts.get("english"))
+
+        self.assertEqual(len(result.admitted), 1, "one work, one row")
+        self.assertEqual(
+            result.admitted[0].sources, ("amazon-us/english", "nyt/hardcover-fiction")
+        )
+        # ⚠️ The ISBN stays the **sorted-first** row's own — `amazon-us` sorts before `nyt` — because a group has no
+        # single product to point at and the cover is named by this field.
+        self.assertEqual(result.admitted[0].isbn, "9781529921298")
+        self.assertEqual(
+            result.admitted[0].key,
+            identity.work("Protocols: An Operating Manual for the Human", "Andrew Huberman"),
+        )
+
+    def test_two_books_that_share_a_title_but_not_an_author_stay_two_rows(self):
+        """⚠️ ⚠️ **The conservative direction, as a test** — and the reason the key is not the title alone.
+
+        An over-merge invents a book that does not exist, and nothing downstream can tell it did: the row would carry one
+        author's name and the other's position. ⚠️ A duplicate is visible on the chart; a wrong row is not.
+        """
+        rows = [
+            corroborate.Row(list="nyt/hardcover-fiction", rank=1, isbn="9780000000001", title="Compass", author="A"),
+            corroborate.Row(list="indie/national", rank=2, isbn="9780000000002", title="Compass", author="B"),
+        ]
+
+        result = corroborate.admit(rows, chart=charts.get("english"))
+
+        self.assertEqual(len(result.admitted), 2)
+        self.assertEqual(sorted(title.isbn for title in result.admitted), ["9780000000001", "9780000000002"])
+
     def test_a_row_from_an_undeclared_vendor_is_still_not_evidence(self):
         """⚠️ **The spine survives the reversal.** Evidence from a source the chart does not declare is not evidence
         *for that chart* — otherwise a stray row could put a title on a chart with no business ranking it.
@@ -67,8 +125,9 @@ class TheUnion(unittest.TestCase):
         """The comics chart's pair: NYT's graphic-books list plus Amazon.in's Comics & Mangas.
 
         ⚠️ **Not the Bengali chart any more** (ticket 29). This used to pair Anandabazar's weekly list with Rokomari's,
-        but Anandabazar could not be declared — no list was ever found and no client was ever written — so the Bengali
-        chart has **one** vendor and cannot admit anything at all.
+        but Anandabazar could not be declared — no address to give and no client written — so the Bengali chart has
+        **one** vendor and cannot admit anything at all. ⚠️ Ticket 31 has since **located** the list: it is real and
+        sales-ranked, and every instalment the site serves is 2014–2015, so the answer is unchanged.
         """
         rows = [
             corroborate.Row(list="amazon-in/comics", rank=3, isbn="9788172151234", title="B"),

@@ -21,9 +21,10 @@ export type Price = {
    * ⚠️ **The currency the amount is denominated in** — `INR`, `USD`, `BDT` — and the reason it is a *value* rather
    * than something this layer decides (ADR 0003).
    *
-   * ⚠️ **It is not a detail.** The English chart is a **US** list (ticket 19) and the Bengali chart spans **India and
-   * Bangladesh** (ticket 20), so `24.99` and `৳180` and `₹180` all occur — and rendering one as another is wrong by a
-   * factor of eighty or of one and a half, while looking entirely correct.
+   * ⚠️ **It is not a detail.** The English chart now spans the **English-speaking stores** — `us`, `gb`, `ca` and `au`
+   * (2026-10-15; it was US-only) — and the Bengali chart is **Bangladesh** (ticket 20), so `$24.99`, `£24.99`,
+   * `CA$24.99`, `A$24.99`, `৳180` and `₹180` all occur — and rendering one as another is wrong by a factor of eighty or
+   * of one and a half, while looking entirely correct.
    *
    * ⚠️ **Empty means *unknown*, and unknown draws no symbol** — see `format.money`. A default of `INR` here would make
    * a missing currency quietly assert rupees, which is the failure the field exists to prevent.
@@ -36,6 +37,15 @@ export type Cover = {readonly url: string; readonly sha256: string};
 
 /** One row of the chart — ticket 07's eight fields, flat. */
 export type Book = {
+  /**
+   * ⚠️ ⚠️ **The work** (ticket 32) — the chart's identity for this row, and **not** the ISBN. An ISBN names an
+   * *edition*, so keying on it ranked one book twice whenever two stores sold different printings of it; this is
+   * `title|author` normalised, which is what the Δ and the six-month window match on.
+   *
+   * ⚠️ **The renderer does not draw it**, and that is not an omission: it is the field that says which row *is which*
+   * between weeks. `isbn` stays the field a cover is named by (`coverUrl`), which is the one job it still has.
+   */
+  readonly key: string;
   readonly isbn: string;
   readonly rank: number;
   readonly weeks_on_chart: number;

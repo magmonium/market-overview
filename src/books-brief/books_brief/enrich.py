@@ -12,7 +12,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Iterable, Mapping
 
-from . import covers, delta, genre, prices, rank
+from . import covers, delta, genre, identity, prices, rank
 
 #: ⚠️ Ticket 05 §3's two states. The key is an ISBN when it is **resolved**, and a normalised `title + author` when it
 #: is not — recorded on the row so the weakness is **visible rather than silent**.
@@ -74,6 +74,14 @@ class Book:
     vendor slug, and `published` is the source's own string — the renderer's label tables own every word a viewer sees.
     """
 
+    #: ⚠️ ⚠️ **The work** (ticket 32) — the chart's identity for this row, and the field the **next** week's Δ and the
+    #: six-month window recognise it by. ⚠️ It rides in the snapshot for the same reason `score` and `rating` do: the
+    #: window cannot re-derive a title's identity from a week it cannot re-fetch.
+    #:
+    #: ⚠️ **And it is not `isbn`.** The ISBN is a *product* — a store switching edition changes it — while the work is
+    #: what the chart is a chart *of*. The two are separate fields because they answer separate questions, and because
+    #: `isbn` is a cover's filename (`covers.path_for`) while `key` never is.
+    key: str
     isbn: str
     rank: int
     weeks_on_chart: int
@@ -126,11 +134,14 @@ def build(
     """
     return tuple(
         Book(
+            key=row.key,
             isbn=row.isbn,
             rank=row.rank,
             weeks_on_chart=row.weeks_on_chart,
             is_new=row.is_new,
-            move=delta.move(rank=row.rank, isbn=row.isbn, previous=previous),
+            # ⚠️ Keyed on the **work** (ticket 32), so a book that changed edition between two weeks is the same title
+            # rather than a newcomer — which is the whole reason the Δ cannot key on the ISBN.
+            move=delta.move(rank=row.rank, key=row.key, previous=previous),
             title=detail.title,
             author=detail.author,
             publisher=detail.publisher,
@@ -154,7 +165,7 @@ def build(
             language=detail.language,
         )
         for row in ranked
-        for detail in (details.get(row.isbn, Details()),)
+        for detail in (details.get(row.key, Details()),)
     )
 
 
@@ -168,39 +179,12 @@ def coverage(books: Iterable[Book]) -> int:
     return sum(1 for book in books if book.cover is not None)
 
 
-#: ⚠️ The ISBN-13 prefix for a title that was published as ISBN-10. A book that was *only* ever ISBN-13 carries its own
-#: prefix (978 or 979) and must not be re-prefixed.
-PREFIX = "978"
-
-
-def _check_digit(body: str) -> str:
-    """The EAN-13 check digit for a twelve-digit body.
-
-    ⚠️ **Recomputed, never carried over.** An ISBN-10's check digit is computed by a different rule and is not valid
-    for a thirteen-digit ISBN — so an implementation that prefixed `978` and kept the old digit would produce a
-    plausible string matching no real book, and nothing downstream could tell.
-    """
-    total = sum(
-        int(digit) * (1 if position % 2 == 0 else 3)
-        for position, digit in enumerate(body)
-    )
-    return str((10 - total % 10) % 10)
-
-
-def isbn13(raw: str) -> str:
-    """The ISBN-13 for a ten- or thirteen-digit ISBN, or `""` when the input is not one.
-
-    ⚠️ **`""` rather than a guess.** A caller that gets an empty string knows the identity is unresolved and can mark
-    the row; a caller handed a fabricated key would have no way to tell.
-    """
-    digits = "".join(
-        character for character in raw if character.isdigit() or character in "Xx"
-    )
-
-    if len(digits) == 13:
-        return digits
-    if len(digits) != 10:
-        return ""
-
-    body = f"{PREFIX}{digits[:9]}"
-    return body + _check_digit(body)
+#: ⚠️ ⚠️ **`isbn13` moved to `identity`, and this is a re-export rather than a copy** (ticket 32). Two *decisions*
+#: need it and only one of them is enrichment: `corroborate.admit` uses it to tell a real ISBN from a synthetic key
+#: when it unions two groups, and this module uses it to mark a row's identity **resolved**. ⚠️ The gate cannot import
+#: this module without a cycle — `enrich` imports `rank`, which imports `corroborate` — so the function now lives in
+#: the one module with no local imports, and every existing caller keeps working through this name.
+#:
+#: ⚠️ **A re-export and not a second implementation**: two copies of a check-digit rule would drift, and the drift
+#: would be invisible — both would keep producing thirteen digits.
+isbn13 = identity.isbn13

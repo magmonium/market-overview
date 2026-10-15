@@ -73,15 +73,17 @@ class TheSchedule(unittest.TestCase):
         self.assertIsNone(slots[0].rank)
         self.assertIsNone(slots[-1].rank)
 
-    def test_every_book_slot_is_contiguous_and_in_rank_order(self):
+    def test_every_book_slot_is_contiguous_and_counts_down_to_number_one(self):
         """⚠️ **No gaps and no overlaps**, because the blocks are placed by accumulating durations rather than by
         each slot computing its own start. A gap would show as a held frame; an overlap as two slides fighting for the
         same frame, which Remotion resolves by *stacking* them rather than by complaining.
+
+        ⚠️ **And the run is a countdown** — the last rank first, number one last, right before the outro.
         """
         slots = timeline.schedule(12)
         books = [block for block in slots if block.key == "book"]
 
-        self.assertEqual([block.rank for block in books], list(range(1, 13)))
+        self.assertEqual([block.rank for block in books], list(range(12, 0, -1)))
         for earlier, later in zip(slots, slots[1:]):
             self.assertEqual(later.start, earlier.start + earlier.duration)
 
@@ -92,7 +94,8 @@ class TheSchedule(unittest.TestCase):
         spent 0.4 s on the tail — **40 % of the only time there is to read a publisher**.
         """
         books = [block for block in timeline.schedule(100) if block.key == "book"]
-        head, tail = books[0], books[-1]
+        head = next(block for block in books if block.rank == 1)
+        tail = next(block for block in books if block.rank == 100)
 
         self.assertEqual(head.enter_frames, 12)
         self.assertEqual(tail.enter_frames, 4)
@@ -100,7 +103,7 @@ class TheSchedule(unittest.TestCase):
             self.assertLess(block.enter_frames, block.duration)
 
     def test_a_short_chart_is_a_shorter_run_and_not_a_slower_one(self):
-        """⚠️ Ticket 06's *degrade to omission*, one level up: a chart holding sixty-three rows ends at rank 63.
+        """⚠️ Ticket 06's *degrade to omission*, one level up: a chart holding sixty-three rows starts at rank 63.
 
         ⚠️ Padding out to a hundred would hold the outro on the last book for thirty-seven slides' worth of frames —
         a frozen frame at the end of the video, which reads as a broken render rather than as a short chart.

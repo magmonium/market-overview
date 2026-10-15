@@ -51,7 +51,7 @@ class Guarded:
     missing: tuple[str, ...]
 
 
-def span(week: str) -> tuple[str, str]:
+def span(week: str, *, cadence: str = "weekly") -> tuple[str, str]:
     """The dates a list may carry and still describe `week` — **inclusive at both ends.**
 
     ⚠️ **Derived from the week key, never from a clock.** The week is an argument (ADR 0003), so a span read off today
@@ -60,29 +60,62 @@ def span(week: str) -> tuple[str, str]:
 
     ⚠️ **Through `date.fromisocalendar`, not arithmetic on the week number.** `2027-W01` begins in **2026**, and a naive
     `week * 7` would put the span a year out — the same trap `window.monday` documents.
+
+    ⚠️ ⚠️ **And a monthly list is judged by the *month*, not by the week** (2026-10-15). The weekly span is ten days
+    wide — a sales week plus `LAG_DAYS` — which is right for a *compiled weekly* list and **impossible for a monthly
+    one**: NYT's `graphic-books-and-manga` is dated the first Saturday of the month, so it reads as stale for the other
+    three weeks, and ticket 18 turns a stale vendor into an **absent chart**. ⚠️ So a monthly list is fresh for the
+    **month the week falls in**, which keeps the guard's meaning — *a previous month is still stale* — while letting a
+    chart build every week of the month its list describes. See `charts.CADENCES`.
     """
     start = _datetime.date.fromisoformat(window.monday(week))
+
+    if cadence == "monthly":
+        # ⚠️ The month of the week's **Monday**, because that is the day this function is already anchored to. ⚠️ And
+        # the next month is computed by hand rather than by a dependency: `calendar.monthrange` would do it, but three
+        # lines for one boundary is cheaper than the import, and `12` is the only case that needs saying.
+        first = start.replace(day=1)
+        following = (
+            _datetime.date(first.year + 1, 1, 1)
+            if first.month == 12
+            else _datetime.date(first.year, first.month + 1, 1)
+        )
+        last = following - _datetime.timedelta(days=1)
+        # ⚠️ The same `LAG_DAYS` at the end, for the same reason: a monthly list compiled from September's sales lands
+        # in the first days of October, and a run in the week that straddles the boundary must not refuse it.
+        return first.isoformat(), (last + _datetime.timedelta(days=LAG_DAYS)).isoformat()
+
     return start.isoformat(), (start + _datetime.timedelta(days=6 + LAG_DAYS)).isoformat()
 
 
-def is_fresh(published: str, *, week: str) -> bool:
-    """Whether a list dated `published` was published for `week`.
+def is_fresh(published: str, *, week: str, cadence: str = "weekly") -> bool:
+    """Whether a list dated `published` was published for `week` — **at the cadence the list declares.**
 
     ⚠️ **Parsed, not string-compared.** ISO dates happen to sort lexically, which makes `<=` on the raw strings look
     right — right up to the first unpadded `2026-1-5`, which sorts *after* `2026-10-05` and would read as very fresh.
     ⚠️ And a value that will not parse is a **stale** answer rather than a crash: a vendor's human-readable date where an
     ISO one belongs is one source's malformed field, not a reason to lose the other three charts.
+
+    ⚠️ **`cadence` defaults to `"weekly"`, so every existing caller keeps the old rule exactly** — the same opt-in shape
+    `guard`'s `live` argument has, and for the same reason: a rule that widened by default would stop being a guard.
     """
     try:
         observed = _datetime.date.fromisoformat(published)
     except (TypeError, ValueError):
         return False
 
-    earliest, latest = span(week)
+    earliest, latest = span(week, cadence=cadence)
     return _datetime.date.fromisoformat(earliest) <= observed <= _datetime.date.fromisoformat(latest)
 
 
-def guard(rows: Iterable[corroborate.Row], *, week: str, vendors: Iterable[str]) -> Guarded:
+def guard(
+    rows: Iterable[corroborate.Row],
+    *,
+    week: str,
+    vendors: Iterable[str],
+    live: Iterable[str] = (),
+    monthly: Iterable[str] = (),
+) -> Guarded:
     """Drop the rows whose list is stale, and report the vendors left with nothing.
 
     ⚠️ **Per list, then per vendor, and the two halves answer different questions.** Each list's own date governs its own
@@ -93,8 +126,23 @@ def guard(rows: Iterable[corroborate.Row], *, week: str, vendors: Iterable[str])
     ⚠️ **`vendors` is an argument rather than something inferred from the rows.** A vendor that returned nothing at all
     leaves no rows to infer from, and that is the commonest way a source fails — so inferring would make the guard blind
     to exactly the case it most needs to see.
+
+    ⚠️ ⚠️ **`live` names the vendors whose list is a *live ranking*, and they are exempt from the date check**
+    (2026-10-15). The distinction is `charts.LIVE`'s and it is stated there; what matters *here* is the exact scope of the
+    exemption: a live vendor's rows are kept **because a live ranking has no stale version to catch** — the page states no
+    date because there is nothing to date. ⚠️ **Everything else still applies**: an undeclared vendor's rows are still
+    dropped, and a live vendor that returns *nothing* is still **missing**, so its chart is still absent. ⚠️ The exemption
+    is opt-in and defaults to empty, so every caller that does not name a live vendor keeps the old rule exactly.
+
+    ⚠️ ⚠️ **`monthly` names the *lists* published monthly, and they are checked against the month rather than the week**
+    (2026-10-15). ⚠️ **It takes list slugs where `live` takes vendor slugs, and the asymmetry is the point**: cadence is a
+    property of the list — NYT publishes weekly lists too — while "no date at all" is a property of the vendor's whole
+    store. ⚠️ The row's own `list` is what selects the rule, so one chart can hold both kinds, which is exactly what
+    `comics` does. ⚠️ Opt-in and empty by default, like `live`: a guard that widened by default would stop being a guard.
     """
     declared = sorted(set(vendors))
+    ranking = frozenset(live)
+    monthly_lists = frozenset(monthly)
     kept: list[corroborate.Row] = []
     answered: set[str] = set()
 
@@ -104,8 +152,12 @@ def guard(rows: Iterable[corroborate.Row], *, week: str, vendors: Iterable[str])
         # the same reason `corroborate.admit` drops them — and their absence cannot make the chart missing either.
         if vendor not in declared:
             continue
-        if not is_fresh(row.published, week=week):
-            continue
+        # ⚠️ **A live ranking is not dated, so it cannot be stale** — see the docstring. Every other vendor must state a
+        # date inside the week's span, or its rows are dropped and the vendor reported missing.
+        if vendor not in ranking:
+            cadence = "monthly" if row.list in monthly_lists else "weekly"
+            if not is_fresh(row.published, week=week, cadence=cadence):
+                continue
         kept.append(row)
         answered.add(vendor)
 

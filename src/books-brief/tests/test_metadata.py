@@ -87,13 +87,65 @@ class TheTags(unittest.TestCase):
         self.assertEqual(len(built.hashtags), 3)
 
 
+def long_rows(count: int) -> list[metadata.Row]:
+    """`count` rows with **comics-length titles** — the shape that actually broke the limit.
+
+    ⚠️ `rows()` above uses *"Book Number 7"*, which fits a hundred times over; this is the real case: the comics chart's
+    titles run to sixty characters and more (*The Long-Lived King: An Original The Owl House Graphic Novel*).
+    """
+    return [
+        metadata.Row(
+            rank=number + 1,
+            title=f"The Long-Lived King: An Original The Owl House Graphic Novel, Volume {number + 1}",
+            author=f"Author Number {number + 1}",
+            publisher="Ananda Publishers",
+            price="₹399",
+        )
+        for number in range(count)
+    ]
+
+
 class WhenTheListWillNotFit(unittest.TestCase):
-    def test_a_list_that_will_not_fit_is_refused_rather_than_truncated(self):
+    def test_a_week_of_long_titles_is_shortened_rather_than_refused(self):
+        """⚠️ ⚠️ **The case that stopped the comics chart from being packaged at all** (2026-10-15).
+
+        ⚠️ The real description came to **9,295** characters against YouTube's **5,000** and the run refused — correctly,
+        by ticket 15's rule, but uselessly: *"a list to shorten"* does not say **what** to shorten. ⚠️ The measurement
+        says it is the **titles** (dropping the tail's authors bought 273 of the 4,295 needed), so they are cut — and
+        **visibly**, with an ellipsis, because a title cut with no mark reads as the title itself.
+
+        ⚠️ **What is *not* given up**: the list stays whole at 100 rows, and the top ten keep every field, because those
+        are the ranks the video dwells on (ticket 06).
+        """
+        built = metadata.build(
+            "2026-W41", charts.get("comics"), long_rows(100), basis_weeks=1, published_on="2026-10-14"
+        )
+
+        self.assertLessEqual(len(built.description), 5000)
+        self.assertIn("\n100. ", built.description, "the list is still whole")
+        top, tail = built.description.split("\n11. ")
+        self.assertIn("Ananda Publishers", top, "the top ten keep every field")
+        self.assertIn("…", tail, "a shortened title says so")
+        self.assertNotIn("Ananda Publishers", tail, "the tail is compact")
+
+    def test_a_week_that_fits_keeps_every_title_whole_and_every_author(self):
+        """⚠️ **The change is invisible to every week that already fitted**, which is what the shape ladder's first rung
+        is for: ordinary titles are not cut, and the tail keeps its authors.
+        """
+        built = metadata.build(
+            "2026-W41", charts.get("english"), rows(100), basis_weeks=7, published_on="2026-10-14"
+        )
+
+        self.assertNotIn("…", built.description)
+        self.assertIn("\n100. Book Number 100 — Author 100", built.description)
+
+    def test_a_list_that_will_not_fit_even_shortened_is_refused_rather_than_truncated(self):
         """⚠️ Ticket 15 — *"the full list"* is the product's promise, and a silently truncated list breaks it.
 
-        ⚠️ And YouTube truncates the **tail** — the part of the list nobody would check. So the run refuses instead,
-        which is the reel's rule (`SeoError`: *"the run stops before it renders an hour of frames"*) rather than the
-        brief's warn-and-ship. A hundred rows of long titles is exactly the week this is for.
+        ⚠️ And YouTube truncates the **tail** — the part of the list nobody would check. ⚠️ **The rule narrowed on
+        2026-10-15 and the guard did not go**: shortening the *rows* is what ticket 15 sanctions, but a list whose **top
+        ten** cannot fit even with a fragment for every tail title is still refused, because at that point the honest
+        answer is a shorter list and not a description made of stubs.
         """
         oversized = [
             metadata.Row(
@@ -106,7 +158,7 @@ class WhenTheListWillNotFit(unittest.TestCase):
             for number in range(100)
         ]
 
-        with self.assertRaises(metadata.MetadataError):
+        with self.assertRaises(metadata.MetadataError) as raised:
             metadata.build(
                 "2026-W41",
                 charts.get("bengali"),
@@ -114,6 +166,9 @@ class WhenTheListWillNotFit(unittest.TestCase):
                 basis_weeks=7,
                 published_on="2026-10-14",
             )
+
+        # ⚠️ And the message says what was already given up, so an operator is not left guessing whether the search ran.
+        self.assertIn(str(metadata.MIN_TAIL_TITLE_WIDTH), str(raised.exception))
 
 
 if __name__ == "__main__":

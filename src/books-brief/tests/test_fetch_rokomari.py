@@ -3,7 +3,15 @@
 ⚠️ **The fixture is the raw flight**, escapes and all, because unescaping a JavaScript string literal is half of what
 this parser does. ⚠️ A fixture built from already-decoded text would skip the step most likely to break — ticket 02's
 warning about hand-built fixtures, applied to a payload rather than to markup.
+
+⚠️ ⚠️ **And there are two fixtures now, because the record's shape changed one day later** (ticket 30, 2026-10-15).
+`rokomari-flight.html` is the 2026-10-14 recording — the one that made this parser — and
+`rokomari-flight-2026-10-15.html` is the 2026-10-15 one, which exists because the first stopped parsing: the store
+inserted an **`adClickUrl` field between the product object and `productType`**, and the flat regex that found records
+required them adjacent. ⚠️ **Both are kept**, because a parser that only survives the newest shape is a parser nobody
+has tested against the shape it was written for.
 """
+import json
 import pathlib
 import unicodedata
 import unittest
@@ -12,6 +20,13 @@ from books_brief import charts, freshness
 from books_brief.fetch import rokomari
 
 FIXTURE = pathlib.Path(__file__).resolve().parent / "fixtures" / "rokomari-flight.html"
+#: ⚠️ The second recording — see the module docstring. It carries **one** chunk, chosen because it is the smallest that
+#: holds a book record (2.3 KB), so the fixture stays a few kilobytes.
+SECOND = (
+    pathlib.Path(__file__).resolve().parent
+    / "fixtures"
+    / "rokomari-flight-2026-10-15.html"
+)
 
 LISTING = charts.Listing(
     slug="rokomari/best-sellers",
@@ -19,6 +34,18 @@ LISTING = charts.Listing(
     language="bn",
     address="https://www.rokomari.com/book/category/72/best-seller-books",
 )
+
+
+def push(*records: str) -> bytes:
+    """One flight chunk carrying `records`, escaped the way the page escapes them.
+
+    ⚠️ **For the shapes neither recording contains, and never instead of them** — a nested product object, a record that
+    is not a book, a brace inside a title. ⚠️ The escaping is the page's (`json.dumps` of a JS string literal), because
+    that is the half of this parser a hand-built fixture must not skip.
+    """
+    literal = json.dumps("".join(records))
+    return f"<script>self.__next_f.push([1,{literal}]);</script>".encode("utf-8")
+
 
 
 def nfc(text: str) -> str:
@@ -103,28 +130,139 @@ class ParsingTheBestSellers(unittest.TestCase):
         self.assertEqual([row.price.currency for row in self.rows], ["BDT"] * 2)
         self.assertEqual(self.rows[0].price.retailer, "rokomari")
 
+    def test_the_cover_is_the_cards_own_image_and_not_the_placeholder(self):
+        """⚠️ ⚠️ **The picture was in the card all along, and this parser left it there** (2026-10-15) — so every
+        Rokomari row fell to ticket 07's branded tile while its cover sat a thousand characters earlier in the same card.
+
+        ⚠️ **And it is `data-src`, not `src`**: the store lazy-loads, so `src` is `/nstatic/images/placeholder-image.gif`
+        — ⚠️ a parser that read *that* would put **the same grey placeholder on every row**, which is a chart whose covers
+        all look broken rather than one that is missing them. The assertion names the placeholder for that reason.
+        """
+        self.assertEqual(
+            [row.cover_url for row in self.rows],
+            [
+                "https://rokbucket.rokomari.io/ProductNew20190903/130X186/923a19a70434_890.gif",
+                "https://rokbucket.rokomari.io/ProductNew20190903/130X186/1bf45d109584_884.gif",
+            ],
+        )
+        for row in self.rows:
+            self.assertNotIn("placeholder", row.cover_url)
+
     def test_the_rows_are_undated_because_the_payload_states_no_date(self):
-        """⚠️ ⚠️ **The finding that makes this source unusable as it stands, and the guard is right to refuse it.**
+        """⚠️ ⚠️ **The fact that makes this vendor `LIVE`, and the correction is ticket 30's.**
 
         Nothing in the flight carries a publication date, so `published` is empty — and `freshness.is_fresh("")` is
-        **False**, because an undated list is one the guard **cannot verify**. ⚠️ Ticket 10's rule is that a source must
-        be verified to have published for the week being built, *"not trusted because the calendar says it is Tuesday."*
+        **False**, because an undated list is one the guard **cannot verify**.
 
-        ⚠️ So the Bengali chart goes **absent** rather than shipping a list of unknown vintage — which is the correct
-        outcome, not a bug. Finding a date is what would make this source usable, and it is not a parser change.
+        ⚠️ **This test used to conclude *"so the Bengali chart goes absent, which is the correct outcome"*, and that
+        conclusion was wrong.** A retailer's own bestseller category is **regenerated per order**, so there is no dated
+        artefact for a date to be missing *from* — which is exactly the case `charts.LIVE` exists for. ⚠️ The guard's
+        finding is unchanged and still asserted; what changed is that `ROKOMARI` is named in the exemption, so the chart
+        **builds** instead of being refused forever.
         """
         self.assertEqual([row.published for row in self.rows], ["", ""])
         self.assertFalse(freshness.is_fresh(self.rows[0].published, week="2026-W41"))
+        self.assertIn(charts.ROKOMARI, charts.LIVE)
 
     def test_a_chunk_that_names_a_product_without_containing_one_is_not_a_row(self):
-        """⚠️ **The marker appears in the flight more often than the record does, and that is what caught this parser
-        out.** A component *reference* — `["$","$L62","890",{…}]` — carries the product beside it, and a `productType`
-        string can appear in a chunk that holds no product of its own.
+        """⚠️ **The opening `{"product":{` appears in the flight for things that are not books**, so the walk finds
+        records the store renders for something else — and those are skipped rather than ranked.
 
-        ⚠️ So the parser matches the **whole record**, not the marker: the fixture's three `productType`-bearing chunks
-        yield **two** rows, and two is the right answer. ⚠️ A parser that counted markers would have invented a book.
+        ⚠️ So the parser matches the **whole record** and then checks the marker: the fixture's records yield **two**
+        rows, and two is the right answer. ⚠️ A parser that counted markers would have invented a book.
         """
-        self.assertEqual(len(rokomari.PRODUCT.findall(rokomari.flight(FIXTURE.read_bytes()))), 2)
+        flight = rokomari.flight(FIXTURE.read_bytes())
+
+        self.assertEqual(len(list(rokomari.records(flight))), 2)
+        self.assertEqual(len(rokomari.parse(FIXTURE.read_bytes(), listing=LISTING)), 2)
+
+
+class TheSecondRecording(unittest.TestCase):
+    """⚠️ ⚠️ **Recorded 2026-10-15, one day after the first, because the record's shape changed** (ticket 30).
+
+    ⚠️ The store inserted an **`adClickUrl` field between the product object and `productType`** — precisely where the old
+    pattern demanded `,"productType"`. ⚠️ It then matched **nothing**: `parse` returned zero rows and
+    `freshness.guard` reported Rokomari as **missing** rather than as broken. ⚠️ **A build is what found it** — the vendor
+    had answered, the fetched page held 60 records, and the chart was still refused.
+    """
+
+    def test_todays_shape_parses_and_the_field_that_broke_it_is_named(self):
+        raw = SECOND.read_text("utf-8")
+        rows = rokomari.parse(SECOND.read_bytes(), listing=LISTING)
+
+        self.assertIn('\\"adClickUrl\\"', raw, "the fixture must carry the field, or this tests nothing")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(nfc(rows[0].title), nfc("পুফি"))
+        self.assertEqual(rows[0].isbn, "rokomari:873")
+        self.assertEqual(rows[0].price.currency, "BDT")
+
+    def test_the_card_that_broke_the_parser_still_carries_its_cover(self):
+        """⚠️ **The second recording's own image**, so the cover rule is pinned against the newest page as well as the
+        oldest.
+        """
+        rows = rokomari.parse(SECOND.read_bytes(), listing=LISTING)
+
+        self.assertEqual(
+            rows[0].cover_url,
+            "https://rokbucket.rokomari.io/ProductNew20190903/130X186/img141210_873.gif",
+        )
+
+    def test_a_cover_belongs_to_its_own_card_and_never_the_previous_one(self):
+        """⚠️ ⚠️ **The window rule, and it is the whole safety of this feature.** A card's picture sits *before* its
+        record, so the last image in the window is this row's — ⚠️ and a card with **no** image of its own must leave the
+        row **without** a cover rather than reaching back for the previous card's.
+
+        ⚠️ A wrong cover is worse than a missing one: nobody looking at a slide can tell that the picture belongs to
+        another book.
+        """
+        payload = push(
+            '{"className":"x","data-src":"https://rokbucket.rokomari.io/first.jpg"}'
+            '{"product":{"id":8,"title":"First"},"productType":"book"}'
+            '{"product":{"id":9,"title":"Second"},"productType":"book"}'
+        )
+
+        rows = rokomari.parse(payload, listing=LISTING)
+
+        self.assertEqual([row.title for row in rows], ["First", "Second"])
+        self.assertEqual(
+            [row.cover_url for row in rows], ["https://rokbucket.rokomari.io/first.jpg", ""]
+        )
+
+    def test_a_field_added_inside_the_product_object_is_survived_too(self):
+        """⚠️ **The walk counts braces rather than describing a shape**, so a *nested* object inside `product` is not a
+        second way to break it — which the flat regex could not have claimed.
+        """
+        payload = push(
+            '{"product":{"id":3,"title":"Nested","meta":{"depth":1}},"productType":"book"}'
+        )
+
+        rows = rokomari.parse(payload, listing=LISTING)
+
+        self.assertEqual([row.title for row in rows], ["Nested"])
+        self.assertEqual([row.isbn for row in rows], ["rokomari:3"])
+
+    def test_a_record_that_is_not_a_book_is_skipped(self):
+        """⚠️ The marker is checked **after** the braces balance, so a record for something that is not a book is not
+        this list's evidence — and does not become a row.
+        """
+        payload = push('{"product":{"id":4,"title":"A Magazine"},"productType":"magazine"}')
+
+        self.assertEqual(rokomari.parse(payload, listing=LISTING), [])
+
+    def test_a_brace_inside_a_title_does_not_swallow_the_records_after_it(self):
+        """⚠️ ⚠️ **The reason the walk is string-aware.** A naive brace counter would read the `{` inside a quoted title
+        as structure, never balance, and return **nothing** — the same silent failure the regex produced, arrived at
+        differently. ⚠️ A title with a brace in it is not exotic; a title with a `}` is.
+        """
+        payload = push(
+            '{"product":{"id":5,"title":"A { Brace"},"productType":"book"}'
+            '{"product":{"id":6,"title":"After"},"productType":"book"}'
+        )
+
+        rows = rokomari.parse(payload, listing=LISTING)
+
+        self.assertEqual([row.title for row in rows], ["A { Brace", "After"])
+        self.assertEqual([row.rank for row in rows], [1, 2])
 
 
 if __name__ == "__main__":

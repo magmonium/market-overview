@@ -8,7 +8,7 @@ reads (ADR 0003), so a bundle of `isbn`/`rank` pairs is a bundle a slide cannot 
 """
 import unittest
 
-from books_brief import covers, enrich, facts, prices, rank, ticker
+from books_brief import covers, enrich, facts, identity, prices, rank, ticker
 
 
 def chart(*isbns: str, watchlist: tuple[str, ...] = ()) -> facts.Chart:
@@ -16,7 +16,7 @@ def chart(*isbns: str, watchlist: tuple[str, ...] = ()) -> facts.Chart:
     return facts.Chart(
         books=enrich.build(
             (
-                rank.Ranked(isbn=isbn, rank=number + 1, weeks_on_chart=0, is_new=False)
+                rank.Ranked(key=isbn, isbn=isbn, rank=number + 1, weeks_on_chart=0, is_new=False)
                 for number, isbn in enumerate(isbns)
             ),
             details={},
@@ -55,7 +55,10 @@ class TheBundle(unittest.TestCase):
 
         self.assertEqual(bundle["meta"]["week"], "2026-W41")
         self.assertEqual(bundle["meta"]["window_weeks"], 7)
-        self.assertEqual(bundle["meta"]["chart_logic"], 1)
+        # ⚠️ **Asserted against the constant, not a literal** (ticket 32): the stamp is *meant* to move when the ranking
+        # rule does, and a test that pinned `1` would have to be edited every time the rule changed — which is the
+        # opposite of what a version stamp is for.
+        self.assertEqual(bundle["meta"]["chart_logic"], facts.CHART_LOGIC)
 
 
 class TheRowsTheRendererReads(unittest.TestCase):
@@ -76,6 +79,10 @@ class TheRowsTheRendererReads(unittest.TestCase):
                     books=enrich.build(
                         (
                             rank.Ranked(
+                                # ⚠️ The work key, and the details map below uses the **same expression** (ticket 32)
+                                # — `enrich.build` joins them, so a test that keyed them differently would silently
+                                # exercise the "no details" path.
+                                key=identity.work("Ekti Shonar Boi", "Sunil Gangopadhyay"),
                                 isbn="9788172151234",
                                 rank=1,
                                 weeks_on_chart=2,
@@ -86,7 +93,7 @@ class TheRowsTheRendererReads(unittest.TestCase):
                             ),
                         ),
                         details={
-                            "9788172151234": enrich.Details(
+                            identity.work("Ekti Shonar Boi", "Sunil Gangopadhyay"): enrich.Details(
                                 title="Ekti Shonar Boi",
                                 author="Sunil Gangopadhyay",
                                 publisher="Ananda Publishers",
@@ -105,7 +112,7 @@ class TheRowsTheRendererReads(unittest.TestCase):
                                 ratings_count=180,
                             )
                         },
-                        previous={"9788172151234": 4},
+                        previous={identity.work("Ekti Shonar Boi", "Sunil Gangopadhyay"): 4},
                     )
                 )
             },
@@ -171,7 +178,7 @@ class TheLabelsInTheSnapshot(unittest.TestCase):
 
     def _row(self, **labels: str) -> dict:
         books = enrich.build(
-            (rank.Ranked(isbn="9788172151234", rank=1, weeks_on_chart=0, is_new=False),),
+            (rank.Ranked(key="9788172151234", isbn="9788172151234", rank=1, weeks_on_chart=0, is_new=False),),
             details={"9788172151234": enrich.Details(title="B", **labels)},  # type: ignore[arg-type]
             previous=None,
         )

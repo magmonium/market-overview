@@ -12,7 +12,7 @@ from books_brief import rank
 def newcomers(count: int) -> list[rank.Candidate]:
     """`count` candidates, each scoring lower than the last, so their order is never in doubt."""
     return [
-        rank.Candidate(isbn=f"978000000{n:04d}", score=100.0 - n) for n in range(count)
+        rank.Candidate(key=f"978000000{n:04d}", isbn=f"978000000{n:04d}", score=100.0 - n) for n in range(count)
     ]
 
 
@@ -106,8 +106,8 @@ class TheOrder(unittest.TestCase):
         # so if the multiplier were removed the two would tie and the newcomer would win. An earlier version had them
         # the other way round and **passed for the wrong reason** — the ISBN tie-break was doing the work and the
         # multiplier was never exercised, which the mutation check caught and a green run never would have.
-        incumbent = rank.Candidate(isbn="9780000000002", score=10.0, weeks_on_chart=8)
-        newcomer = rank.Candidate(isbn="9780000000001", score=10.0)
+        incumbent = rank.Candidate(key="9780000000002", isbn="9780000000002", score=10.0, weeks_on_chart=8)
+        newcomer = rank.Candidate(key="9780000000001", isbn="9780000000001", score=10.0)
 
         board = rank.chart([newcomer, incumbent], previous=("9780000000002",))
 
@@ -115,18 +115,22 @@ class TheOrder(unittest.TestCase):
             [row.isbn for row in board.ranked], ["9780000000002", "9780000000001"]
         )
 
-    def test_two_titles_that_score_identically_are_ordered_by_isbn(self):
+    def test_two_titles_that_score_identically_are_ordered_by_their_key(self):
         """⚠️ Ticket 03, step 6 — the order must be **total**, or the same week could rank two ways.
 
-        Both titles are newcomers of the same age with the same score, so nothing but the ISBN separates them. A tie
+        Both titles are newcomers of the same age with the same score, so nothing but the key separates them. A tie
         that fell back on the order the sources happened to answer in would make the chart unreplayable — and a
         non-replayable chart is the one thing ADR 0003 will not give up.
+
+        ⚠️ **The tie-break is the *work key*, not the ISBN** (ticket 32): the ISBN is a field two rows carrying the same
+        work can disagree about, so it cannot be the thing that orders them. ⚠️ The test is unchanged in substance and
+        renamed, which is the honest record — the old name asserted a rule the code no longer follows.
 
         ⚠️ They are passed in **reverse** order deliberately: the assertion is about the tie-break, not about
         `sorted` being stable.
         """
-        second = rank.Candidate(isbn="9780000000002", score=5.0)
-        first = rank.Candidate(isbn="9780000000001", score=5.0)
+        second = rank.Candidate(key="9780000000002", isbn="9780000000002", score=5.0)
+        first = rank.Candidate(key="9780000000001", isbn="9780000000001", score=5.0)
 
         board = rank.chart([second, first], previous=None)
 
@@ -182,8 +186,8 @@ class TheScore(unittest.TestCase):
         data change and not a rewrite. ⚠️ It is a judgement rather than a derivation, and saying so is the honest thing:
         the ticket fixes *that* reviews count, not how much.
         """
-        plain = rank.Candidate(isbn="9788172151234", score=1.0)
-        rated = rank.Candidate(isbn="9788172151234", score=1.0, rating=5.0, ratings_count=50_000)
+        plain = rank.Candidate(key="9788172151234", isbn="9788172151234", score=1.0)
+        rated = rank.Candidate(key="9788172151234", isbn="9788172151234", score=1.0, rating=5.0, ratings_count=50_000)
 
         self.assertEqual(rank.final_score(plain), 1.0)
         self.assertGreater(rank.final_score(rated), 1.0)
@@ -196,7 +200,7 @@ class TheScore(unittest.TestCase):
         score exactly. A penalty here would quietly exile every title Google Books does not carry a rating for — which
         is most Bengali books, so the Bengali chart would be ranked on a signal it barely has.
         """
-        candidate = rank.Candidate(isbn="9788172151234", score=1.4)
+        candidate = rank.Candidate(key="9788172151234", isbn="9788172151234", score=1.4)
 
         self.assertEqual(rank.final_score(candidate), 1.4)
 

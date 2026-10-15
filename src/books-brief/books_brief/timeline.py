@@ -93,12 +93,15 @@ class Block:
 def schedule(books: int = 100) -> tuple[Block, ...]:
     """The whole run, slot by slot — the intro, one slide per book, the outro.
 
+    ⚠️ **A countdown: rank `books` first, rank 1 last.** The chart builds to its number one rather than spending it in
+    the opening seconds — and each rank keeps its own dwell, so the read top of the chart is now the run's climax.
+
     ⚠️ **The dwell is a data decision, so the renderer is handed frames and holds no table of its own** (ticket 06).
     A renderer that recomputed the bands would be a second copy of the interest curve, and the copy that fell behind
     would be the one that shipped.
 
     ⚠️ **A short chart is a shorter run, not a slower one.** `books` is whatever the chart actually holds, so a chart
-    with sixty-three rows ends at rank 63 rather than padding out to a hundred — the same *degrade to omission* rule
+    with sixty-three rows starts at rank 63 rather than padding out from a hundred — the same *degrade to omission* rule
     the blocks follow.
     """
     slots: list[Block] = []
@@ -116,7 +119,7 @@ def schedule(books: int = 100) -> tuple[Block, ...]:
     )
     at += intro
 
-    for rank in range(1, books + 1):
+    for rank in range(books, 0, -1):
         dwell = dwell_for(rank)
         duration = round(dwell * FPS)
         slots.append(

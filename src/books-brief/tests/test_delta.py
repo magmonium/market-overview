@@ -20,13 +20,13 @@ class TheMove(unittest.TestCase):
         The sign is not cosmetic. The slide colours the Δ (ticket 07) and the description prints it, so a sign that
         ran the other way would make every rising title look like a falling one — in both places at once.
         """
-        moved = delta.move(rank=7, isbn="9788172151234", previous={"9788172151234": 10})
+        moved = delta.move(rank=7, key="9788172151234", previous={"9788172151234": 10})
 
         self.assertEqual(moved, 3)
 
     def test_a_title_that_slipped_reports_a_negative_delta(self):
         """The other half of the pair — and the half a sign error would hide."""
-        moved = delta.move(rank=9, isbn="9788172151234", previous={"9788172151234": 4})
+        moved = delta.move(rank=9, key="9788172151234", previous={"9788172151234": 4})
 
         self.assertEqual(moved, -5)
 
@@ -37,7 +37,7 @@ class TheMove(unittest.TestCase):
         as a flat arrow, which says the title held station: a different, and false, claim about a book that was not on
         the chart at all.
         """
-        moved = delta.move(rank=3, isbn="9788172151234", previous={"9780000000002": 1})
+        moved = delta.move(rank=3, key="9788172151234", previous={"9780000000002": 1})
 
         self.assertIsNone(moved)
 
@@ -48,7 +48,7 @@ class TheMove(unittest.TestCase):
         would say a previous chart existed and was empty — which is the case ticket 03's `previous=()` names, and it
         switches the newcomer cap back on. Collapsing the two would give week one a chart of ten books.
         """
-        self.assertIsNone(delta.move(rank=1, isbn="9788172151234", previous=None))
+        self.assertIsNone(delta.move(rank=1, key="9788172151234", previous=None))
 
 
 class TheWindow(unittest.TestCase):

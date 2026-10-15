@@ -5,8 +5,8 @@ the hard way: delegating straight to the brief's own resolver would leave one ha
 seam, so patching `books_brief.paths.data_root` would redirect `output/` and not `resource/` — **one test seam quietly
 covering half of what it claims to.**
 
-So the two data folders are asserted separately, each following the same seam. A test that relocated the root and
-checked only one of them would pass while the other wrote into the operator's real data root.
+So the data folders are asserted separately, each following the same seam. A test that relocated the root and checked
+only one of them would pass while the others wrote into the operator's real data root.
 """
 import pathlib
 import tempfile
@@ -35,6 +35,32 @@ class WhereTheDataLives(unittest.TestCase):
     def test_relocating_the_data_root_takes_the_packages_with_it(self):
         """Ticket 13 writes packages under `output/books/<week>/<chart>/` — the brief's `output/<date>/<lang>` shape."""
         self.assertEqual(paths.output_dir(), self.root / "output" / "books")
+
+    def test_relocating_the_data_root_takes_the_bed_with_it(self):
+        """⚠️ **The bed is the brief's folder, but it is reached through *this* module's `data_root()`.**
+
+        The music is one licensed asset shared by both products (0085_11), exactly as the mark is — so it lives in
+        `resource/brief/` and not under `resource/books/`. ⚠️ But it resolves through this module's own seam, so a test
+        that relocates the root moves the bed with everything else. A `music_dir()` that delegated straight to the
+        brief's resolver would pass every other assertion here and quietly read the operator's real data root.
+        """
+        self.assertEqual(paths.music_dir(), self.root / "resource" / "brief")
+
+
+class WhereTheToolchainLives(unittest.TestCase):
+    def test_the_toolchain_root_is_the_repository_and_not_this_project(self):
+        """⚠️ **The bundled `ffmpeg` is installed once, at the repository root, beside the brief.**
+
+        `market_overview.audio` finds it there (`node_modules/@remotion/compositor-*`), so the mux has to be pointed at
+        the repository rather than at `src/books-brief`. ⚠️ Asserted by *what is in it* rather than by arithmetic on
+        `parents`: a rename that moved this project would silently make `parents[1]` mean `src/`, which is exactly the
+        trap the reel's `repo_root` docstring records.
+        """
+        self.assertNotEqual(paths.repo_root(), paths.project_root())
+        self.assertTrue(
+            (paths.repo_root() / "src" / "market_overview").is_dir(),
+            "the toolchain root is the repository — the folder holding the brief's own package",
+        )
 
 
 class WhereTheRenderStages(unittest.TestCase):

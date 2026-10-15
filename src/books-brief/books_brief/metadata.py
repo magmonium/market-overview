@@ -35,6 +35,23 @@ HASHTAGS_MAX = 15
 #: description's detail follows the same interest curve the video does.
 FULL_ROWS = 10
 
+#: ⚠️ ⚠️ **How wide a *tail* title is cut to when the description would not otherwise fit** (2026-10-15).
+#:
+#: ⚠️ Ticket 15's rule is that a list which will not fit is *"a list to shorten"* — and the measurement says **which
+#: part** has to be shortened. The comics chart's description came to **9,295** characters against YouTube's **5,000**:
+#: dropping the author from the tail bought **273**, while cutting tail titles to 45 bought **4,100**. ⚠️ **The titles
+#: are what give, not the fields** — because comics titles are long (*The Long-Lived King: An Original The Owl House
+#: Graphic Novel*) and five thousand characters holds a hundred of them only at about forty-five.
+#:
+#: ⚠️ It is a **ceiling**, not a fixed width: how much has to give depends on the week's titles, so `_shapes` walks down
+#: from here until the description fits.
+TAIL_TITLE_WIDTH = 48
+
+#: ⚠️ **The floor the walk stops at, and past it the run refuses.** Below this a title is a *fragment* rather than an
+#: abbreviation, and a description full of fragments is the silently-wrong list this module exists to refuse. ⚠️ So the
+#: guard is kept — it is just no longer tripped by an ordinary week of long titles.
+MIN_TAIL_TITLE_WIDTH = 24
+
 #: The chart's display name. ⚠️ Display strings belong with the renderer's label tables in principle (ADR 0003) — but
 #: this text is never *drawn*: it is written beside the video to be pasted into an uploader, which is the same
 #: distinction `song-video`'s `seo.py` draws.
@@ -127,13 +144,63 @@ def title_for(week: str, chart: charts.Chart, published_on: str) -> str:
     return built
 
 
-def _row_line(row: Row, *, full: bool) -> str:
-    line = f"{row.rank}. {row.title} — {row.author}"
-    if full and row.publisher:
-        line += f" — {row.publisher}"
-    if full and row.price:
-        line += f" — {row.price}"
+def _shorten(title: str, width: int) -> str:
+    """A title cut to `width`, **at a word boundary and with an ellipsis**.
+
+    ⚠️ **The ellipsis is the whole point.** A title cut mid-word reads as a typo, and one cut with no mark reads as the
+    title itself — so a reader would never learn that the video carries the rest of it. ⚠️ Word boundary first, and a
+    hard cut only when the first word is already longer than the width, because no title owes anyone a space in its first
+    forty characters (a Bengali or French one least of all).
+    """
+    if len(title) <= width:
+        return title
+
+    cut = title[: width - 1].rstrip()
+    if " " in cut:
+        word_cut = cut[: cut.rindex(" ")].rstrip()
+        if word_cut:
+            cut = word_cut
+    return f"{cut}…"
+
+
+def _row_line(
+    row: Row, *, full: bool, tail_author: bool = True, width: int | None = None
+) -> str:
+    """One row — **full for the top ten, compact for the tail** (ticket 15), and shortened only if it must be.
+
+    ⚠️ `tail_author` and `width` are the two things that give when the description is too long, and they are the two
+    **cheapest** ones: the author is a bonus beside the title, and the title is cut last and visibly. ⚠️ A row that is not
+    shortened keeps every field it had, so a week that fits is unaffected by any of this.
+    """
+    if full:
+        line = f"{row.rank}. {row.title} — {row.author}"
+        if row.publisher:
+            line += f" — {row.publisher}"
+        if row.price:
+            line += f" — {row.price}"
+        return line
+
+    title = row.title if width is None else _shorten(row.title, width)
+    line = f"{row.rank}. {title}"
+    if tail_author:
+        line += f" — {row.author}"
     return line
+
+
+def _shapes() -> list[tuple[bool, int | None]]:
+    """The tail shapes the description is tried in, **cheapest loss first** — see `description_for`.
+
+    ⚠️ **`(True, None)` first, and that is what keeps this change invisible to every week that already fitted**: a
+    hundred ordinary rows keep their authors and their whole titles, exactly as before.
+    """
+    return [
+        (True, None),
+        (False, None),
+        *[
+            (False, width)
+            for width in range(TAIL_TITLE_WIDTH, MIN_TAIL_TITLE_WIDTH - 1, -1)
+        ],
+    ]
 
 
 def description_for(
@@ -146,10 +213,20 @@ def description_for(
 ) -> str:
     """The full list, in two tiers, with the basis and the window stated.
 
-    ⚠️ **Refuses rather than truncating.** YouTube cuts at the limit, and it cuts the **tail** — so a list that will not
-    fit is a list to shorten, not one to ship and hope nobody reads the end of.
+    ⚠️ **The rows are shortened before the list is, and the search is what makes that safe** (2026-10-15).
+
+    ⚠️ Ticket 15's rule is that a list which will not fit is *"a list to shorten"*, and the measurement says **which part**
+    has to be shortened: the comics chart's description came to **9,295** characters against YouTube's **5,000**, and of
+    that, dropping the tail's authors bought **273** while cutting tail titles to 45 bought **4,100**. ⚠️ So the titles
+    give, and the shapes are tried **cheapest loss first** — see `_shapes` — with the first that fits being the one
+    shipped.
+
+    ⚠️ **The refusal is kept, and it is now the last rung rather than the first.** A list whose *top ten* will not fit
+    even with a fragment for every tail title is still refused, because YouTube cuts the **tail** — the part of the list
+    nobody would check.
     """
-    body = [
+    materialised = list(rows)
+    header = [
         f"TOP 100 {NAMES[chart.slug].upper()} · WEEK {week.partition('-W')[2]}",
         "",
         # ⚠️ Tickets 15 and 23: `Top 100 Bengali Books` does not say *what it ranks*, and the window is the one the
@@ -157,23 +234,31 @@ def description_for(
         f"Ranked on sales over six months, with user reviews · window: {basis_weeks} weeks",
         "",
     ]
-    body.extend(_row_line(row, full=row.rank <= FULL_ROWS) for row in rows)
-    body.extend(
-        [
-            "",
-            f"Sources: {', '.join(chart.vendors)}",
-            "Covers: Google Books / Open Library",
-        ]
-    )
+    footer = [
+        "",
+        f"Sources: {', '.join(chart.vendors)}",
+        "Covers: Google Books / Open Library",
+    ]
 
-    built = "\n".join(body)
-
-    if len(built) > DESCRIPTION_LIMIT:
-        raise MetadataError(
-            f"the description is {len(built)} characters, over the {DESCRIPTION_LIMIT} YouTube keeps — shorten the "
-            f"rows rather than shipping a list whose tail is cut off"
+    for tail_author, width in _shapes():
+        built = "\n".join(
+            [
+                *header,
+                *(
+                    _row_line(row, full=row.rank <= FULL_ROWS, tail_author=tail_author, width=width)
+                    for row in materialised
+                ),
+                *footer,
+            ]
         )
-    return built
+        if len(built) <= DESCRIPTION_LIMIT:
+            return built
+
+    raise MetadataError(
+        f"the description is {len(built)} characters even with every tail title cut to "
+        f"{MIN_TAIL_TITLE_WIDTH} and its author dropped — over the {DESCRIPTION_LIMIT} YouTube keeps. "
+        f"Shorten the list rather than shipping one whose tail is cut off."
+    )
 
 
 def tags_for(chart: charts.Chart, rows: Iterable[Row]) -> list[str]:

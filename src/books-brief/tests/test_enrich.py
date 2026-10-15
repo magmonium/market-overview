@@ -44,7 +44,7 @@ class TheIdentityKey(unittest.TestCase):
 def ranked(*isbns: str) -> tuple[rank.Ranked, ...]:
     """A ranked board's rows, one per ISBN, so a row can be built without a network."""
     return tuple(
-        rank.Ranked(isbn=isbn, rank=number + 1, weeks_on_chart=0, is_new=False)
+        rank.Ranked(key=isbn, isbn=isbn, rank=number + 1, weeks_on_chart=0, is_new=False)
         for number, isbn in enumerate(isbns)
     )
 

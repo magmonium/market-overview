@@ -28,9 +28,40 @@ ZOOM = 2
 #: for a clean cover. Ticket 05 named this trap specifically.
 _DROP = "edge"
 
+#: ⚠️ ⚠️ **The browser identity this client has to present, and it is not decoration** (2026-10-15). BoiChitro's
+#: WordPress uploads answer **`403 Forbidden` to `Python-urllib/3.x`** and **`200` to a browser string** — verified by
+#: fetching one image both ways — ⚠️ so *every* cover the Bengali chart's Indian vendor offered was discarded as
+#: unreachable and all hundred rows fell to ticket 07's branded tile. ⚠️ A shop that blocks a library's default
+#: User-Agent is not asking this product to stop fetching; it is asking it to say what it is.
+BROWSER = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/140.0 Safari/537.36"
+    ),
+    #: ⚠️ An image request from a browser asks for images. `*/*` is what a library sends, and what a bot filter looks for.
+    "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
+}
+
+#: ⚠️ **The characters a URL may keep unescaped** — the delimiters, plus `%` so an existing escape is not encoded twice.
+#: Everything else, including every non-ASCII character, is percent-encoded before the request is made.
+_SAFE = ":/?#[]@!$&'()*+,;=%~"
+
 #: Open Library's large size. `?default=false` turns a missing cover into a **404** instead of a blank image, so the
 #: run can tell *no cover* from *a cover that is a white rectangle*.
 OPEN_LIBRARY = "https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg?default=false"
+
+
+def encodable(url: str) -> str:
+    """A URL `urllib` can actually send — **the non-ASCII parts percent-encoded, the structure left alone**.
+
+    ⚠️ ⚠️ **A defect the Bengali chart's second vendor exposed** (ticket 30). BoiChitro serves covers from filenames
+    carrying an **en dash** — `…/WhatsApp-Image–2026….webp` — and `urllib` writes its request line as **ASCII**, so
+    `urlopen` raised `UnicodeEncodeError` *before the request was made*. ⚠️ The caller sees that as *"the cover did not
+    download"*, which is the same sentence a 403 produces — so the row lost its cover for a reason that had nothing to do
+    with the book, and the report said something else. ⚠️ A browser percent-encodes the path before it asks; this is that
+    normalisation, with the delimiters kept (a `?` that became `%3F` would turn a query into part of the path).
+    """
+    return urllib.parse.quote(url, safe=_SAFE)
 
 
 def google_books_url(raw: str) -> str:
@@ -120,6 +151,11 @@ def download(url: str, isbn: str) -> Cover | None:
     different fact from *this book has no cover*: the first is a run that should be retried, the second is a branded tile
     (ticket 07). Swallowing them together would silently record a temporary outage as a permanent absence.
 
+    ⚠️ **The request says it is a browser and escapes its URL** — `BROWSER` and `encodable`, and both were found the hard
+    way: without the first, a whole chart's covers answered `403`; without the second, a URL with an en dash in it raised
+    before it was sent. ⚠️ **Both failures wore the same message**, which is why they are fixed in one place and named in
+    the report by their own text.
+
     ⚠️ **Written atomically**, like the snapshot: a half-written JPEG is a corrupt image that *looks* like a cover, and
     the next run would find it on disk and use it.
     """
@@ -129,7 +165,9 @@ def download(url: str, isbn: str) -> Cover | None:
         return Cover(url=url, sha256=hashlib.sha256(cached.read_bytes()).hexdigest())
 
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:  # noqa: S310 - the URL is built by this module
+        with urllib.request.urlopen(  # noqa: S310 - the URL is built by this module
+            urllib.request.Request(encodable(url), headers=BROWSER), timeout=30
+        ) as response:
             body = response.read()
     except urllib.error.HTTPError as error:
         if error.code == 404:

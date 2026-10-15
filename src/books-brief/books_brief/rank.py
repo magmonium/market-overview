@@ -66,6 +66,10 @@ class Listing:
 class Candidate:
     """A title the gate admitted, with the score its sources gave it."""
 
+    #: ⚠️ ⚠️ **The work** (ticket 32) — `corroborate.Title.key`, and what the whole chart is keyed by from here on: the
+    #: ordering's tie-break, the incumbency test, the watchlist and the window. ⚠️ `isbn` rides beside it because it is
+    #: a *field* of the row — the product it came from, and the name of its cover file — not its identity.
+    key: str
     isbn: str
     score: float
     weeks_on_chart: int = 0
@@ -81,6 +85,10 @@ class Candidate:
 class Ranked:
     """One row of the chart."""
 
+    #: ⚠️ **The work, not the ISBN** (ticket 32) — see `Candidate.key`. ⚠️ This is the field the snapshot carries so
+    #: that next week's Δ and the six-month window can recognise this row again, which is why it has to be the identity
+    #: rather than the product: a row's ISBN can change when a store switches edition, and its work cannot.
+    key: str
     isbn: str
     rank: int
     weeks_on_chart: int
@@ -201,11 +209,13 @@ def chart(
     incumbents = set(previous or ())
     week_one = previous is None
 
-    # ⚠️ The order is **total**: score descending, then ISBN ascending (ticket 03, step 6). A tie that fell back on
+    # ⚠️ The order is **total**: score descending, then key ascending (ticket 03, step 6). A tie that fell back on
     # iteration order would let the same week rank two ways — and a non-replayable chart is not a chart.
+    # ⚠️ The tie-break is the **work key** rather than the ISBN (ticket 32): the ISBN is a field that can differ between
+    # two rows carrying the same work, so it cannot be the thing that decides their order.
     ordered = sorted(
         candidates,
-        key=lambda candidate: (-final_score(candidate, mean=mean), candidate.isbn),
+        key=lambda candidate: (-final_score(candidate, mean=mean), candidate.key),
     )
 
     ranked: list[Ranked] = []
@@ -213,23 +223,24 @@ def chart(
     newcomers = 0
 
     for candidate in ordered:
-        is_new = candidate.isbn not in incumbents
+        is_new = candidate.key not in incumbents
 
         if is_new and not week_one:
             if newcomers >= cap:
                 # ⚠️ The overflow is **held**, not dropped: the watchlist is where ticket 17 parks its single-vendor
                 # titles too, so one list serves both, and a silent drop would be indistinguishable from a title
                 # that never existed.
-                watchlist.append(candidate.isbn)
+                watchlist.append(candidate.key)
                 continue
             newcomers += 1
 
         if len(ranked) >= limit:
-            watchlist.append(candidate.isbn)
+            watchlist.append(candidate.key)
             continue
 
         ranked.append(
             Ranked(
+                key=candidate.key,
                 isbn=candidate.isbn,
                 rank=len(ranked) + 1,
                 weeks_on_chart=candidate.weeks_on_chart,

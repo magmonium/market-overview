@@ -235,6 +235,73 @@ class DownloadingACover(unittest.TestCase):
         self.assertEqual(record.sha256, hashlib.sha256(b"already here").hexdigest())
 
 
+class WhatTheRequestSays(unittest.TestCase):
+    """⚠️ ⚠️ **Two defects the Bengali chart's second vendor exposed, and both are in the *request*** (ticket 30).
+
+    ⚠️ Neither is a source being unreachable: BoiChitro answers both of these — it refuses a client that says it is a
+    library, and it cannot be asked in a character set a URL is not allowed to carry.
+    """
+
+    def test_a_url_with_a_non_ascii_character_is_percent_encoded_before_it_is_sent(self):
+        """⚠️ ⚠️ **`urllib` writes its request line as ASCII**, so an **en dash** in a filename raised
+        `UnicodeEncodeError` *before the request was made* — and the caller reports that as *"the cover did not download"*,
+        which is the same sentence a `403` produces. ⚠️ Two of the hundred Bengali covers died that way, and the report
+        named the wrong cause.
+        """
+        url = "https://boichitro.in/wp-content/uploads/2026/07/WhatsApp-Image\u20132026.webp"
+
+        encoded = covers.encodable(url)
+
+        self.assertNotIn("\u2013", encoded, "the character that raised is still in the URL")
+        self.assertIn("%E2%80%93", encoded, "an en dash is UTF-8, so it percent-encodes to three bytes")
+        self.assertTrue(encoded.startswith("https://"), "the scheme is structure, not path")
+        self.assertNotIn("%3A%2F%2F", encoded, "a `?` or `/` that got escaped would change what is being asked for")
+        # ⚠️ And it round-trips: a URL that was already escaped is **not** escaped a second time.
+        self.assertEqual(
+            covers.encodable("https://example.test/a%20b.jpg"), "https://example.test/a%20b.jpg"
+        )
+
+    def test_the_request_says_it_is_a_browser(self):
+        """⚠️ ⚠️ **The `403`, and it is not about the URL.** BoiChitro's uploads answer `403 Forbidden` to
+        `Python-urllib/3.x` and `200` to a browser string — verified by fetching one image both ways — so **98 of the
+        chart's covers were discarded** and every row fell to ticket 07's branded tile.
+
+        ⚠️ Asserted as a property of the headers rather than of a live fetch, because the suite is hermetic — and
+        *"a shop's bot filter refuses a library's default User-Agent"* is exactly the kind of fact that has to be written
+        down somewhere or it comes back.
+        """
+        self.assertIn("User-Agent", covers.BROWSER)
+        self.assertIn("Mozilla/5.0", covers.BROWSER["User-Agent"])
+        self.assertNotIn("urllib", covers.BROWSER["User-Agent"].lower())
+        self.assertIn("image", covers.BROWSER["Accept"])
+
+    def test_the_fetch_actually_sends_them(self):
+        """⚠️ **A constant nobody passes is a comment.** So the request `download` builds is inspected directly.
+        """
+        with tempfile.TemporaryDirectory() as name:
+            root = pathlib.Path(name)
+            seen = []
+
+            def opener(request, timeout=None):  # noqa: ANN001, ARG001 - mirrors `urlopen`'s signature
+                seen.append(request)
+                return _Response(b"\x89PNG a cover")
+
+            with (
+                mock.patch.object(paths, "data_root", return_value=root),
+                mock.patch.object(urllib.request, "urlopen", opener),
+            ):
+                record = covers.download(
+                    "https://boichitro.in/uploads/WhatsApp\u2013Image.webp", "9788172151234"
+                )
+
+        assert record is not None
+        self.assertEqual(len(seen), 1)
+        request = seen[0]
+        self.assertEqual(request.get_header("User-agent"), covers.BROWSER["User-Agent"])
+        self.assertEqual(request.get_header("Accept"), covers.BROWSER["Accept"])
+        self.assertNotIn("\u2013", request.full_url, "the URL must be escaped before it is sent")
+
+
 class _Response:
     """The two methods `download` uses, and nothing else — a `urlopen` stand-in rather than a real response."""
 

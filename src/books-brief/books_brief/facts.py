@@ -23,7 +23,13 @@ from . import charts, enrich, ticker, timeline
 SCHEMA_VERSION = 1
 
 #: ⚠️ The version of ticket 03's rule. Bumped when the ranking changes, so a re-run knows which rule to apply.
-CHART_LOGIC = 1
+#:
+#: ⚠️ ⚠️ **2 as of ticket 32, and what it records is the chart's *identity*.** The rule was `chart + ISBN` (ticket 14)
+#: and it is now the **union** of the work key and a shared ISBN — so one book sold in two printings is one row rather
+#: than two, and the English chart's **92 distinct titles in 100 rows** became 92 rows. ⚠️ **A week gathered before that
+#: carries 1**, and a reader of a `1` knows its rows were keyed by ISBN — which is what tells them its duplicates are the
+#: old rule working as written rather than a parser misbehaving.
+CHART_LOGIC = 2
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,8 +68,8 @@ def _chart_facts(slug: str, chart: Chart) -> dict[str, Any]:
         # reader's and the YouTube title is not.
         "language": spec.language,
         # ⚠️ Tickets 19, 21 and 22 — the chart has to **state** the market it ranks, and the three are not the same
-        # market: the Bengali chart spans India *and* Bangladesh, the English one is US lists, and the superset is
-        # India-only.
+        # market: the Bengali chart is Bangladesh, the English one is **worldwide** across the English-speaking stores
+        # (2026-10-15 — it was `us` while its only sources were NYT and Indie), and the superset is India-only.
         "market": spec.market,
         "ranked": [dataclasses.asdict(book) for book in chart.books],
         "watchlist": list(chart.watchlist),
@@ -75,14 +81,33 @@ def _chart_facts(slug: str, chart: Chart) -> dict[str, Any]:
         #
         # ⚠️ **`enter_frames` rides on each block**, so the renderer never recomputes ticket 07's entrance ceiling.
         # The brief's own rule: *"the timeline comes from `props.timeline`, not from this file."*
-        "timeline": {
-            "fps": timeline.FPS,
-            "cap_seconds": timeline.CAP_SECONDS,
-            "total_frames": timeline.total_frames(len(chart.books)),
-            "blocks": [
-                dataclasses.asdict(block)
-                for block in timeline.schedule(len(chart.books))
-            ],
+        "timeline": _timeline(len(chart.books)),
+    }
+
+
+def _timeline(books: int) -> dict[str, Any]:
+    """The run's slots for a chart holding `books` rows — **a pure function of the count**, and nothing else."""
+    return {
+        "fps": timeline.FPS,
+        "cap_seconds": timeline.CAP_SECONDS,
+        "total_frames": timeline.total_frames(books),
+        "blocks": [dataclasses.asdict(block) for block in timeline.schedule(books)],
+    }
+
+
+def retime(bundle: dict[str, Any]) -> dict[str, Any]:
+    """The bundle with every chart's timeline re-laid by **today's** `timeline.schedule`.
+
+    ⚠️ **The timeline is presentation, not evidence.** It is derived from nothing but the chart's row count, so a
+    replayed week keeps its rows exactly — `chart_logic` guards those — while a change to the running order (the
+    100 → 1 countdown) reaches a week that was snapshotted before it. Without this, a replay renders the order the
+    week was *recorded* with, and the code change looks like it did nothing.
+    """
+    return {
+        **bundle,
+        "charts": {
+            slug: {**chart, "timeline": _timeline(len(chart["ranked"]))}
+            for slug, chart in bundle["charts"].items()
         },
     }
 

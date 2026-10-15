@@ -1,0 +1,23 @@
+<!doctype html>
+<!--
+  ⚠️ A VERBATIM extract of Rokomari's Next.js flight payload — the Best Seller category page,
+  https://www.rokomari.com/book/category/72/best-seller-books
+
+  Recorded 2026-10-15 with curl_cffi impersonating Chrome. The page shipped 106 flight chunks; the **smallest** one that
+  carries a `productType: "book"` record is here, **unaltered** — escapes, quotes and all — and the rest removed
+  because a whole scraped page is Rokomari's content rather than ours.
+
+  ⚠️ ⚠️ **This is the second recording, and it exists because the first one stopped parsing.**
+  What changed between them is **one field**, and it is enough to break a regex that described a shape:
+
+      2026-10-14   {"product":{...},"productType":"book"}
+      2026-10-15   {"product":{...},"adClickUrl":"$undefined","productType":"book"}
+
+  ⚠️ The field sits **between** the product object and the marker, which is exactly where the old pattern
+  demanded `,"productType"` — so it matched nothing, `parse` returned zero rows, and the vendor was reported
+  *missing* rather than *broken*. See `rokomari.RECORD` and `rokomari.records`.
+-->
+<html><body><script>
+self.__next_f.push([1,"8b:[\"$\",\"div\",\"35\",{\"className\":\"w-[198px] filterGridData_productGridItem__llXUt\",\"children\":[\"$\",\"a\",null,{\"href\":\"/book/873/পুফি\",\"target\":\"_blank\",\"className\":\"productContainer_productDetailsBody__jdlDj\",\"children\":[\"$undefined\",[\"$\",\"div\",null,{\"className\":\"productContainer_mainContent__iqiFn\",\"children\":[[\"$\",\"div\",null,{\"className\":\"productContainer_bookImage__BxrLg \",\"children\":[[\"$\",\"$L35\",\"873\",{\"className\":\"object-contain\",\"ref\":\"$undefined\",\"src\":\"/nstatic/images/placeholder-image.gif\",\"data-src\":\"https://rokbucket.rokomari.io/ProductNew20190903/130X186/img141210_873.gif\",\"alt\":\"Product image\",\"width\":100,\"height\":100,\"placeholder\":\"blur\",\"blurDataURL\":\"data:image/gif;base64,R0lGODlhAQABAPAAAOzw8f///yH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==\",\"style\":{\"width\":\"100%\",\"height\":\"100%\",\"objectFit\":\"contain\"}}],[\"$\",\"div\",null,{\"className\":\"productContainer_commonBadages__x571e\",\"children\":[\"$\",\"span\",null,{\"children\":20}]}],false,false,false,false]}],[\"$\",\"div\",null,{\"className\":\"productContainer_productDetailsText___AUIQ \",\"children\":[[\"$\",\"p\",null,{\"className\":\"productContainer_productTitle__bsIaz line-clamp-3\",\"children\":[false,\"পুফি\"]}],[\"$\",\"p\",null,{\"className\":\"productContainer_productAuthor__5k_I4\",\"children\":\"হুমায়ূন আহমেদ\"}]]}],[\"$\",\"div\",null,{\"className\":\"mb-[1px] mt-[3px] flex gap-1 items-center justify-center\",\"children\":[[\"$\",\"$L52\",null,{\"value\":4.5}],[\"$\",\"span\",null,{\"className\":\"text-[12px]\",\"children\":[\"(\",36,\")\"]}]]}],[\"$\",\"p\",null,{\"className\":\"text-xs text-[#33C24D]\",\"children\":\"Product in stock\"}],false,\"\",[\"$\",\"div\",null,{\"className\":\"productContainer_productPricePart__i57Kb\",\"children\":[[\"$\",\"p\",null,{\"className\":\"productContainer_productPrice__8j1Wf \",\"children\":\"৳200\"}],\"\",[\"$\",\"del\",null,{\"className\":\"text-[.75rem] text-[#737373] font-medium\",\"children\":\"৳250\"}]]}],false]}],[\"$\",\"$L64\",\"873\",{\"product\":{\"id\":873,\"categoryId\":0,\"price\":200,\"title\":\"পুফি\",\"subTitle\":\"হুমায়ূন আহমেদ\"},\"adClickUrl\":\"$undefined\",\"productType\":\"book\"}]]}]}]\n"])
+
+</script></body></html>

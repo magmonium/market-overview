@@ -187,6 +187,127 @@ class GuardingAVendorsRows(unittest.TestCase):
         self.assertEqual(guarded.missing, ("amazon-in", "nyt", "pw"))
 
 
+class TheLiveRankingExemption(unittest.TestCase):
+    """⚠️ ⚠️ **The one hole in the guard, and it is bounded** (2026-10-15).
+
+    ⚠️ An Amazon bestseller page states **no date** — there is nothing to date, because the ranking is regenerated
+    continuously — so asking it for one discarded every row and made every chart declaring it **absent**. ⚠️ `live` names
+    those vendors and exempts them from the *date* check. **Nothing else is relaxed**, and the tests below are the
+    boundary of the exemption rather than its happy path.
+    """
+
+    def test_a_live_vendors_undated_rows_are_kept(self):
+        """⚠️ **The case the exemption exists for**: an Amazon row with `published=""` used to be dropped as stale."""
+        rows = [row("amazon-uk/english", "")]
+
+        guarded = freshness.guard(
+            rows, week=WEEK, vendors=["amazon-uk"], live=["amazon-uk"]
+        )
+
+        self.assertEqual([r.list for r in guarded.rows], ["amazon-uk/english"])
+        self.assertEqual(guarded.missing, ())
+
+    def test_without_the_exemption_the_same_row_is_stale(self):
+        """⚠️ **The default is unchanged**, and that is what keeps every other caller honest: with no `live` argument the
+        guard still treats an undated list as stale — the behaviour the whole module exists for.
+        """
+        guarded = freshness.guard(
+            [row("amazon-uk/english", "")], week=WEEK, vendors=["amazon-uk"]
+        )
+
+        self.assertEqual(guarded.rows, ())
+        self.assertEqual(guarded.missing, ("amazon-uk",))
+
+    def test_a_live_vendor_that_answers_nothing_is_still_missing(self):
+        """⚠️ **The half that is *not* relaxed, and the reason this is not a loophole.** A live store that returns no
+        cards — blocked, failed to render, wrong address — produced no evidence, so its chart is still absent (ticket 18's
+        spine). ⚠️ The exemption is from the *date* check, never from *answering*.
+        """
+        guarded = freshness.guard([], week=WEEK, vendors=["amazon-uk"], live=["amazon-uk"])
+
+        self.assertEqual(guarded.rows, ())
+        self.assertEqual(guarded.missing, ("amazon-uk",))
+
+    def test_a_dated_vendor_beside_a_live_one_is_still_checked(self):
+        """⚠️ **Per vendor, so the exemption cannot leak.** A chart declaring both a live store and a dated list must
+        still refuse the dated one when its date is stale — the guard working *inside* the chart that needed the
+        exemption.
+        """
+        rows = [
+            row("amazon-uk/english", ""),
+            row("nyt/hardcover-fiction", "2026-09-01"),
+        ]
+
+        guarded = freshness.guard(
+            rows, week=WEEK, vendors=["amazon-uk", "nyt"], live=["amazon-uk"]
+        )
+
+        self.assertEqual([r.list for r in guarded.rows], ["amazon-uk/english"])
+        self.assertEqual(guarded.missing, ("nyt",))
+
+
+class TheMonthlyCadence(unittest.TestCase):
+    """⚠️ ⚠️ **The second hole in the guard, and it is a different shape from the first** (2026-10-15).
+
+    ⚠️ `live` **exempts** a vendor because its ranking is undated; `monthly` exempts nothing — it changes *what the date
+    is measured against*. A list compiled monthly is dated to the month it describes, and measuring it against a ten-day
+    span calls it stale for three weeks in four: the recorded NYT graphic-books list is dated `2026-10-03`, four days
+    **before** week 41 opened. ⚠️ Ticket 18 then turns that into an **absent chart** — which is exactly why `comics`
+    could not be built for `2026-W41` while Amazon.in had answered it thirty rows. ⚠️ The tests below are the boundary of
+    the widening rather than its happy path.
+    """
+
+    def test_a_monthly_list_is_fresh_for_the_whole_month_it_describes(self):
+        """⚠️ From the first of the month to its last day, including the recorded date itself."""
+        for day in ("2026-10-01", "2026-10-03", "2026-10-14", "2026-10-31"):
+            with self.subTest(published=day):
+                self.assertTrue(freshness.is_fresh(day, week=WEEK, cadence="monthly"))
+
+    def test_a_monthly_list_from_the_previous_month_is_still_stale(self):
+        """⚠️ **The half that keeps it a guard.** September's list is not October's evidence, however wide the span — so
+        the widening buys the *month*, not *anything older*.
+        """
+        self.assertFalse(freshness.is_fresh("2026-09-30", week=WEEK, cadence="monthly"))
+        self.assertFalse(freshness.is_fresh("2026-09-05", week=WEEK, cadence="monthly"))
+
+    def test_the_lag_still_applies_at_the_end_of_the_month(self):
+        """⚠️ A monthly list compiled from October's sales lands in the first days of November, and a run in the week
+        that straddles the boundary must not refuse it — the same `LAG_DAYS` the weekly span keeps, for the same reason.
+        """
+        self.assertTrue(freshness.is_fresh("2026-11-03", week=WEEK, cadence="monthly"))
+        self.assertFalse(freshness.is_fresh("2026-11-04", week=WEEK, cadence="monthly"))
+
+    def test_the_default_is_the_old_rule_exactly(self):
+        """⚠️ **`2026-10-04` is the difference in one date**: stale for the week, fresh for the month. ⚠️ Every caller
+        that does not name a cadence keeps the behaviour the module was written for.
+        """
+        self.assertFalse(freshness.is_fresh("2026-10-04", week=WEEK))
+        self.assertTrue(freshness.is_fresh("2026-10-04", week=WEEK, cadence="monthly"))
+
+    def test_the_cadence_is_per_list_so_one_chart_can_hold_both(self):
+        """⚠️ **`monthly` takes *list* slugs where `live` takes *vendor* slugs**, and that asymmetry is the point: cadence
+        belongs to the list — NYT publishes weekly ones too — while *"states no date at all"* belongs to the vendor's
+        whole store. ⚠️ So the monthly list's rows survive while its vendor's **weekly** list still has to be dated inside
+        the week, which is the rule `comics` and `english` share one vendor under.
+        """
+        rows = [
+            row("nyt/graphic-books-and-manga", "2026-10-03"),
+            row("nyt/hardcover-fiction", "2026-10-03"),
+        ]
+
+        guarded = freshness.guard(
+            rows,
+            week=WEEK,
+            vendors=["nyt"],
+            monthly=["nyt/graphic-books-and-manga"],
+        )
+
+        self.assertEqual([r.list for r in guarded.rows], ["nyt/graphic-books-and-manga"])
+        # ⚠️ And the vendor is **not** missing — it answered, and one of its lists was fresh. That is the difference
+        # between a list being stale and a source being gone.
+        self.assertEqual(guarded.missing, ())
+
+
 if __name__ == "__main__":
     unittest.main()
 

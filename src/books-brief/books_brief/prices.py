@@ -17,15 +17,17 @@ from __future__ import annotations
 import dataclasses
 from typing import Iterable
 
-#: ⚠️ **Amazon.in's currency — and only Amazon.in's.** It is the one the product started with, and it is no longer the
-#: only one it meets: the English chart is **US** (ticket 19), the Bengali chart spans **India and Bangladesh** (ticket
-#: 20), and the comics chart is **worldwide** (ticket 22).
+#: ⚠️ ⚠️ **There is deliberately no module-level `CURRENCY` here any more** (removed 2026-10-15).
 #:
-#: ⚠️ **This constant used to be the product's currency, and the comment justifying it said so** — *"every price this
-#: product shows is in rupees, because every chart is India-anchored (ticket 12)."* ⚠️ **Ticket 12's premise was
-#: overturned by three later tickets and the code never noticed**, which is why `Price` now carries the currency itself:
-#: a constant is a claim about every row, and this product no longer has one of those.
-CURRENCY = "INR"
+#: It used to hold `"INR"` and justify itself with *"every price this product shows is in rupees, because every chart is
+#: India-anchored (ticket 12)"* — a premise three later tickets overturned, and a claim that was **wrong the moment it was
+#: read**: the English chart is no longer US, the Bengali chart spans India and Bangladesh, and comics is worldwide.
+#:
+#: ⚠️ **The currency now lives where the vendor is known.** `Price.currency` carries it per row (ticket 04), and each
+#: scraper states the one *its own page* quotes: `fetch.amazon.MARKETPLACES` pairs the five Amazon stores with their
+#: currencies, and `indie.CURRENCY` / `rokomari.CURRENCY` name theirs. ⚠️ A single constant cannot be right for a product
+#: whose rows are priced in five currencies — and its existence invited exactly the bug it could not prevent, because a
+#: parser that forgot to set `currency` would have silently inherited rupees.
 
 
 @dataclasses.dataclass(frozen=True)

@@ -21,6 +21,7 @@ from . import (
     enrich,
     facts,
     freshness,
+    identity,
     paths,
     package,
     publish,
@@ -31,8 +32,8 @@ from . import (
     ticker,
     window,
 )
-from .fetch import amazon, google_books, indie, nyt
-from market_overview import env
+from .fetch import amazon, google_books, indie, nyt, rokomari, woocommerce
+from market_overview import audio, env
 
 #: ⚠️ The source clients, by vendor slug. **Adding a client is one entry here and nothing else** — which is the point
 #: of a registry: `gather` stays ignorant of which vendors exist, and a vendor it has no client for simply does not
@@ -41,21 +42,48 @@ from market_overview import env
 #: ⚠️ **The rule is: a client is registered when the lists declared for it resolve** (ticket 29). That is the same rule
 #: that keeps a vendor with no client from refusing a chart, applied to the other end of the same wire.
 #:
-#: ⚠️ **`amazon` and `indie` are registered as of 2026-10-14, because their declared addresses now resolve** — both were
-#: fetched and parsed: `amazon-in/indian-languages` and `amazon-in/comics` return **30 rows** each, and `indie/national`
-#: returns **135** for the week the client derives from the address. ⚠️ That is what gives `english` (NYT + Indie) and
-#: `comics` (NYT + Amazon.in) the **two vendors** ticket 17 requires, where before they built from NYT alone.
+#: ⚠️ **`amazon`, `indie` and the four international Amazon stores are registered**, because their declared addresses
+#: resolve — verified rather than assumed. The Amazon books nodes return **30 ranked cards** on every marketplace
+#: (`amazon.com`, `.co.uk`, `.ca`, `.com.au` and `.in`, fetched 2026-10-15), and `indie/national` returns **135** for the
+#: week the client derives from the address.
 #:
-#: ⚠️ **`rokomari` is written, tested, and deliberately *not* registered.** Its list resolves and parses — 60 `product`
-#: records at the Best Seller category — but the payload carries **no date anywhere**, so every row is undated and
-#: `freshness.guard` discards the lot. ⚠️ Registering it would not make `bengali` build; it would only add a vendor to a
-#: chart that is absent either way. ⚠️ **Finding a date is what makes it usable, and that is not a client change.**
+#: ⚠️ ⚠️ **And the Amazon stores are `LIVE`** (`charts.LIVE`). Their pages state **no date**, so before 2026-10-15
+#: `freshness.guard` discarded every row they produced and made every chart declaring one **absent** — which is why
+#: `comics` and `all-language` never built. ⚠️ `gather` now hands `charts.LIVE` to the guard: a live ranking is kept, and
+#: a live vendor that answers *nothing* is still missing.
 #:
-#: ⚠️ **`anandabazar` has neither a client nor a list**, and under ticket 29's address rule it cannot even be declared.
+#: ⚠️ ⚠️ **`rokomari` and `boichitro` are registered now, and they are the Bengali chart's two vendors** (ticket 30).
+#: `rokomari` was written, tested and left out for one reason — *"the payload carries no date anywhere"* — and that
+#: reading of the **source** was the blocker, not the client: a retailer's bestseller category is regenerated per order,
+#: so it has **no stale copy to date**, which is exactly the case `charts.LIVE` exists for. ⚠️ Ticket 29's *"finding a
+#: date is what makes it usable"* was the right reading of the **guard** and the wrong reading of the vendor.
+#:
+#: ⚠️ **`boichitro` is a WooCommerce shop, not a scrape**: `/wp-json/wc/store/v1/products?orderby=popularity` returns a
+#: hundred-deep JSON ranking with a real ISBN on some rows — so the Bengali chart has an **Indian** list again, and
+#: `bengali` builds. ⚠️ See `fetch/woocommerce.py` for the seven candidate addresses that were fetched and the four
+#: that turned out not to be sources at all (an Amazon search page, an empty Daraz tag, a Goodreads shelving count and a
+#: Flipkart category browse).
+#:
+#: ⚠️ **`boighar` is the same client and is deliberately not registered** — its ordering is unverifiable and it states no
+#: ISBN. ⚠️ And **`anandabazar` has neither a client nor a list**, and under ticket 29's address rule cannot be declared.
 CLIENTS: dict[str, object] = {
     "nyt": nyt,
     "indie": indie,
+    # ⚠️ **One module under five slugs** — the client is marketplace-aware, so registering a store is *naming* it, not
+    # writing a second client. ⚠️ `us`/`uk`/`ca`/`au` arrived with the English chart's move to **worldwide** (2026-10-15).
+    "amazon-us": amazon,
+    "amazon-uk": amazon,
+    "amazon-ca": amazon,
+    "amazon-au": amazon,
     "amazon-in": amazon,
+    # ⚠️ **The Bengali chart's vendors** (tickets 30, 32) — a Bangladeshi bookseller and **two** Indian ones, which is
+    # the bridge ticket 21 asked for and ticket 29 could not build.
+    "rokomari": rokomari,
+    "boichitro": woocommerce,
+    # ⚠️ **The same module under a third slug** — `woocommerce.py` is store-aware, so declaring Bangabani is *naming* it
+    # rather than writing a client. ⚠️ It is registered because its lists resolve: 100 products, 54 of them with a real
+    # ISBN-13 in `sku`, verified by fetching the address the chart declares (ticket 32).
+    "bangabani": woocommerce,
 }
 
 #: ⚠️ The default vendor weight (ticket 03, step 2). Per-vendor tuning is a data change, and the weights are recorded
@@ -76,16 +104,33 @@ def _weekly(rows: list[corroborate.Row], chart: charts.Chart) -> dict[str, float
 
     weights = {vendor: DEFAULT_WEIGHT for vendor in chart.vendors}
 
+    #: ⚠️ ⚠️ **A work's *best position per list*, and only then the sum across lists** (ticket 32).
+    #:
+    #: ⚠️ **The first version of this summed every listing, and the merge of the committed week caught what that costs.**
+    #: BoiChitro lists `Chandmama` **three times** in its own bestseller ranking — three product ids, ranks 92, 95 and 96 —
+    #: and summing the three gave that book a score of **2.7**, which put it at **rank 1** on the Bengali chart. ⚠️ That is
+    #: not corroboration, it is one shop's duplicate listings counted three times, and it is the very thing
+    #: `corroborate`'s docstring calls *"a lie told in arithmetic"*.
+    #:
+    #: ⚠️ **The rule is ticket 03's own**: *"a title carried by three **lists** accumulates three terms."* A list that
+    #: carries a title twice has still ranked it once — at its best position — so a work contributes **at most one term
+    #: per list**, and `rank.score`'s sum is then exactly the corroboration bonus it was written to be.
+    best: dict[tuple[str, str], corroborate.Row] = {}
+    for row in rows:
+        key = (identity.work(row.title, row.author), row.list)
+        if key not in best or row.rank < best[key].rank:
+            best[key] = row
+
     return {
-        isbn: rank.score(
+        work: rank.score(
             [
                 rank.Listing(list=row.list, rank=row.rank, size=sizes[row.list])
-                for row in rows
-                if row.isbn == isbn
+                for (carried, _), row in best.items()
+                if carried == work
             ],
             weights=weights,
         )
-        for isbn in {row.isbn for row in rows}
+        for work in {identity.work(row.title, row.author) for row in rows}
     }
 
 
@@ -101,9 +146,10 @@ def _candidates(
     """
     candidates = []
     for title in admitted.admitted:
-        observed = seen.observed.get(title.isbn)
+        observed = seen.observed.get(title.key)
         candidates.append(
             rank.Candidate(
+                key=title.key,
                 isbn=title.isbn,
                 score=observed.sales if observed else 0.0,
                 rating=observed.rating if observed else None,
@@ -156,7 +202,7 @@ def _details(admitted: corroborate.Result) -> dict[str, enrich.Details]:
             "rating": title.rating,
             "ratings_count": title.ratings_count,
         }
-        details[title.isbn] = enrich.Details(**placed)
+        details[title.key] = enrich.Details(**placed)
 
         try:
             volume = google_books.fetch(title.isbn)
@@ -193,10 +239,12 @@ def _details(admitted: corroborate.Result) -> dict[str, enrich.Details]:
             # ⚠️ **The row keeps its cover and gains nothing else.** There is no volume to merge, and ticket 07's rule
             # is that a field with no value omits — never that the row is dropped, and never that a cover in hand is.
             if cover is not None:
-                details[title.isbn] = dataclasses.replace(details[title.isbn], cover=cover)
+                # ⚠️ Keyed by the **work** (ticket 32) — the entry was created under `title.key` above, so merging
+                # under `title.isbn` here would write a *second*, unreachable entry and lose the cover silently.
+                details[title.key] = dataclasses.replace(details[title.key], cover=cover)
             continue
 
-        details[title.isbn] = dataclasses.replace(
+        details[title.key] = dataclasses.replace(
             google_books.details(volume, cover=cover),
             # ⚠️ The list's title and author win (ticket 17) — and the labels are not Google's to have an opinion on.
             title=title.title,
@@ -309,8 +357,27 @@ def gather(week: str) -> dict:
         # tightens by itself, with no second edit here.
         cliented = [vendor for vendor in chart.vendors if vendor in CLIENTS]
 
-        rows: list[corroborate.Row] = []
+        # ⚠️ ⚠️ **One call per *client*, not one per *vendor*** (2026-10-15). ⚠️ `CLIENTS` is keyed by vendor, but
+        # `fetch(chart, week=…)` reads **every list the chart declares for that client** — eight Amazon storefronts are
+        # one module, and both Bengali booksellers are `woocommerce`. ⚠️ So calling it once per vendor re-fetched every
+        # store once per store: **64 requests for the comics chart instead of 8**, with every row arriving **eight
+        # times**. See `test_a_client_shared_by_several_vendors_is_asked_once`.
+        #:
+        #: ⚠️ **And the duplicates were not harmless.** `_weekly` collapses a work's rows *per list*, so the sum
+        #: survived — but it sizes each list by **counting its rows**, and `rank.weight` scales a list by its depth
+        #: (`min(1, size / N_REF)`). ⚠️ A thirty-card storefront was therefore sized **240**, which lifts it from a
+        #: **0.3** weight to a full **1.0** and inflates its position scores with it — so the chart ranked that vendor
+        #: far above the weight ticket 03 gives it, and **the error grew with every store added**: 4× on the English
+        #: chart, 8× on comics. ⚠️ It was invisible for as long as every chart had one store per client.
+        #:
+        #: ⚠️ The vendor named in a complaint is the **first** vendor this client serves for this chart, because the
+        #: failure is the *client's* — naming one of its stores is naming the module that failed.
+        clients: dict[object, str] = {}
         for vendor in cliented:
+            clients.setdefault(CLIENTS[vendor], vendor)
+
+        rows: list[corroborate.Row] = []
+        for client, named in clients.items():
             try:
                 # ⚠️ **Fetch, snapshot, parse — in that order, and the conductor owns all three.**
                 #
@@ -319,23 +386,34 @@ def gather(week: str) -> dict:
                 # 18's rule is that the raw response is snapshotted **even when parsing fails**, because *"at that point
                 # the evidence of what was actually received is exactly what is needed"* — and a client that had already
                 # parsed could only ever offer a response its own parser had vouched for.
-                for page in CLIENTS[vendor].fetch(chart, week=week):  # type: ignore[attr-defined]
+                for page in client.fetch(chart, week=week):  # type: ignore[attr-defined]
                     store.write_raw(week, page.name, page.payload)
                     rows.extend(
                         # ⚠️ **`published` is handed on, and it is not decoration.** `indie`'s list is dated *in its
                         # own address*, so the response cannot state it — and a `parse` called without it returns rows
                         # that `freshness` correctly refuses, which is a source that can never be used. ⚠️ A client
                         # whose date is in the payload ignores it; see `Page.published`.
-                        CLIENTS[vendor].parse(  # type: ignore[attr-defined]
+                        client.parse(  # type: ignore[attr-defined]
                             page.payload, listing=page.listing, published=page.published
                         )
                     )
             except Exception as error:  # noqa: BLE001 — a failed vendor is an absent chart, not a crashed run
-                print(f"{chart.slug}: {vendor} did not answer: {error}", file=sys.stderr)
+                print(f"{chart.slug}: {named} did not answer: {error}", file=sys.stderr)
 
         # ⚠️ **Ticket 10's freshness guard, and it is not a filter.** A stale list's rows are dropped *and* a vendor left
         # with nothing is a **missing source** — ticket 18: *"a stale source is a missing source for that week."*
-        guarded = freshness.guard(rows, week=week, vendors=cliented)
+        # ⚠️ **`live=charts.LIVE`** so the Amazon stores — whose pages state no date — are not refused as stale. See
+        # `charts.LIVE` for the distinction and `freshness.guard` for the exact scope of the exemption.
+        # ⚠️ **`monthly=` is derived from the chart's own declarations, never spelled here**: cadence is a property of a
+        # *list* (`charts.CADENCES`), and a second copy of it in the conductor would be a second place for it to drift —
+        # the same reason `KNOWN` is derived from `charts.ALL` rather than listed again.
+        guarded = freshness.guard(
+            rows,
+            week=week,
+            vendors=cliented,
+            live=charts.LIVE,
+            monthly=tuple(entry.slug for entry in chart.lists if entry.cadence == "monthly"),
+        )
 
         if guarded.missing:
             # ⚠️ **Absent, not smaller.** A chart built from the vendors that did answer is exactly the silent wrong
@@ -370,11 +448,15 @@ def gather(week: str) -> dict:
             slug=chart.slug,
             current=[
                 {
+                    # ⚠️ **The work** (ticket 32) — the field `window.observe` keys the week by, and the same one the
+                    # snapshot will carry, so the week being built and the weeks already on disk agree about what a row
+                    # *is*. ⚠️ `isbn` rides along because it is a field of the row, not its identity.
+                    "key": title.key,
                     "isbn": title.isbn,
-                    "score": weekly.get(title.isbn, 0.0),
-                    "rating": details[title.isbn].rating if title.isbn in details else None,
+                    "score": weekly.get(title.key, 0.0),
+                    "rating": details[title.key].rating if title.key in details else None,
                     "ratings_count": (
-                        details[title.isbn].ratings_count if title.isbn in details else None
+                        details[title.key].ratings_count if title.key in details else None
                     ),
                 }
                 for title in admitted.admitted
@@ -433,7 +515,44 @@ def _covered(bundle: dict, only: tuple[str, ...] | None = None) -> list[str]:
     )
 
 
-def _produce(chart: charts.Chart, week: str, *, kind: str) -> pathlib.Path:
+def _seconds(bundle: dict, slug: str) -> float:
+    """One chart's video length, in seconds — **read off the timeline the renderer is handed**, never re-derived.
+
+    ⚠️ The bundle's `timeline.total_frames` is what the composition's `durationInFrames` comes from (ticket 06), so it
+    is the only number that is certainly the video's length. Recomputing it from the row count would be a second copy
+    of the arithmetic — and the copy that fell behind would be the one the bed was cut to, which shows up as music that
+    stops before the close card.
+    """
+    timeline = bundle["charts"][slug]["timeline"]
+    return timeline["total_frames"] / timeline["fps"]
+
+
+def _music(week: str, chart: charts.Chart, seconds: float) -> tuple[pathlib.Path, str] | None:
+    """Normalise the supplied bed for **one chart's** run, or `None` when none was supplied (0085_11).
+
+    ⚠️ **One bed per chart, where the brief has one per run.** The brief's two editions are the same length, so a single
+    derived file serves both; four charts are four lengths, and each chart's fade-out is anchored to the end of *its*
+    run — so one file cut to the longest would run past the shorter charts' close cards.
+
+    ⚠️ The bed is the **brief's own** (`paths.music_dir()`), and the toolchain is the repository's (`paths.repo_root()`):
+    this product borrows both, exactly as it borrows the mark.
+
+    ⚠️ The derived bed lands in the chart's own package folder and is removed by the caller whether the run succeeds or
+    not. The master in `resource/` is only ever an input and is never written — see `market_overview.audio`.
+    """
+    directory = package.dir_for(week, chart.slug)
+    directory.mkdir(parents=True, exist_ok=True)
+    return audio.prepare(
+        directory,
+        seconds,
+        root=paths.repo_root(),
+        resource=paths.music_dir(),
+    )
+
+
+def _produce(
+    chart: charts.Chart, week: str, *, kind: str, bed: pathlib.Path | None = None
+) -> pathlib.Path:
     """Render one artefact **into scratch, and move it into place only once it is whole.**
 
     ⚠️ **Remotion's `--overwrite` unlinks its target before writing it.** Rendering straight at the package file would
@@ -452,6 +571,11 @@ def _produce(chart: charts.Chart, week: str, *, kind: str) -> pathlib.Path:
     **still has no codec to validate**, which is why every thumbnail rendered happily and only the videos died — the
     worst shape a bug can have. ⚠️ The reel never had it: `.reel-vinyl.mp4` keeps its extension, and that is what this
     matches.
+
+    ⚠️ **`bed` is the chart's already-normalised music, and it is muxed on, never baked in.** The composition carries no
+    audio at all; the bed is put on the finished file here (`audio.mux`, `-c:v copy`), so the frames that land in the
+    package are bit-for-bit the ones the renderer produced. ⚠️ `None` is a **supported** state — no `music.*` supplied —
+    and the video is simply moved into place silent, exactly as the brief behaves without a bed.
     """
     directory = package.dir_for(week, chart.slug)
     directory.mkdir(parents=True, exist_ok=True)
@@ -472,7 +596,14 @@ def _produce(chart: charts.Chart, week: str, *, kind: str) -> pathlib.Path:
             raise render.RenderError(
                 f"{chart.slug}: remotion reported success and wrote nothing at {scratch.name}"
             )
-        scratch.replace(target)
+        if bed is not None:
+            # ⚠️ **The music is added after the render, and the picture is copied rather than re-encoded.** A bed baked
+            # into the composition would be encoded once per chart and would skip `audio.prepare`'s loudness
+            # normalisation; muxing keeps the render silent and the picture untouched. ⚠️ `audio.mux` writes the target
+            # through its own staging file, so the package path is never observable as a half-written one.
+            audio.mux(scratch, bed, target, root=paths.repo_root())
+        else:
+            scratch.replace(target)
     finally:
         # ⚠️ Removed even on failure: a crashed run must not leave scratch where a deliverable belongs.
         scratch.unlink(missing_ok=True)
@@ -483,8 +614,10 @@ def _produce(chart: charts.Chart, week: str, *, kind: str) -> pathlib.Path:
 def build(week: str, only: tuple[str, ...] = ()) -> int:
     """Build one week's charts — or **replay** the snapshot when the week is already recorded.
 
-    ⚠️ **The order is the run.** Thumbnails before videos (ticket 16's quality gate), and the package last — because the
-    metadata describes artefacts that have to exist, and the manifest is what says the folder is finished.
+    ⚠️ **The order is the run.** The bed is cut first — **per chart**, because an unusable one is a refusal and a refusal
+    that arrives after an hour of frames is an hour spent learning nothing — then thumbnails before videos (ticket 16's
+    quality gate), and the package last, because the metadata describes artefacts that have to exist and the manifest is
+    what says the folder is finished.
 
     ⚠️ ⚠️ **`only` narrows the *render*, never the *gather*.** The bundle is the week's evidence and the replay path
     (ADR 0003), so a run asked for one chart still fetches, corroborates and snapshots the **whole** week — a partial
@@ -496,7 +629,12 @@ def build(week: str, only: tuple[str, ...] = ()) -> int:
     if snapshot.is_file():
         # ⚠️ The switch. A snapshot is only ever written by a run that got past the refusal below, so finding one means
         # the week is already established — and re-fetching it would produce a *different* chart from the same week.
-        bundle = store.read_facts(week)
+        recorded = store.read_facts(week)
+        # ⚠️ The rows replay as recorded; the **running order** is re-laid by today's schedule (see `facts.retime`),
+        # and written back so the staged copy — a byte-for-byte copy of the snapshot — carries it too.
+        bundle = facts.retime(recorded)
+        if bundle != recorded:
+            store.write_facts(week, bundle)
     else:
         bundle = gather(week)
         if not bundle["charts"]:
@@ -507,9 +645,11 @@ def build(week: str, only: tuple[str, ...] = ()) -> int:
     built = {slug: charts.get(slug) for slug in sorted(bundle["charts"])}
 
     # ⚠️ ⚠️ **A chart that was asked for and is not in the bundle is said out loud.** The alternative is a run that
-    # prints nothing, exits zero and produces no video — which reads as success. ⚠️ And it is the *ordinary* case
-    # today: `comics` and `all-language` depend on a source that cannot be date-verified, so they are absent every week,
-    # and an operator who asked for one of them is owed that sentence rather than a folder to go and check.
+    # prints nothing, exits zero and produces no video — which reads as success. ⚠️ **The ordinary case is a replayed
+    # week**: a snapshot holds the charts that were built when it was written, and asking a recorded week for a chart it
+    # does not hold cannot fetch one (ADR 0003 — the snapshot's existence is the switch), so the operator is owed that
+    # sentence rather than a folder to go and check. ⚠️ The other case is a chart whose declared sources did not answer
+    # this run, which is ticket 18's absent-not-smaller rule arriving one step later.
     wanted = list(built)
     if only:
         asked = list(dict.fromkeys(only))
@@ -546,18 +686,42 @@ def build(week: str, only: tuple[str, ...] = ()) -> int:
         # 10 refuses.
         return 1
 
-    # ⚠️ **Every thumbnail before any video.** Four one-frame stills cost seconds, so a chart whose collage reads badly
-    # is seen and killed before an hour of frames is spent on it — the reel's own ordering, and its reason.
-    for chart in rendering:
-        _produce(chart, week, kind="thumbnail")
+    # ⚠️ **The bed, per chart, before any render** — the brief's own ordering (0085_11), for the brief's own reason: an
+    # unusable bed is a **refusal**, and a refusal that arrives after an hour of frames is an hour spent learning that
+    # nothing was ever going to work. ⚠️ **Per chart, not per run**: four charts are four lengths, and each chart's
+    # fade-out is anchored to the end of its own run (see `_music`).
+    beds: dict[str, pathlib.Path] = {}
+    try:
+        for chart in rendering:
+            try:
+                prepared = _music(week, chart, _seconds(bundle, chart.slug))
+            except audio.AudioError as exc:
+                print(f"{week}/{chart.slug}: refusing to render — {exc}", file=sys.stderr)
+                return 1
+            if prepared is not None:
+                beds[chart.slug] = prepared[0]
+                print(prepared[1], flush=True)
 
-    for chart in rendering:
-        _produce(chart, week, kind="video")
+        # ⚠️ **Every thumbnail before any video.** Four one-frame stills cost seconds, so a chart whose collage reads
+        # badly is seen and killed before an hour of frames is spent on it — the reel's own ordering, and its reason.
+        for chart in rendering:
+            _produce(chart, week, kind="thumbnail")
 
-    # ⚠️ **The package last, per chart** — `metadata-<chart>.json` is the file that says the folder is finished
-    # (ticket 13), and it cannot honestly say so until the video and the thumbnail are both there.
-    for chart in rendering:
-        package.assemble(week, chart)
+        # ⚠️ The bed rides **beside** the render, never inside it: it is muxed onto the finished video, so the picture is
+        # bit-for-bit what the renderer produced (see `_produce`). A chart with no bed supplied is simply moved silent.
+        for chart in rendering:
+            _produce(chart, week, kind="video", bed=beds.get(chart.slug))
+
+        # ⚠️ **The package last, per chart** — `metadata-<chart>.json` is the file that says the folder is finished
+        # (ticket 13), and it cannot honestly say so until the video and the thumbnail are both there.
+        for chart in rendering:
+            package.assemble(week, chart)
+    finally:
+        # ⚠️ The derived bed is scratch, and it lives inside the chart's package folder — the folder a human opens to find
+        # the week's deliverable. Left behind it is a file with no explanation, so it goes whether the run succeeded or
+        # not. The master in `resource/` is untouched either way; this is a copy.
+        for bed in beds.values():
+            bed.unlink(missing_ok=True)
 
     return 0
 
